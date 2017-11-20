@@ -1,0 +1,118 @@
+{
+  "name": "aurelia-store",
+  "version": "0.0.1",
+  "description": "Aurelia single state store based on RxJS",
+  "keywords": [
+    "rxjs",
+    "store",
+    "behaviorsubject",
+    "aurelia"
+  ],
+  "main": "dist/commonjs/aurelia-store.js",
+  "typings": "dist/commonjs/aurelia-store.d.ts",
+  "scripts": {
+    "lint": "cross-env tslint --project tsconfig.json",
+    "pretest": "cross-env npm run lint",
+    "test": "cross-env jest",
+    "test-watch": "concurrently \"./node_modules/.bin/tsc --watch\" \"./node_modules/.bin/karma start\"",
+    "build:amd": "cross-env tsc --outDir dist/amd --module amd",
+    "build:commonjs": "cross-env tsc --outDir dist/commonjs --module commonjs",
+    "build:es2015": "cross-env tsc --outDir dist/es2015 --module es2015",
+    "build:native-modules": "cross-env tsc --outDir dist/native-modules --module es2015",
+    "build:system": "cross-env tsc --outDir dist/system --module system",
+    "prebuild": "cross-env rimraf dist",
+    "postbuild": "gulp",
+    "build": "concurrently \"npm run build:amd\" \"npm run build:commonjs\" \"npm run build:es2015\" \"npm run build:native-modules\" \"npm run build:system\"",
+    "prepare-release": "cross-env npm run build && semantic-release pre && npm publish && semantic-release post"
+  },
+  "jest": {
+    "modulePaths": [
+      "<rootDir>/src",
+      "<rootDir>/node_modules"
+    ],
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "transform": {
+      "^.+\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js",
+      "^.+\\.(scss|css)$": "<rootDir>/node_modules/jest-css-modules"
+    },
+    "testRegex": "\\.spec\\.(ts|js)x?$",
+    "setupFiles": [
+      "<rootDir>/test/jest-pretest.ts"
+    ],
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "aurelia-(.*)": "<rootDir>/node_modules/$1",
+      "^.+\\.(css)$": "<rootDir>/test/jest-css-stub.js"
+    },
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "src/**/*.{js,ts}",
+      "!**/*.spec.{js,ts}",
+      "!**/node_modules/**",
+      "!**/test/**"
+    ],
+    "coverageDirectory": "<rootDir>/test/coverage-jest",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ],
+    "coverageReporters": [
+      "json",
+      "lcov",
+      "text",
+      "html"
+    ],
+    "mapCoverage": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zewa666/aurelia-store.git"
+  },
+  "author": "Vildan Softic <zewa666@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/zewa666/aurelia-store#readme",
+  "bugs": {
+    "url": "https://github.com/zewa666/aurelia-store/issues"
+  },
+  "jspm": {
+    "registry": "npm",
+    "jspmPackage": true,
+    "main": "aurelia-store",
+    "format": "cjs",
+    "directories": {
+      "dist": "dist/commonjs"
+    }
+  },
+  "dependencies": {
+    "aurelia-dependency-injection": "^1.3.1",
+    "aurelia-framework": "^1.1.2",
+    "aurelia-logging": "^1.3.1",
+    "aurelia-pal": "^1.3.0",
+    "rxjs": "^5.5.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^21.1.4",
+    "@types/node": "^8.0.0",
+    "aurelia-bootstrapper": "^2.1.1",
+    "aurelia-loader-nodejs": "^1.0.1",
+    "aurelia-pal-browser": "^1.2.1",
+    "aurelia-pal-nodejs": "^1.0.0-beta.2.0.0",
+    "aurelia-polyfills": "^1.2.1",
+    "aurelia-testing": "^1.0.0-beta.3.0.1",
+    "concurrently": "^3.4.0",
+    "cross-env": "^5.0.1",
+    "gulp": "^3.9.1",
+    "gulp-sass": "^3.1.0",
+    "jest": "^21.2.1",
+    "jest-css-modules": "^1.1.0",
+    "node-sass": "^4.5.3",
+    "rimraf": "^2.6.1",
+    "semantic-release": "^6.3.6",
+    "ts-jest": "^21.1.3",
+    "tslint": "^5.4.3",
+    "typescript": "^2.6.1"
+  }
+}
