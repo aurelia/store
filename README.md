@@ -109,6 +109,10 @@ export class App {
 
 ```
 
+## Async actions
+You may also register actions which resolve the newly created state with a promise.
+
+
 ## Acknowledgement
 Thanks goes to Dwayne Charrington for his Aurelia-TypeScript starter package https://github.com/Vheissu/aurelia-typescript-plugin
 
