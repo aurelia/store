@@ -6,25 +6,19 @@ import {
   LogManager
 } from "aurelia-framework";
 
+export type Reducer<T> = (state: T) => T | Promise<T>;
+
 @autoinject()
 export class Store<T> {
-  // Aurelia logging helper
-  public logger = LogManager.getLogger("aurelia-store");
-
-  // Redux-DevTools? Hell yeah
-  public devToolsAvailable: boolean = false;
-  public devTools: any;
-
-  // our initial state
-  public initialState: T;
-
-  public actions: Map<(state: T) => T, { name: string, reducer: (state: T) => T}> = new Map();
-
   public readonly state: Observable<T>;
+
+  private logger = LogManager.getLogger("aurelia-store");
+  private devToolsAvailable: boolean = false;
+  private devTools: any;
+  private initialState: T;
+  private actions: Map<Reducer<T>, { name: string, reducer: Reducer<T>}> = new Map();
   private _state: BehaviorSubject<T>;
 
-  // extract implementations into a simple service
-  // this way you can leverage both a observable and traditional style
   constructor(initialState: T) {
     this.initialState = initialState;
     this._state = new BehaviorSubject(this.initialState);
@@ -33,39 +27,47 @@ export class Store<T> {
     this.setupDevTools();
   }
 
-  public registerAction(name: string, reducer: (state: T) => T) {
+  public registerAction(name: string, reducer: Reducer<T>) {
+    if (reducer.length !== 1) {
+      throw new Error("The reducer is expected to have exactly one parameter, which will be the current state");
+    }
+
     this.actions.set(reducer, { name, reducer });
   }
 
-  public dispatch(reducer: (state: T) => T) {
+  public dispatch(reducer: Reducer<T>) {
     if (this.actions.has(reducer)) {
       const action = this.actions.get(reducer);
-      const newState = action!.reducer(this._state.getValue());
-      this._state.next(newState);
+      const result = action!.reducer(this._state.getValue());
 
-      this.updateDevToolsState(action!.name, newState);
+      if (!result && typeof result !== "object") {
+        throw new Error("The reducer has to return a new state");
+      }
+
+      const apply = (newState: T) => {
+        this._state.next(newState);
+        this.updateDevToolsState(action!.name, newState);
+      }
+
+      if (typeof (result as Promise<T>).then === "function") {
+        (result as Promise<T>).then((resolvedState: T) => apply(resolvedState));
+      } else {
+        apply(result as T);
+      }
     }
   }
 
-  /* ACTIONS */
   private setupDevTools() {
-    // check whether the user has the Redux-DevTools browser extension installed
     if ((<any>window).devToolsExtension) {
       this.logger.info("DevTools are available");
       this.devToolsAvailable = true;
-
-      // establish a connection with the DevTools
       this.devTools = (<any>window).__REDUX_DEVTOOLS_EXTENSION__.connect();
-
-      // set the initial state
       this.devTools.init(this.initialState);
 
-      // subscribe to changes, e.g navigation from within the DevTools
       this.devTools.subscribe((message: any) => {
         this.logger.debug(`DevTools sent change ${message.type}`);
 
         if (message.type === "DISPATCH") {
-          // the state is sent as string, so don't forget to parse it :)
           this._state.next(JSON.parse(message.state));
         }
       });
@@ -73,7 +75,6 @@ export class Store<T> {
   }
 
   private updateDevToolsState(action: string, state: T) {
-    // if the Redux-DevTools are available, sync the states
     if (this.devToolsAvailable) {
       this.devTools.send(action, state);
     }

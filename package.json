@@ -1,6 +1,6 @@
 {
   "name": "aurelia-store",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Aurelia single state store based on RxJS",
   "keywords": [
     "rxjs",
@@ -14,7 +14,7 @@
     "lint": "cross-env tslint --project tsconfig.json",
     "pretest": "cross-env npm run lint",
     "test": "cross-env jest",
-    "test-watch": "concurrently \"./node_modules/.bin/tsc --watch\" \"./node_modules/.bin/karma start\"",
+    "test-watch": "concurrently \"tsc --watch\" \"jest --watch\"",
     "build:amd": "cross-env tsc --outDir dist/amd --module amd",
     "build:commonjs": "cross-env tsc --outDir dist/commonjs --module commonjs",
     "build:es2015": "cross-env tsc --outDir dist/es2015 --module es2015",
@@ -45,7 +45,7 @@
     ],
     "testEnvironment": "node",
     "moduleNameMapper": {
-      "aurelia-(.*)": "<rootDir>/node_modules/$1",
+      "aurelia-(.*)": "<rootDir>/node_modules/aurelia-$1",
       "^.+\\.(css)$": "<rootDir>/test/jest-css-stub.js"
     },
     "collectCoverage": true,

@@ -9,12 +9,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var BehaviorSubject_1 = require("rxjs/BehaviorSubject");
 var aurelia_framework_1 = require("aurelia-framework");
 var Store = /** @class */ (function () {
-    // extract implementations into a simple service
-    // this way you can leverage both a observable and traditional style
     function Store(initialState) {
-        // Aurelia logging helper
         this.logger = aurelia_framework_1.LogManager.getLogger("aurelia-store");
-        // Redux-DevTools? Hell yeah
         this.devToolsAvailable = false;
         this.actions = new Map();
         this.initialState = initialState;
@@ -23,39 +19,47 @@ var Store = /** @class */ (function () {
         this.setupDevTools();
     }
     Store.prototype.registerAction = function (name, reducer) {
+        if (reducer.length !== 1) {
+            throw new Error("The reducer is expected to have exactly one parameter, which will be the current state");
+        }
         this.actions.set(reducer, { name: name, reducer: reducer });
     };
     Store.prototype.dispatch = function (reducer) {
+        var _this = this;
         if (this.actions.has(reducer)) {
-            var action = this.actions.get(reducer);
-            var newState = action.reducer(this._state.getValue());
-            this._state.next(newState);
-            this.updateDevToolsState(action.name, newState);
+            var action_1 = this.actions.get(reducer);
+            var result = action_1.reducer(this._state.getValue());
+            if (!result && typeof result !== "object") {
+                throw new Error("The reducer has to return a new state");
+            }
+            var apply_1 = function (newState) {
+                _this._state.next(newState);
+                _this.updateDevToolsState(action_1.name, newState);
+            };
+            if (typeof result.then === "function") {
+                result.then(function (resolvedState) { return apply_1(resolvedState); });
+            }
+            else {
+                apply_1(result);
+            }
         }
     };
-    /* ACTIONS */
     Store.prototype.setupDevTools = function () {
         var _this = this;
-        // check whether the user has the Redux-DevTools browser extension installed
         if (window.devToolsExtension) {
             this.logger.info("DevTools are available");
             this.devToolsAvailable = true;
-            // establish a connection with the DevTools
             this.devTools = window.__REDUX_DEVTOOLS_EXTENSION__.connect();
-            // set the initial state
             this.devTools.init(this.initialState);
-            // subscribe to changes, e.g navigation from within the DevTools
             this.devTools.subscribe(function (message) {
                 _this.logger.debug("DevTools sent change " + message.type);
                 if (message.type === "DISPATCH") {
-                    // the state is sent as string, so don't forget to parse it :)
                     _this._state.next(JSON.parse(message.state));
                 }
             });
         }
     };
     Store.prototype.updateDevToolsState = function (action, state) {
-        // if the Redux-DevTools are available, sync the states
         if (this.devToolsAvailable) {
             this.devTools.send(action, state);
         }
