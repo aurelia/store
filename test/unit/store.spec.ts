@@ -1,20 +1,10 @@
-import { Store } from "./../../src/store";
-
 import "rxjs/add/operator/skip";
-import { executeSteps } from "../helpers";
+
+import { executeSteps }  from "../../src/test-helpers";
+import { Store } from "../../src/store";
+import { createTestStore } from "./helpers";
 
 describe("store", () => {
-
-  function createTestStore() {
-    type testState = {
-      foo: string
-    };
-
-    const initialState = { foo: "bar" };
-    const store: Store<testState> = new Store(initialState);
-
-    return { initialState, store };
-  }
 
   it("should accept an initial state", done => {
     const { initialState, store } = createTestStore();
@@ -72,29 +62,6 @@ describe("store", () => {
     // since the async action is coming at a later time we need to skip the initial state
     store.state.skip(1).subscribe((state) => {
       expect(state).toEqual(modifiedState);
-      done();
-    });
-  });
-
-  it("should update Redux DevTools", done => {
-    const { initialState, store } = createTestStore();
-
-    const spy = jest.spyOn(store, "updateDevToolsState" as any);
-
-    const modifiedState = { foo: "bert" };
-    const fakeAction = (currentState) => {
-      return Object.assign({}, currentState, modifiedState);
-    };
-
-    store.registerAction("FakeAction", fakeAction);
-    store.dispatch(fakeAction);
-
-    store.state.subscribe((state) => {
-      expect(spy).toHaveBeenCalled();
-
-      spy.mockReset();
-      spy.mockRestore();
-      
       done();
     });
   });

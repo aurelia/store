@@ -1,7 +1,6 @@
-System.register(["./store"], function (exports_1, context_1) {
+System.register(["./store", "./test-helpers"], function (exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
-    // import { PLATFORM } from "aurelia-pal";
     function configure(aurelia, initialState) {
         aurelia.container
             .registerInstance(store_1.Store, new store_1.Store(initialState));
@@ -23,6 +22,9 @@ System.register(["./store"], function (exports_1, context_1) {
             function (store_1_1) {
                 store_1 = store_1_1;
                 exportStar_1(store_1_1);
+            },
+            function (test_helpers_1_1) {
+                exportStar_1(test_helpers_1_1);
             }
         ],
         execute: function () {

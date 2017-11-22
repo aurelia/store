@@ -1,6 +1,5 @@
 import { FrameworkConfiguration } from "aurelia-framework";
 import { Store } from "./store";
-// import { PLATFORM } from "aurelia-pal";
 
 export function configure<T>(
   aurelia: FrameworkConfiguration,
@@ -11,3 +10,4 @@ export function configure<T>(
 }
 
 export * from "./store";
+export * from "./test-helpers";
