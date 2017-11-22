@@ -1,6 +1,7 @@
 import { Store } from "./../../src/store";
 
-import "rxjs/add/operator/skip"; 
+import "rxjs/add/operator/skip";
+import { executeSteps } from "../helpers";
 
 describe("store", () => {
 
@@ -96,5 +97,27 @@ describe("store", () => {
       
       done();
     });
-  })
-})
+  });
+
+  it("should provide easy means to test sequences", async () => {
+    expect.assertions(3);
+    const { initialState, store } = createTestStore();
+    const modifiedState = { foo: "bert" };
+
+    const actionA = (currentState) => Promise.resolve({ foo: "A"});
+    const actionB = (currentState) => Promise.resolve({ foo: "B"});
+    const actionC = (currentState) => Promise.resolve({ foo: "C"});
+    store.registerAction("Action A", actionA);
+    store.registerAction("Action B", actionB);
+    store.registerAction("Action C", actionC);
+    
+    await executeSteps(
+      store,
+      false,
+      (res) => store.dispatch(actionA),
+      (res) => { expect(res.foo).toBe("A"); store.dispatch(actionB); },
+      (res) => { expect(res.foo).toBe("B"); store.dispatch(actionC); },
+      (res) => expect(res.foo).toBe("C")
+    );
+  });
+});
