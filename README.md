@@ -109,6 +109,25 @@ export class App {
 
 ```
 
+## Passing parameters to actions
+You can provide parameters to your actions by adding them after the initial state parameter. When dispatching provide your values which will be spread to the actual reducer.
+
+```typescript
+// additional parameter
+const greetingAction = (state: State, greetingTarget: string) => {
+  const newState = Object.assign({}, state);
+  newState.target = greetingTarget;
+
+  return newState;
+}
+
+...
+
+// dispatching with the value for greetingTarget
+this.store.dispatch(greetingAction, "zewa666");
+```
+
+
 ## Async actions
 You may also register actions which resolve the newly created state with a promise.
 
