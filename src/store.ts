@@ -6,7 +6,7 @@ import {
   LogManager
 } from "aurelia-framework";
 
-export type Reducer<T> = (state: T) => T | Promise<T>;
+export type Reducer<T> = (state: T, ...params: any[]) => T | Promise<T>;
 
 @autoinject()
 export class Store<T> {
@@ -28,17 +28,17 @@ export class Store<T> {
   }
 
   public registerAction(name: string, reducer: Reducer<T>) {
-    if (reducer.length !== 1) {
-      throw new Error("The reducer is expected to have exactly one parameter, which will be the current state");
+    if (reducer.length === 0) {
+      throw new Error("The reducer is expected to have one or more parameters, where the first will be the current state");
     }
 
     this.actions.set(reducer, { name, reducer });
   }
 
-  public dispatch(reducer: Reducer<T>) {
+  public dispatch(reducer: Reducer<T>, ...params: any[]) {
     if (this.actions.has(reducer)) {
       const action = this.actions.get(reducer);
-      const result = action!.reducer(this._state.getValue());
+      const result = action!.reducer(this._state.getValue(), ...params);
 
       if (!result && typeof result !== "object") {
         throw new Error("The reducer has to return a new state");

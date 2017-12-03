@@ -17,16 +17,20 @@ var Store = /** @class */ (function () {
         this.setupDevTools();
     }
     Store.prototype.registerAction = function (name, reducer) {
-        if (reducer.length !== 1) {
-            throw new Error("The reducer is expected to have exactly one parameter, which will be the current state");
+        if (reducer.length === 0) {
+            throw new Error("The reducer is expected to have one or more parameters, where the first will be the current state");
         }
         this.actions.set(reducer, { name: name, reducer: reducer });
     };
     Store.prototype.dispatch = function (reducer) {
         var _this = this;
+        var params = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            params[_i - 1] = arguments[_i];
+        }
         if (this.actions.has(reducer)) {
             var action_1 = this.actions.get(reducer);
-            var result = action_1.reducer(this._state.getValue());
+            var result = (_a = action_1).reducer.apply(_a, [this._state.getValue()].concat(params));
             if (!result && typeof result !== "object") {
                 throw new Error("The reducer has to return a new state");
             }
@@ -41,6 +45,7 @@ var Store = /** @class */ (function () {
                 apply_1(result);
             }
         }
+        var _a;
     };
     Store.prototype.setupDevTools = function () {
         var _this = this;

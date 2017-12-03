@@ -2,7 +2,7 @@ import "rxjs/add/operator/skip";
 import "rxjs/add/operator/take";
 import "rxjs/add/operator/delay";
 
-import { Store } from "../src/store";
+import { Store } from "./store";
 
 
 export type StepFn<T> = (res: T) => void;

@@ -1,6 +1,6 @@
 import "rxjs/add/operator/skip";
 
-import { executeSteps }  from "../../src/test-helpers";
+import { executeSteps } from "../../src/test-helpers";
 import { Store } from "../../src/store";
 import { createTestStore } from "./helpers";
 
@@ -15,7 +15,7 @@ describe("store", () => {
     });
   });
 
-  it("should accept only reducers taking exactly one parameter", () => {
+  it("should only accept reducers taking at least one parameter", () => {
     const { initialState, store } = createTestStore();
     const fakeAction = () => { };
 
@@ -33,6 +33,21 @@ describe("store", () => {
     expect(() => {
       store.dispatch(fakeAction as any);
     }).toThrowError();
+  });
+
+  it("should accept reducers taking multiple parameters", done => {
+    const { initialState, store } = createTestStore();
+    const fakeAction = (currentState, param1, param2) => {
+      return Object.assign({}, currentState, { foo: param1 + param2 })
+    };
+
+    store.registerAction("FakeAction", fakeAction as any);
+    store.dispatch(fakeAction, "A", "B");
+
+    store.state.subscribe((state) => {
+      expect(state.foo).toEqual("AB");
+      done();
+    });
   });
 
   it("should queue the next state after dispatching an action", done => {
@@ -71,13 +86,13 @@ describe("store", () => {
     const { initialState, store } = createTestStore();
     const modifiedState = { foo: "bert" };
 
-    const actionA = (currentState) => Promise.resolve({ foo: "A"});
-    const actionB = (currentState) => Promise.resolve({ foo: "B"});
-    const actionC = (currentState) => Promise.resolve({ foo: "C"});
+    const actionA = (currentState) => Promise.resolve({ foo: "A" });
+    const actionB = (currentState) => Promise.resolve({ foo: "B" });
+    const actionC = (currentState) => Promise.resolve({ foo: "C" });
     store.registerAction("Action A", actionA);
     store.registerAction("Action B", actionB);
     store.registerAction("Action C", actionC);
-    
+
     await executeSteps(
       store,
       false,
