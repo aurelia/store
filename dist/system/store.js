@@ -7,6 +7,38 @@ System.register(["rxjs/BehaviorSubject", "aurelia-framework"], function (exports
         return c > 3 && r && Object.defineProperty(target, key, r), r;
     };
     var __moduleName = context_1 && context_1.id;
+    function jump(state, n) {
+        if (n > 0)
+            return jumpToFuture(state, n - 1);
+        if (n < 0)
+            return jumpToPast(state, state.past.length + n);
+        return state;
+    }
+    exports_1("jump", jump);
+    // jumpToFuture: jump to requested index in future history
+    function jumpToFuture(state, index) {
+        if (index < 0 || index >= state.future.length) {
+            return state;
+        }
+        var _a = state, past = _a.past, future = _a.future, current = _a.current;
+        var newPast = past.concat([current], future.slice(0, index));
+        var newCurrent = future[index];
+        var newFuture = future.slice(index + 1);
+        return { past: newPast, current: newCurrent, future: newFuture };
+    }
+    exports_1("jumpToFuture", jumpToFuture);
+    // jumpToPast: jump to requested index in past history
+    function jumpToPast(state, index) {
+        if (index < 0 || index >= state.past.length) {
+            return state;
+        }
+        var _a = state, past = _a.past, future = _a.future, current = _a.current;
+        var newPast = past.slice(0, index);
+        var newFuture = past.slice(index + 1).concat([current], future);
+        var newCurrent = past[index];
+        return { past: newPast, current: newCurrent, future: newFuture };
+    }
+    exports_1("jumpToPast", jumpToPast);
     var BehaviorSubject_1, aurelia_framework_1, Store;
     return {
         setters: [
@@ -19,14 +51,17 @@ System.register(["rxjs/BehaviorSubject", "aurelia-framework"], function (exports
         ],
         execute: function () {
             Store = /** @class */ (function () {
-                function Store(initialState) {
+                function Store(initialState, undoable) {
+                    if (undoable === void 0) { undoable = false; }
+                    this.initialState = initialState;
+                    this.undoable = undoable;
                     this.logger = aurelia_framework_1.LogManager.getLogger("aurelia-store");
                     this.devToolsAvailable = false;
                     this.actions = new Map();
-                    this.initialState = initialState;
-                    this._state = new BehaviorSubject_1.BehaviorSubject(this.initialState);
+                    this._state = new BehaviorSubject_1.BehaviorSubject(this.undoable ? { past: [], current: initialState, future: [] } : initialState);
                     this.state = this._state.asObservable();
                     this.setupDevTools();
+                    this.registerHistoryMethods();
                 }
                 Store.prototype.registerAction = function (name, reducer) {
                     if (reducer.length === 0) {
@@ -78,6 +113,9 @@ System.register(["rxjs/BehaviorSubject", "aurelia-framework"], function (exports
                     if (this.devToolsAvailable) {
                         this.devTools.send(action, state);
                     }
+                };
+                Store.prototype.registerHistoryMethods = function () {
+                    this.registerAction("jump", jump);
                 };
                 Store = __decorate([
                     aurelia_framework_1.autoinject()

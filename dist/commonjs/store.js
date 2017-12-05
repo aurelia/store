@@ -9,14 +9,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var BehaviorSubject_1 = require("rxjs/BehaviorSubject");
 var aurelia_framework_1 = require("aurelia-framework");
 var Store = /** @class */ (function () {
-    function Store(initialState) {
+    function Store(initialState, undoable) {
+        if (undoable === void 0) { undoable = false; }
+        this.initialState = initialState;
+        this.undoable = undoable;
         this.logger = aurelia_framework_1.LogManager.getLogger("aurelia-store");
         this.devToolsAvailable = false;
         this.actions = new Map();
-        this.initialState = initialState;
-        this._state = new BehaviorSubject_1.BehaviorSubject(this.initialState);
+        this._state = new BehaviorSubject_1.BehaviorSubject(this.undoable ? { past: [], current: initialState, future: [] } : initialState);
         this.state = this._state.asObservable();
         this.setupDevTools();
+        this.registerHistoryMethods();
     }
     Store.prototype.registerAction = function (name, reducer) {
         if (reducer.length === 0) {
@@ -69,9 +72,44 @@ var Store = /** @class */ (function () {
             this.devTools.send(action, state);
         }
     };
+    Store.prototype.registerHistoryMethods = function () {
+        this.registerAction("jump", jump);
+    };
     Store = __decorate([
         aurelia_framework_1.autoinject()
     ], Store);
     return Store;
 }());
 exports.Store = Store;
+function jump(state, n) {
+    if (n > 0)
+        return jumpToFuture(state, n - 1);
+    if (n < 0)
+        return jumpToPast(state, state.past.length + n);
+    return state;
+}
+exports.jump = jump;
+// jumpToFuture: jump to requested index in future history
+function jumpToFuture(state, index) {
+    if (index < 0 || index >= state.future.length) {
+        return state;
+    }
+    var _a = state, past = _a.past, future = _a.future, current = _a.current;
+    var newPast = past.concat([current], future.slice(0, index));
+    var newCurrent = future[index];
+    var newFuture = future.slice(index + 1);
+    return { past: newPast, current: newCurrent, future: newFuture };
+}
+exports.jumpToFuture = jumpToFuture;
+// jumpToPast: jump to requested index in past history
+function jumpToPast(state, index) {
+    if (index < 0 || index >= state.past.length) {
+        return state;
+    }
+    var _a = state, past = _a.past, future = _a.future, current = _a.current;
+    var newPast = past.slice(0, index);
+    var newFuture = past.slice(index + 1).concat([current], future);
+    var newCurrent = past[index];
+    return { past: newPast, current: newCurrent, future: newFuture };
+}
+exports.jumpToPast = jumpToPast;

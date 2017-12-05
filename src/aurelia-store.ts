@@ -3,10 +3,11 @@ import { Store } from "./store";
 
 export function configure<T>(
   aurelia: FrameworkConfiguration,
-  initialState: T
+  initialState: T,
+  undoable: boolean = false
 ) {
   aurelia.container
-    .registerInstance(Store, new Store(initialState));
+    .registerInstance(Store, new Store(initialState, undoable));
 }
 
 export * from "./store";

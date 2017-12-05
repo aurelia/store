@@ -1,9 +1,10 @@
 System.register(["./store", "./test-helpers"], function (exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
-    function configure(aurelia, initialState) {
+    function configure(aurelia, initialState, undoable) {
+        if (undoable === void 0) { undoable = false; }
         aurelia.container
-            .registerInstance(store_1.Store, new store_1.Store(initialState));
+            .registerInstance(store_1.Store, new store_1.Store(initialState, undoable));
     }
     exports_1("configure", configure);
     var store_1;

@@ -1,30 +1,37 @@
 import { Observable } from "rxjs/Observable";
 import { BehaviorSubject } from "rxjs/BehaviorSubject";
 
-import { 
+import {
   autoinject,
   LogManager
 } from "aurelia-framework";
 
-export type Reducer<T> = (state: T, ...params: any[]) => T | Promise<T>;
+export interface StateHistory<T> {
+  past: T[];
+  current: T;
+  future: T[];
+}
+
+export type NextState<T> = T | StateHistory<T>;
+export type Reducer<T> = (state: NextState<T>, ...params: any[]) => NextState<T> | Promise<NextState<T>>;
 
 @autoinject()
 export class Store<T> {
-  public readonly state: Observable<T>;
+  public readonly state: Observable<NextState<T>>;
 
   private logger = LogManager.getLogger("aurelia-store");
   private devToolsAvailable: boolean = false;
   private devTools: any;
-  private initialState: T;
-  private actions: Map<Reducer<T>, { name: string, reducer: Reducer<T>}> = new Map();
-  private _state: BehaviorSubject<T>;
+  private actions: Map<Reducer<T>, { name: string, reducer: Reducer<T> }> = new Map();
+  private _state: BehaviorSubject<NextState<T>>;
 
-  constructor(initialState: T) {
-    this.initialState = initialState;
-    this._state = new BehaviorSubject(this.initialState);
+  constructor(private initialState: T, private undoable: boolean = false) {
+    this._state = new BehaviorSubject<NextState<T>>(this.undoable ? { past: [], current: initialState, future: [] } : initialState);
     this.state = this._state.asObservable();
-    
+
     this.setupDevTools();
+
+    this.registerHistoryMethods();
   }
 
   public registerAction(name: string, reducer: Reducer<T>) {
@@ -79,4 +86,45 @@ export class Store<T> {
       this.devTools.send(action, state);
     }
   }
+
+  private registerHistoryMethods() {
+    this.registerAction("jump", jump);
+  }
+}
+
+export function jump<T>(state: NextState<T>, n: number) {
+  if (n > 0) return jumpToFuture(state, n - 1)
+  if (n < 0) return jumpToPast(state, (state as StateHistory<T>).past.length + n)
+
+  return state;
+}
+
+// jumpToFuture: jump to requested index in future history
+export function jumpToFuture<T>(state: NextState<T>, index: number) {
+  if (index < 0 || index >= (state as StateHistory<T>).future.length) {
+    return state;
+  }
+
+  const { past, future, current } = (state as StateHistory<T>);
+
+  const newPast = [...past, current, ...future.slice(0, index)];
+  const newCurrent = future[index];
+  const newFuture = future.slice(index + 1);
+
+  return { past: newPast, current: newCurrent, future: newFuture };
+}
+
+// jumpToPast: jump to requested index in past history
+export function jumpToPast<T>(state: NextState<T>, index: number) {
+  if (index < 0 || index >= (state as StateHistory<T>).past.length) {
+    return state;
+  }
+
+  const { past, future, current } = (state as StateHistory<T>);
+
+  const newPast = past.slice(0, index);
+  const newFuture = [...past.slice(index + 1), current, ...future];
+  const newCurrent = past[index];
+
+  return { past: newPast, current: newCurrent, future: newFuture };
 }

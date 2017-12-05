@@ -4,9 +4,10 @@ define(["require", "exports", "./store", "./store", "./test-helpers"], function 
         for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
     }
     Object.defineProperty(exports, "__esModule", { value: true });
-    function configure(aurelia, initialState) {
+    function configure(aurelia, initialState, undoable) {
+        if (undoable === void 0) { undoable = false; }
         aurelia.container
-            .registerInstance(store_1.Store, new store_1.Store(initialState));
+            .registerInstance(store_1.Store, new store_1.Store(initialState, undoable));
     }
     exports.configure = configure;
     __export(store_2);

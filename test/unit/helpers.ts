@@ -1,12 +1,12 @@
 import { Store } from "../../src/store";
 
-export function createTestStore() {
-  type testState = {
-    foo: string
-  };
+export type testState = {
+  foo: string
+};
 
+export function createTestStore(withUndo: boolean = false) {
   const initialState = { foo: "bar" };
-  const store: Store<testState> = new Store(initialState);
+  const store: Store<testState> = new Store(initialState, withUndo);
 
   return { initialState, store };
 }
