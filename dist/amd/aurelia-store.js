@@ -1,4 +1,4 @@
-define(["require", "exports", "./store", "./store", "./test-helpers"], function (require, exports, store_1, store_2, test_helpers_1) {
+define(["require", "exports", "./store", "./store", "./test-helpers", "./history"], function (require, exports, store_1, store_2, test_helpers_1, history_1) {
     "use strict";
     function __export(m) {
         for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -12,4 +12,5 @@ define(["require", "exports", "./store", "./store", "./test-helpers"], function 
     exports.configure = configure;
     __export(store_2);
     __export(test_helpers_1);
+    __export(history_1);
 });

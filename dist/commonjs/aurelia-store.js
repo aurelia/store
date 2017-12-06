@@ -12,3 +12,4 @@ function configure(aurelia, initialState, undoable) {
 exports.configure = configure;
 __export(require("./store"));
 __export(require("./test-helpers"));
+__export(require("./history"));

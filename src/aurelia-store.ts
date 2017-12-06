@@ -12,3 +12,4 @@ export function configure<T>(
 
 export * from "./store";
 export * from "./test-helpers";
+export * from "./history";

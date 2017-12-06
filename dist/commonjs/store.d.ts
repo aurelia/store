@@ -1,9 +1,5 @@
 import { Observable } from "rxjs/Observable";
-export interface StateHistory<T> {
-    past: T[];
-    current: T;
-    future: T[];
-}
+import { StateHistory } from "./history";
 export declare type NextState<T> = T | StateHistory<T>;
 export declare type Reducer<T> = (state: NextState<T>, ...params: any[]) => NextState<T> | Promise<NextState<T>>;
 export declare class Store<T> {
@@ -22,6 +18,3 @@ export declare class Store<T> {
     private updateDevToolsState(action, state);
     private registerHistoryMethods();
 }
-export declare function jump<T>(state: NextState<T>, n: number): NextState<T>;
-export declare function jumpToFuture<T>(state: NextState<T>, index: number): NextState<T>;
-export declare function jumpToPast<T>(state: NextState<T>, index: number): NextState<T>;

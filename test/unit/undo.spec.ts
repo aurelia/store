@@ -1,16 +1,16 @@
 import "rxjs/add/operator/skip";
 
 import { executeSteps } from "../../src/test-helpers";
-import { Store, StateHistory, NextState, jump } from "../../src/store";
+import { Store, NextState } from "../../src/store";
 import { createTestStore, testState } from "./helpers";
+import { jump, StateHistory } from "../../src/history";
 
-fdescribe("an undoable store", () => {
-
+describe("an undoable store", () => {
   it("should accept an initial state", done => {
     const { initialState, store } = createTestStore(true);
 
     store.state.subscribe((state: StateHistory<testState>) => {
-      expect(state.current).toEqual(initialState);
+      expect(state.present).toEqual(initialState);
       done();
     });
   });
@@ -38,14 +38,14 @@ fdescribe("an undoable store", () => {
   it("should accept reducers taking multiple parameters", done => {
     const { initialState, store } = createTestStore(true);
     const fakeAction = (currentState, param1, param2) => {
-      return Object.assign({}, currentState, { current: { foo: param1 + param2 }});
+      return Object.assign({}, currentState, { present: { foo: param1 + param2 } });
     };
 
     store.registerAction("FakeAction", fakeAction as any);
     store.dispatch(fakeAction, "A", "B");
 
     store.state.subscribe((state: StateHistory<testState>) => {
-      expect(state.current.foo).toEqual("AB");
+      expect(state.present.foo).toEqual("AB");
       done();
     });
   });
@@ -54,14 +54,14 @@ fdescribe("an undoable store", () => {
     const { initialState, store } = createTestStore(true);
     const modifiedState = { foo: "bert" };
     const fakeAction = (currentState: StateHistory<testState>) => {
-      return Object.assign({}, currentState, { current: modifiedState });
+      return Object.assign({}, currentState, { present: modifiedState });
     };
 
     store.registerAction("FakeAction", fakeAction);
     store.dispatch(fakeAction);
 
     store.state.subscribe((state: StateHistory<testState>) => {
-      expect(state.current).toEqual(modifiedState);
+      expect(state.present).toEqual(modifiedState);
       done();
     });
   });
@@ -69,14 +69,14 @@ fdescribe("an undoable store", () => {
   it("should support promised actions", done => {
     const { initialState, store } = createTestStore(true);
     const modifiedState = { foo: "bert" };
-    const fakeAction = (currentState) => Promise.resolve({ past: [], current: modifiedState, future: [] });
+    const fakeAction = (currentState) => Promise.resolve({ past: [], present: modifiedState, future: [] });
 
     store.registerAction("FakeAction", fakeAction);
     store.dispatch(fakeAction);
 
     // since the async action is coming at a later time we need to skip the initial state
     store.state.skip(1).subscribe((state: StateHistory<testState>) => {
-      expect(state.current).toEqual(modifiedState);
+      expect(state.present).toEqual(modifiedState);
       done();
     });
   });
@@ -86,9 +86,9 @@ fdescribe("an undoable store", () => {
     const { initialState, store } = createTestStore(true);
     const modifiedState = { foo: "bert" };
 
-    const actionA = (currentState) => Promise.resolve({ past: [], current: { foo: "A" }, future: []});
-    const actionB = (currentState) => Promise.resolve({ past: [], current: { foo: "B" }, future: []});
-    const actionC = (currentState) => Promise.resolve({ past: [], current: { foo: "C" }, future: []});
+    const actionA = (currentState) => Promise.resolve({ past: [], present: { foo: "A" }, future: [] });
+    const actionB = (currentState) => Promise.resolve({ past: [], present: { foo: "B" }, future: [] });
+    const actionC = (currentState) => Promise.resolve({ past: [], present: { foo: "C" }, future: [] });
     store.registerAction("Action A", actionA);
     store.registerAction("Action B", actionB);
     store.registerAction("Action C", actionC);
@@ -97,20 +97,19 @@ fdescribe("an undoable store", () => {
       store,
       false,
       (res) => store.dispatch(actionA),
-      (res: StateHistory<testState>) => { expect(res.current.foo).toBe("A"); store.dispatch(actionB); },
-      (res: StateHistory<testState>) => { expect(res.current.foo).toBe("B"); store.dispatch(actionC); },
-      (res: StateHistory<testState>) => expect(res.current.foo).toBe("C")
+      (res: StateHistory<testState>) => { expect(res.present.foo).toBe("A"); store.dispatch(actionB); },
+      (res: StateHistory<testState>) => { expect(res.present.foo).toBe("B"); store.dispatch(actionC); },
+      (res: StateHistory<testState>) => expect(res.present.foo).toBe("C")
     );
   });
 
-  it("should jump back in time", async () => {
-    expect.assertions(4);
+  it("should jump back and forth in time", async () => {    
     const { initialState, store } = createTestStore(true);
     const modifiedState = { foo: "bert" };
 
-    const actionA = (currentState) => Promise.resolve(Object.assign({}, currentState, { past: [...currentState.past, currentState.current], current: { foo: "A" }, future: [] }));
-    const actionB = (currentState) => Promise.resolve(Object.assign({}, currentState, { past: [...currentState.past, currentState.current], current: { foo: "B" }, future: [] }));
-    const actionC = (currentState) => Promise.resolve(Object.assign({}, currentState, { past: [...currentState.past, currentState.current], current: { foo: "C" }, future: [] }));
+    const actionA = (currentState) => Promise.resolve(Object.assign({}, currentState, { past: [...currentState.past, currentState.present], present: { foo: "A" }, future: [] }));
+    const actionB = (currentState) => Promise.resolve(Object.assign({}, currentState, { past: [...currentState.past, currentState.present], present: { foo: "B" }, future: [] }));
+    const actionC = (currentState) => Promise.resolve(Object.assign({}, currentState, { past: [...currentState.past, currentState.present], present: { foo: "C" }, future: [] }));
     store.registerAction("Action A", actionA);
     store.registerAction("Action B", actionB);
     store.registerAction("Action C", actionC);
@@ -119,10 +118,11 @@ fdescribe("an undoable store", () => {
       store,
       false,
       (res) => store.dispatch(actionA),
-      (res: StateHistory<testState>) => { expect(res.current.foo).toBe("A"); store.dispatch(actionB); },
-      (res: StateHistory<testState>) => { expect(res.current.foo).toBe("B"); store.dispatch(actionC); },
-      (res: StateHistory<testState>) => { expect(res.current.foo).toBe("C"); store.dispatch(jump, -1) },
-      (res: StateHistory<testState>) => { expect(res.current.foo).toBe("B"); }
+      (res: StateHistory<testState>) => { expect(res.present.foo).toBe("A"); store.dispatch(actionB); },
+      (res: StateHistory<testState>) => { expect(res.present.foo).toBe("B"); store.dispatch(actionC); },
+      (res: StateHistory<testState>) => { expect(res.present.foo).toBe("C"); store.dispatch(jump, -1); },
+      (res: StateHistory<testState>) => { expect(res.present.foo).toBe("B"); store.dispatch(jump, 1); },
+      (res: StateHistory<testState>) => expect(res.present.foo).toBe("C")
     );
   });
 });

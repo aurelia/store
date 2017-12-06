@@ -4,7 +4,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework"], function (require, exports, BehaviorSubject_1, aurelia_framework_1) {
+define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./history"], function (require, exports, BehaviorSubject_1, aurelia_framework_1, history_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Store = /** @class */ (function () {
@@ -15,14 +15,16 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework"], func
             this.logger = aurelia_framework_1.LogManager.getLogger("aurelia-store");
             this.devToolsAvailable = false;
             this.actions = new Map();
-            this._state = new BehaviorSubject_1.BehaviorSubject(this.undoable ? { past: [], current: initialState, future: [] } : initialState);
+            this._state = new BehaviorSubject_1.BehaviorSubject(this.undoable ? { past: [], present: initialState, future: [] } : initialState);
             this.state = this._state.asObservable();
             this.setupDevTools();
-            this.registerHistoryMethods();
+            if (this.undoable) {
+                this.registerHistoryMethods();
+            }
         }
         Store.prototype.registerAction = function (name, reducer) {
             if (reducer.length === 0) {
-                throw new Error("The reducer is expected to have one or more parameters, where the first will be the current state");
+                throw new Error("The reducer is expected to have one or more parameters, where the first will be the present state");
             }
             this.actions.set(reducer, { name: name, reducer: reducer });
         };
@@ -72,7 +74,7 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework"], func
             }
         };
         Store.prototype.registerHistoryMethods = function () {
-            this.registerAction("jump", jump);
+            this.registerAction("jump", history_1.jump);
         };
         Store = __decorate([
             aurelia_framework_1.autoinject()
@@ -80,36 +82,4 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework"], func
         return Store;
     }());
     exports.Store = Store;
-    function jump(state, n) {
-        if (n > 0)
-            return jumpToFuture(state, n - 1);
-        if (n < 0)
-            return jumpToPast(state, state.past.length + n);
-        return state;
-    }
-    exports.jump = jump;
-    // jumpToFuture: jump to requested index in future history
-    function jumpToFuture(state, index) {
-        if (index < 0 || index >= state.future.length) {
-            return state;
-        }
-        var _a = state, past = _a.past, future = _a.future, current = _a.current;
-        var newPast = past.concat([current], future.slice(0, index));
-        var newCurrent = future[index];
-        var newFuture = future.slice(index + 1);
-        return { past: newPast, current: newCurrent, future: newFuture };
-    }
-    exports.jumpToFuture = jumpToFuture;
-    // jumpToPast: jump to requested index in past history
-    function jumpToPast(state, index) {
-        if (index < 0 || index >= state.past.length) {
-            return state;
-        }
-        var _a = state, past = _a.past, future = _a.future, current = _a.current;
-        var newPast = past.slice(0, index);
-        var newFuture = past.slice(index + 1).concat([current], future);
-        var newCurrent = past[index];
-        return { past: newPast, current: newCurrent, future: newFuture };
-    }
-    exports.jumpToPast = jumpToPast;
 });

@@ -5,7 +5,6 @@ import { Store } from "../../src/store";
 import { createTestStore, testState } from "./helpers";
 
 describe("store", () => {
-
   it("should accept an initial state", done => {
     const { initialState, store } = createTestStore();
 

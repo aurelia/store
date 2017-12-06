@@ -6,6 +6,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 import { BehaviorSubject } from "rxjs/BehaviorSubject";
 import { autoinject, LogManager } from "aurelia-framework";
+import { jump } from "./history";
 var Store = /** @class */ (function () {
     function Store(initialState, undoable) {
         if (undoable === void 0) { undoable = false; }
@@ -14,14 +15,16 @@ var Store = /** @class */ (function () {
         this.logger = LogManager.getLogger("aurelia-store");
         this.devToolsAvailable = false;
         this.actions = new Map();
-        this._state = new BehaviorSubject(this.undoable ? { past: [], current: initialState, future: [] } : initialState);
+        this._state = new BehaviorSubject(this.undoable ? { past: [], present: initialState, future: [] } : initialState);
         this.state = this._state.asObservable();
         this.setupDevTools();
-        this.registerHistoryMethods();
+        if (this.undoable) {
+            this.registerHistoryMethods();
+        }
     }
     Store.prototype.registerAction = function (name, reducer) {
         if (reducer.length === 0) {
-            throw new Error("The reducer is expected to have one or more parameters, where the first will be the current state");
+            throw new Error("The reducer is expected to have one or more parameters, where the first will be the present state");
         }
         this.actions.set(reducer, { name: name, reducer: reducer });
     };
@@ -79,32 +82,3 @@ var Store = /** @class */ (function () {
     return Store;
 }());
 export { Store };
-export function jump(state, n) {
-    if (n > 0)
-        return jumpToFuture(state, n - 1);
-    if (n < 0)
-        return jumpToPast(state, state.past.length + n);
-    return state;
-}
-// jumpToFuture: jump to requested index in future history
-export function jumpToFuture(state, index) {
-    if (index < 0 || index >= state.future.length) {
-        return state;
-    }
-    var _a = state, past = _a.past, future = _a.future, current = _a.current;
-    var newPast = past.concat([current], future.slice(0, index));
-    var newCurrent = future[index];
-    var newFuture = future.slice(index + 1);
-    return { past: newPast, current: newCurrent, future: newFuture };
-}
-// jumpToPast: jump to requested index in past history
-export function jumpToPast(state, index) {
-    if (index < 0 || index >= state.past.length) {
-        return state;
-    }
-    var _a = state, past = _a.past, future = _a.future, current = _a.current;
-    var newPast = past.slice(0, index);
-    var newFuture = past.slice(index + 1).concat([current], future);
-    var newCurrent = past[index];
-    return { past: newPast, current: newCurrent, future: newFuture };
-}
