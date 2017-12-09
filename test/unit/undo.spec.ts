@@ -3,7 +3,7 @@ import "rxjs/add/operator/skip";
 import { executeSteps } from "../../src/test-helpers";
 import { Store, NextState } from "../../src/store";
 import { createTestStore, testState } from "./helpers";
-import { jump, StateHistory } from "../../src/history";
+import { jump, StateHistory, nextStateHistory } from "../../src/history";
 
 describe("an undoable store", () => {
   it("should accept an initial state", done => {
@@ -86,9 +86,9 @@ describe("an undoable store", () => {
     const { initialState, store } = createTestStore(true);
     const modifiedState = { foo: "bert" };
 
-    const actionA = (currentState) => Promise.resolve({ past: [], present: { foo: "A" }, future: [] });
-    const actionB = (currentState) => Promise.resolve({ past: [], present: { foo: "B" }, future: [] });
-    const actionC = (currentState) => Promise.resolve({ past: [], present: { foo: "C" }, future: [] });
+    const actionA = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "A" }));
+    const actionB = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "B" }));
+    const actionC = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "C" }));
     store.registerAction("Action A", actionA);
     store.registerAction("Action B", actionB);
     store.registerAction("Action C", actionC);
@@ -103,13 +103,13 @@ describe("an undoable store", () => {
     );
   });
 
-  it("should jump back and forth in time", async () => {    
+  it("should jump back and forth in time", async () => {
     const { initialState, store } = createTestStore(true);
     const modifiedState = { foo: "bert" };
 
-    const actionA = (currentState) => Promise.resolve(Object.assign({}, currentState, { past: [...currentState.past, currentState.present], present: { foo: "A" }, future: [] }));
-    const actionB = (currentState) => Promise.resolve(Object.assign({}, currentState, { past: [...currentState.past, currentState.present], present: { foo: "B" }, future: [] }));
-    const actionC = (currentState) => Promise.resolve(Object.assign({}, currentState, { past: [...currentState.past, currentState.present], present: { foo: "C" }, future: [] }));
+    const actionA = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "A" }));
+    const actionB = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "B" }));
+    const actionC = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "C" }));
     store.registerAction("Action A", actionA);
     store.registerAction("Action B", actionB);
     store.registerAction("Action C", actionC);

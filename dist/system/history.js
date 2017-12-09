@@ -29,6 +29,14 @@ System.register([], function (exports_1, context_1) {
         var newPresent = past[index];
         return { past: newPast, present: newPresent, future: newFuture };
     }
+    function nextStateHistory(presentStateHistory, nextPresent) {
+        return Object.assign({}, presentStateHistory, {
+            past: presentStateHistory.past.concat([presentStateHistory.present]),
+            present: nextPresent,
+            future: []
+        });
+    }
+    exports_1("nextStateHistory", nextStateHistory);
     return {
         setters: [],
         execute: function () {

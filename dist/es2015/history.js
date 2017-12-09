@@ -25,3 +25,10 @@ function jumpToPast(state, index) {
     var newPresent = past[index];
     return { past: newPast, present: newPresent, future: newFuture };
 }
+export function nextStateHistory(presentStateHistory, nextPresent) {
+    return Object.assign({}, presentStateHistory, {
+        past: presentStateHistory.past.concat([presentStateHistory.present]),
+        present: nextPresent,
+        future: []
+    });
+}

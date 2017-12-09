@@ -38,5 +38,17 @@ function jumpToPast<T>(state: NextState<T>, index: number): NextState<T> {
   const newFuture = [...past.slice(index + 1), present, ...future];
   const newPresent = past[index];
 
-  return { past: newPast, present: newPresent, future: newFuture } ;
+  return { past: newPast, present: newPresent, future: newFuture };
+}
+
+export function nextStateHistory<T>(presentStateHistory: StateHistory<T>, nextPresent: T): StateHistory<T> {
+  return Object.assign(
+    {},
+    presentStateHistory,
+    {
+      past: [...presentStateHistory.past, presentStateHistory.present],
+      present: nextPresent,
+      future: []
+    }
+  );
 }
