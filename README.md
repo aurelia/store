@@ -92,7 +92,7 @@ export class App {
     // this is the single point of data subscription, the state inside the component will be automatically updated
     // no need to take care of manually handling that. This will also update all subcomponents
     this.store.state.subscribe(
-      state => this.state = state
+      (state: State) => this.state = state
     );
   }
 }
@@ -127,9 +127,90 @@ const greetingAction = (state: State, greetingTarget: string) => {
 this.store.dispatch(greetingAction, "zewa666");
 ```
 
+## Undo / Redo support
+If you need to keep track of the history of states you can pass a third parameter to the Store initialization with the value of `true` to setup the store to work on a `StateHistory` vs `State` model.
+
+```typescript
+export function configure(aurelia: Aurelia) {
+  aurelia.use
+    .standardConfiguration()
+    .feature('resources');
+
+  ...
+
+  const initialState: State = {
+    frameworks: ["Aurelia", "React", "Angular"]
+  };
+
+  aurelia.use.plugin("aurelia-store", initialState, true);  // <----- REGISTER THE PLUGIN WITH HISTORY SUPPORT
+
+  aurelia.start().then(() => aurelia.setRoot());
+}
+```
+
+Now when you subscribe to new state changes instead of a simple State you'll get a StateHistory<State> object returned:
+
+```typescript
+attached() {
+  this.store.state.subscribe(
+    (state: StateHistory<State>) => this.state = state
+  );
+}
+```
+
+A state history is an interface defining all past and future states as arrays of these plus a currently present one.
+```typescript
+// aurelia-store -> history.ts
+export interface StateHistory<T> {
+  past: T[];
+  present: T;
+  future: T[];
+}
+```
+
+Now keep in mind that every action will receive a `StateHistory<T>` as input and should return a new `StateHistory<T>`:
+```typescript
+const greetingAction = (currentState: StateHistory<State>, greetingTarget: string) => {
+  return Object.assign(
+    {},
+    currentState,
+    { 
+      past: [...currentState.past, currentState.present],
+      present: { target: greetingTarget },
+      future: [] 
+    }
+  );
+}
+```
+
+### Next StateHistory creation helper
+Looking back at how you have to create the next StateHistory, you can reduce the work by using the `nextStateHistory` helper function. This will simply move the currently present state to the past, place you new one and remove the future states.
+
+```typescript
+import { nextStateHistory } from "aurelia-store";
+
+const greetingAction = (currentState: StateHistory<State>, greetingTarget: string) => {
+  return nextStateHistory(currentState, { target: greetingTarget });
+}
+```
+
+### Navigating through history
+In order to do state time-travelling you can import the pre-registered action `jump` and pass it either a positive number for traveling into the future or a negative for travelling to past states.
+
+```typescript
+import { jump } from "aurelia-store";
+
+...
+// Go back one step in time
+store.dispatch(jump, -1);
+
+// Move forward one step to future
+store.dispatch(jump, 1);
+
+```
 
 ## Async actions
-You may also register actions which resolve the newly created state with a promise.
+You may also register actions which resolve the newly created state with a promise. Same applies for history enhanced Stores. Just make sure the all past/present/future states by themselves are synchronous values.
 
 
 ## Acknowledgement
