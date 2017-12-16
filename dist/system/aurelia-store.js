@@ -1,4 +1,4 @@
-System.register(["./store", "./test-helpers", "./history"], function (exports_1, context_1) {
+System.register(["./store", "./test-helpers", "./history", "./middleware"], function (exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     function configure(aurelia, initialState, undoable) {
@@ -29,6 +29,9 @@ System.register(["./store", "./test-helpers", "./history"], function (exports_1,
             },
             function (history_1_1) {
                 exportStar_1(history_1_1);
+            },
+            function (middleware_1_1) {
+                exportStar_1(middleware_1_1);
             }
         ],
         execute: function () {

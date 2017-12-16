@@ -7,3 +7,4 @@ export function configure(aurelia, initialState, undoable) {
 export * from "./store";
 export * from "./test-helpers";
 export * from "./history";
+export * from "./middleware";

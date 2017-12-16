@@ -6,6 +6,7 @@ import {
   LogManager
 } from "aurelia-framework";
 import { jump, StateHistory } from "./history";
+import { Middleware, MiddlewarePlacement } from "./middleware";
 
 export type NextState<T> = T | StateHistory<T>;
 export type Reducer<T> = (state: NextState<T>, ...params: any[]) => NextState<T> | Promise<NextState<T>>;
@@ -18,6 +19,7 @@ export class Store<T> {
   private devToolsAvailable: boolean = false;
   private devTools: any;
   private actions: Map<Reducer<T>, { name: string, reducer: Reducer<T> }> = new Map();
+  private middlewares: Map<Middleware<T>, { placement: MiddlewarePlacement, reducer: Middleware<T> }> = new Map();
   private _state: BehaviorSubject<NextState<T>>;
 
   constructor(private initialState: T, private undoable: boolean = false) {
@@ -31,6 +33,14 @@ export class Store<T> {
     }
   }
 
+  public registerMiddleware(reducer: Middleware<T>, placement: MiddlewarePlacement) {
+    if (reducer.length === 0) {
+      throw new Error("The middleware is expected to have one or more parameters, where the first will be the present state");
+    }
+
+    this.middlewares.set(reducer, { placement, reducer });
+  }
+
   public registerAction(name: string, reducer: Reducer<T>) {
     if (reducer.length === 0) {
       throw new Error("The reducer is expected to have one or more parameters, where the first will be the present state");
@@ -39,17 +49,27 @@ export class Store<T> {
     this.actions.set(reducer, { name, reducer });
   }
 
-  public dispatch(reducer: Reducer<T>, ...params: any[]) {
+  public async dispatch(reducer: Reducer<T>, ...params: any[]) {
     if (this.actions.has(reducer)) {
       const action = this.actions.get(reducer);
-      const result = action!.reducer(this._state.getValue(), ...params);
+
+      const beforeMiddleswaresResult = await this.executeMiddlewares(
+        this._state.getValue(),
+        MiddlewarePlacement.Before
+      );
+      const result = action!.reducer(beforeMiddleswaresResult, ...params);
 
       if (!result && typeof result !== "object") {
         throw new Error("The reducer has to return a new state");
       }
 
-      const apply = (newState: T) => {
-        this._state.next(newState);
+      const apply = async (newState: T) => {
+        const afterMiddleswaresResult = await this.executeMiddlewares(
+          newState,
+          MiddlewarePlacement.After
+        );
+
+        this._state.next(afterMiddleswaresResult);
         this.updateDevToolsState(action!.name, newState);
       }
 
@@ -59,6 +79,20 @@ export class Store<T> {
         apply(result as T);
       }
     }
+  }
+
+  private executeMiddlewares(state: NextState<T>, placement: MiddlewarePlacement): NextState<T> {
+    return Array.from(this.middlewares.values())
+      .filter((middleware) => middleware.placement === placement)
+      .map((middleware) => middleware.reducer)
+      .reduce(async (prev: any, curr) => {
+        try {
+          const result = await curr(prev);
+          return result || prev;
+        } catch (e) {
+          return prev;
+        }
+      }, state);
   }
 
   private setupDevTools() {

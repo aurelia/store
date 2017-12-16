@@ -3,3 +3,4 @@ export declare function configure<T>(aurelia: FrameworkConfiguration, initialSta
 export * from "./store";
 export * from "./test-helpers";
 export * from "./history";
+export * from "./middleware";

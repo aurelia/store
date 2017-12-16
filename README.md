@@ -212,6 +212,18 @@ store.dispatch(jump, 1);
 ## Async actions
 You may also register actions which resolve the newly created state with a promise. Same applies for history enhanced Stores. Just make sure the all past/present/future states by themselves are synchronous values.
 
+## Middleware
+A middleware is similar to an action, with the difference that it may return void as well. Middlewares can be executed before the dispatched action, thus potentially manipulating the current state which will be passed to the action, or afterwards, thus modifying the returned value from the action. Either way the middleware reducer can be sync as well as async.
+
+You register a middleware by it as the first parameter to `store.registerMiddleware` and the placement `before` or `after` as second. 
+```typescript
+const customLogMiddleware = (currentState) => console.log(currentState);
+// In TypeScript you can use the exported MiddlewarePlacement string enum
+store.registerMiddleware(customLogMiddleware, MiddlewarePlacement.After);
+
+// in JavaScript just provide the string "before" or "after"
+store.registerMiddleware(customLogMiddleware, "after");
+```
 
 ## Acknowledgement
 Thanks goes to Dwayne Charrington for his Aurelia-TypeScript starter package https://github.com/Vheissu/aurelia-typescript-plugin

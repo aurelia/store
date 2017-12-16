@@ -23,15 +23,12 @@ describe("store", () => {
     }).toThrowError();
   });
 
-  it("should force reducers to return a new state", () => {
+  it("should force reducers to return a new state", async () => {
     const { initialState, store } = createTestStore();
     const fakeAction = (currentState) => { };
 
     store.registerAction("FakeAction", fakeAction as any);
-
-    expect(() => {
-      store.dispatch(fakeAction as any);
-    }).toThrowError();
+    expect(store.dispatch(fakeAction as any)).rejects.toBeDefined();
   });
 
   it("should accept reducers taking multiple parameters", done => {
@@ -43,7 +40,7 @@ describe("store", () => {
     store.registerAction("FakeAction", fakeAction as any);
     store.dispatch(fakeAction, "A", "B");
 
-    store.state.subscribe((state: testState) => {
+    store.state.skip(1).subscribe((state: testState) => {
       expect(state.foo).toEqual("AB");
       done();
     });
@@ -59,7 +56,7 @@ describe("store", () => {
     store.registerAction("FakeAction", fakeAction);
     store.dispatch(fakeAction);
 
-    store.state.subscribe((state) => {
+    store.state.skip(1).subscribe((state) => {
       expect(state).toEqual(modifiedState);
       done();
     });

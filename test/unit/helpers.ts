@@ -10,3 +10,7 @@ export function createTestStore(withUndo: boolean = false) {
 
   return { initialState, store };
 }
+
+export function createStoreWithState<T>(state: T) {
+  return new Store<T>(state);
+}
