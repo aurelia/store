@@ -150,7 +150,7 @@ describe("middlewares", () => {
     });
   });
 
-  fit("should provide a default log middleware", done => {
+  it("should provide a default log middleware", done => {
     const store = createStoreWithState(initialState);
 
     global.console.log = jest.fn();

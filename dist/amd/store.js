@@ -121,19 +121,28 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./hi
                 .filter(function (middleware) { return middleware.placement === placement; })
                 .map(function (middleware) { return middleware.reducer; })
                 .reduce(function (prev, curr) { return __awaiter(_this, void 0, void 0, function () {
-                var result, e_1;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
+                var result, _a, _b, e_1;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
                         case 0:
-                            _a.trys.push([0, 2, , 3]);
-                            return [4 /*yield*/, curr(prev)];
-                        case 1:
-                            result = _a.sent();
-                            return [2 /*return*/, result || prev];
+                            _c.trys.push([0, 5, , 7]);
+                            _a = curr;
+                            return [4 /*yield*/, prev];
+                        case 1: return [4 /*yield*/, _a.apply(void 0, [_c.sent()])];
                         case 2:
-                            e_1 = _a.sent();
-                            return [2 /*return*/, prev];
-                        case 3: return [2 /*return*/];
+                            result = _c.sent();
+                            _b = result;
+                            if (_b) return [3 /*break*/, 4];
+                            return [4 /*yield*/, prev];
+                        case 3:
+                            _b = (_c.sent());
+                            _c.label = 4;
+                        case 4: return [2 /*return*/, _b];
+                        case 5:
+                            e_1 = _c.sent();
+                            return [4 /*yield*/, prev];
+                        case 6: return [2 /*return*/, _c.sent()];
+                        case 7: return [2 /*return*/];
                     }
                 });
             }); }, state);
