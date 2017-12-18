@@ -34,10 +34,6 @@ export class Store<T> {
   }
 
   public registerMiddleware(reducer: Middleware<T>, placement: MiddlewarePlacement) {
-    if (reducer.length === 0) {
-      throw new Error("The middleware is expected to have one or more parameters, where the first will be the present state");
-    }
-
     this.middlewares.set(reducer, { placement, reducer });
   }
 

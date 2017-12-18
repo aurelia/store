@@ -14,6 +14,16 @@ describe("store", () => {
     });
   });
 
+  it("shouldn't fail when dispatching unknown actions", async () => {
+    const { store } = createTestStore();
+    const unregisteredAction = (currentState, param1, param2) => {
+      return Object.assign({}, currentState, { foo: param1 + param2 })
+    };
+    
+    const result = await store.dispatch(unregisteredAction);
+    expect(result).toBe(undefined);    
+  })
+
   it("should only accept reducers taking at least one parameter", () => {
     const { initialState, store } = createTestStore();
     const fakeAction = () => { };

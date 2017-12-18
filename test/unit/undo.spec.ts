@@ -28,4 +28,23 @@ describe("an undoable store", () => {
       (res: StateHistory<testState>) => expect(res.present.foo).toBe("C")
     );
   });
+
+  it("should return the same state if jumping zero times", async () => {
+    const { initialState, store } = createTestStore(true);
+    const modifiedState = { foo: "bert" };
+    const actionA = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "A" }));
+    const actionB = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "B" }));
+
+    store.registerAction("Action A", actionA);
+    store.registerAction("Action B", actionB);
+
+    await executeSteps(
+      store,
+      false,
+      (res) => store.dispatch(actionA),
+      (res: StateHistory<testState>) => { expect(res.present.foo).toBe("A"); store.dispatch(actionB); },
+      (res: StateHistory<testState>) => { expect(res.present.foo).toBe("B"); store.dispatch(jump, 0); },
+      (res: StateHistory<testState>) => expect(res.present.foo).toBe("B")
+    );
+  });
 });

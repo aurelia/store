@@ -21,6 +21,13 @@ describe("middlewares", () => {
     return newState;
   };
 
+  it("should allow registering middlewares without parameters", () => {
+    const store = createStoreWithState(initialState);
+    const noopMiddleware = () => { };
+
+    expect(() => store.registerMiddleware(noopMiddleware, MiddlewarePlacement.Before)).not.toThrowError();
+  });
+
   describe("which are applied before action dispatches", () => {
     it("should synchronously change the provided present state", done => {
       const store = createStoreWithState(initialState);
@@ -58,6 +65,22 @@ describe("middlewares", () => {
 
       store.state.subscribe((state: TestState) => {
         expect(state.counter).toEqual(1);
+        done();
+      });
+    });
+
+    it("should handle throwing middlewares and maintain queue", done => {
+      const store = createStoreWithState(initialState);
+      const decreaseBefore = (currentState: TestState) => {
+        throw new Error("Failed on purpose");
+      }
+      store.registerMiddleware(decreaseBefore, MiddlewarePlacement.Before);
+
+      store.registerAction("IncrementAction", incrementAction);
+      store.dispatch(incrementAction);
+
+      store.state.skip(1).subscribe((state: TestState) => {
+        expect(state.counter).toEqual(2);
         done();
       });
     });

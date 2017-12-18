@@ -59,9 +59,6 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./hi
             }
         }
         Store.prototype.registerMiddleware = function (reducer, placement) {
-            if (reducer.length === 0) {
-                throw new Error("The middleware is expected to have one or more parameters, where the first will be the present state");
-            }
             this.middlewares.set(reducer, { placement: placement, reducer: reducer });
         };
         Store.prototype.registerAction = function (name, reducer) {
