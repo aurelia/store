@@ -1,4 +1,7 @@
 # aurelia-store
+
+[![CircleCI](https://circleci.com/gh/zewa666/aurelia-store/tree/master.svg?style=svg)](https://circleci.com/gh/zewa666/aurelia-store/tree/master)
+
 Aurelia single state store based on RxJS
 
 THIS IS WORK IN PROGRESS, DO NOT USE YET FOR PRODUCTION
