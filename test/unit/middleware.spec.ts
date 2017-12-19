@@ -3,7 +3,14 @@ import "rxjs/add/operator/take";
 
 import { Store } from "../../src/store";
 import { createStoreWithState } from "./helpers";
-import { MiddlewarePlacement, logMiddleware } from "../../src/middleware";
+import {
+  MiddlewarePlacement,
+  logMiddleware,
+  localStorageMiddleware,
+  rehydrateFromLocalStorage
+} from "../../src/middleware";
+import { executeSteps } from "../../src/test-helpers";
+import { nextStateHistory, StateHistory } from "../../src/history";
 
 describe("middlewares", () => {
   interface TestState {
@@ -173,23 +180,147 @@ describe("middlewares", () => {
     });
   });
 
-  it("should provide a default log middleware", done => {
-    const store = createStoreWithState(initialState);
+  describe("default implementation", () => {
+    it("should provide a default log middleware", done => {
+      const store = createStoreWithState(initialState);
 
-    global.console.log = jest.fn();
-    store.registerMiddleware(logMiddleware, MiddlewarePlacement.After);
+      global.console.log = jest.fn();
+      store.registerMiddleware(logMiddleware, MiddlewarePlacement.After);
 
-    store.registerAction("IncrementAction", incrementAction);
-    store.dispatch(incrementAction);
+      store.registerAction("IncrementAction", incrementAction);
+      store.dispatch(incrementAction);
 
-    store.state.skip(1).subscribe((state: TestState) => {
-      expect(state.counter).toEqual(2);
-      expect(global.console.log).toHaveBeenCalled();
+      store.state.skip(1).subscribe((state: TestState) => {
+        expect(state.counter).toEqual(2);
+        expect(global.console.log).toHaveBeenCalled();
 
-      (global.console.log as any).mockReset();
-      (global.console.log as any).mockRestore();
+        (global.console.log as any).mockReset();
+        (global.console.log as any).mockRestore();
 
-      done();
+        done();
+      });
     });
-  })
-})
+
+    it("should provide a localStorage middleware", done => {
+      const store = createStoreWithState(initialState);
+
+      (window as any).localStorage = {
+        store: { foo: "bar" },
+        getItem(key: string) {
+          return this.store[key] || null;
+        },
+        setItem(key: string, value: string) {
+          this.store[key] = value;
+        }
+      };
+
+      store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
+
+      store.registerAction("IncrementAction", incrementAction);
+      store.dispatch(incrementAction);
+
+      store.state.skip(1).subscribe((state: TestState) => {
+        expect(state.counter).toEqual(2);
+        expect(window.localStorage.getItem("aurelia-store-state")).toBe(JSON.stringify(state));
+        done();
+      });
+    });
+
+    it("should rehydrate state from localStorage", done => {
+      const store = createStoreWithState(initialState);
+
+      (window as any).localStorage = {
+        getItem(key: string) {
+          const storedState = Object.assign({}, initialState);
+          storedState.counter = 1000;
+
+          return JSON.stringify(storedState);
+        }
+      };
+
+      store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
+      store.registerAction("Rehydrate", rehydrateFromLocalStorage);
+      store.dispatch(rehydrateFromLocalStorage);
+
+      store.state.skip(1).subscribe((state: TestState) => {
+        expect(state.counter).toEqual(1000);
+        done();
+      });
+    });
+
+    it("should rehydrate from previous state if localStorage is not available", done => {
+      const store = createStoreWithState(initialState);
+
+      (window as any).localStorage = undefined;
+
+      store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
+      store.registerAction("Rehydrate", rehydrateFromLocalStorage);
+      store.dispatch(rehydrateFromLocalStorage);
+
+      store.state.skip(1).subscribe((state: TestState) => {
+        expect(state.counter).toEqual(1);
+        done();
+      });
+    });
+
+    it("should rehydrate from previous state if localStorage is empty", done => {
+      const store = createStoreWithState(initialState);
+
+      (window as any).localStorage = {
+        getItem(key: string) {
+          return null;
+        }
+      };
+
+      store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
+      store.registerAction("Rehydrate", rehydrateFromLocalStorage);
+      store.dispatch(rehydrateFromLocalStorage);
+
+      store.state.skip(1).subscribe((state: TestState) => {
+        expect(state.counter).toEqual(1);
+        done();
+      });
+    });
+
+    it("should rehydrate from history state", done => {
+      const store = createStoreWithState(initialState, true);
+
+      (window as any).localStorage = {
+        getItem(key: string) {
+          const storedState = Object.assign({}, initialState);
+          storedState.counter = 1000;
+
+          return JSON.stringify({ past: [], present: storedState, future: [] });
+        }
+      };
+
+      store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
+      store.registerAction("Rehydrate", rehydrateFromLocalStorage);
+      store.dispatch(rehydrateFromLocalStorage);
+
+      store.state.skip(1).subscribe((state: StateHistory<TestState>) => {
+        expect(state.present.counter).toEqual(1000);
+        done();
+      });
+    });
+
+    it("should return the previous state if localStorage state cannot be parsed", done => {
+      const store = createStoreWithState(initialState);
+
+      (window as any).localStorage = {
+        getItem(key: string) {
+          return global;
+        }
+      };
+
+      store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
+      store.registerAction("Rehydrate", rehydrateFromLocalStorage);
+      store.dispatch(rehydrateFromLocalStorage);
+
+      store.state.skip(1).subscribe((state: TestState) => {
+        expect(state.counter).toEqual(1);
+        done();
+      });
+    });
+  });
+});

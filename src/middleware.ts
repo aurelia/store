@@ -9,3 +9,26 @@ export enum MiddlewarePlacement {
 export function logMiddleware<T>(state: NextState<T>) {
   console.log("New state: ", state);
 }
+
+export function localStorageMiddleware<T>(state: NextState<T>) {
+  if (window.localStorage) {
+    window.localStorage.setItem("aurelia-store-state", JSON.stringify(state));
+  }
+}
+
+export function rehydrateFromLocalStorage<T>(state: NextState<T>) {
+  if (!window.localStorage) {
+    return state;
+  }
+
+  const storedState = window.localStorage.getItem("aurelia-store-state");
+  if (!storedState) {
+    return state;
+  }
+
+  try {
+    return JSON.parse(storedState!);
+  } catch (e) { }
+
+  return state;
+}
