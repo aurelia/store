@@ -10,7 +10,7 @@ THIS IS WORK IN PROGRESS, DO NOT USE YET FOR PRODUCTION
 Install the npm dependency via
 
 ```bash
-npm install aurelia-store rxjs
+npm install aurelia-store
 ```
 
 ## Aurelia CLI Support
@@ -37,11 +37,7 @@ In your `main.ts` you'll have to register the Store using a custom entity as you
 
 ```typescript
 import {Aurelia} from 'aurelia-framework'
-import environment from './environment';
-
-export interface State {
-  frameworks: string[];
-}
+import {initialState} from './state';
 
 export function configure(aurelia: Aurelia) {
   aurelia.use
@@ -50,21 +46,30 @@ export function configure(aurelia: Aurelia) {
 
   ...
 
-  const initialState: State = {
-    frameworks: ["Aurelia", "React", "Angular"]
-  };
-
   aurelia.use.plugin("aurelia-store", initialState);  // <----- REGISTER THE PLUGIN
 
   aurelia.start().then(() => aurelia.setRoot());
 }
 ```
 
+The state itself can be a simple object like this:
+
+```typescript
+// state.ts
+export interface State {
+  frameworks: string[];
+}
+
+export const initialState: State = {
+  frameworks: ["Aurelia", "React", "Angular"]
+};
+```
+
 
 ## Usage
 Once the plugin is installed and configured you can use the Store by injecting it via constructor injection.
 
-You register actions (reducers) by with methods, which get the current state and have to return the modified next state.
+You register actions (reducers) with methods, which get the current state and have to return the modified next state.
 
 An example VM and View can be seen below:
 
@@ -73,6 +78,9 @@ import { autoinject } from 'aurelia-dependency-injection';
 import { State } from './state';
 import { Store } from "aurelia-store";
 
+// An action is a simple function which gets the current state and should return a modified clone of it.
+// You should not modify and return the previous state, as the states act as snapshots of your app over time
+// which enables cool features like time-travelling, Redux DevTools integration and so on ...
 const demoAction = (state: State) => {
   const newState = Object.assign({}, state);
   newState.frameworks.push("PustekuchenJS");
@@ -87,16 +95,20 @@ export class App {
 
   constructor(private store: Store<State>) {
     this.store.registerAction("DemoAction", demoAction);
-
-    setTimeout(() => this.store.dispatch(demoAction), 2000);
   }
 
   attached() {
     // this is the single point of data subscription, the state inside the component will be automatically updated
-    // no need to take care of manually handling that. This will also update all subcomponents
+    // no need to take care of manually handling that. This will also update all subcomponents.
+    // Since the state is an observable you can use all kinds of RxJS witchcraft to skip,filter,map streamed states.
     this.store.state.subscribe(
       (state: State) => this.state = state
     );
+  }
+
+  addAnotherFramework() {
+    // you create a new state by dispatching your action using the stores method
+    this.store.dispatch(demoAction);
   }
 }
 ```
@@ -108,6 +120,8 @@ export class App {
   <ul>
     <li repeat.for="framework of state.frameworks">${framework}</li>
   </ul>
+
+  <button click.delegate="addAnotherFramework()">Add one more</button>
 </template>
 
 ```
@@ -171,7 +185,19 @@ export interface StateHistory<T> {
 }
 ```
 
-Now keep in mind that every action will receive a `StateHistory<T>` as input and should return a new `StateHistory<T>`:
+Now keep in mind that every action will receive a `StateHistory<T>` as input and should return a new `StateHistory<T>`.
+You can use the `nextStateHistory` helper function to easily push your new state and create a proper StateHistory representation, which will simply move the currently present state to the past, place your provided one as present and remove the future states.
+
+```typescript
+import { nextStateHistory } from "aurelia-store";
+
+const greetingAction = (currentState: StateHistory<State>, greetingTarget: string) => {
+  return nextStateHistory(currentState, { target: greetingTarget });
+}
+```
+
+Which is the same as returing a handcrafted object like the following:
+
 ```typescript
 const greetingAction = (currentState: StateHistory<State>, greetingTarget: string) => {
   return Object.assign(
@@ -183,17 +209,6 @@ const greetingAction = (currentState: StateHistory<State>, greetingTarget: strin
       future: [] 
     }
   );
-}
-```
-
-### Next StateHistory creation helper
-Looking back at how you have to create the next StateHistory, you can reduce the work by using the `nextStateHistory` helper function. This will simply move the currently present state to the past, place you new one and remove the future states.
-
-```typescript
-import { nextStateHistory } from "aurelia-store";
-
-const greetingAction = (currentState: StateHistory<State>, greetingTarget: string) => {
-  return nextStateHistory(currentState, { target: greetingTarget });
 }
 ```
 
