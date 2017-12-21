@@ -160,6 +160,44 @@ describe("middlewares", () => {
     });
   });
 
+  it("should maintain the order of applying middlewares", done => {
+    interface State {
+      values: string[]
+    }
+    const initialState: State = {
+      values: []
+    };
+    const store = createStoreWithState(initialState);
+
+    const middlewareFactory = (value: string) => (currentState: State) => {
+      const newState = Object.assign({}, currentState);
+      newState.values.push(value);
+
+      return newState;
+    }
+
+    new Array(26).fill("")
+      .forEach((val, idx) => store.registerMiddleware(
+        middlewareFactory(String.fromCharCode(65 + idx)),
+        MiddlewarePlacement.After)
+      );
+
+    const demoAction = (currentState: State) => {
+      const newState = Object.assign({}, currentState);
+      newState.values.push("Demo");
+
+      return newState;
+    };
+
+    store.registerAction("Demo", demoAction);
+    store.dispatch(demoAction);
+
+    store.state.skip(1).take(1).subscribe((state: State) => {
+      expect(state.values).toEqual(["Demo", ...new Array(26).fill("").map((val, idx) => String.fromCharCode(65 + idx))]);
+      done();
+    });
+  });
+
   it("should handle middlewares not returning a state", done => {
     const store = createStoreWithState(initialState);
 

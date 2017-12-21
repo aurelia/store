@@ -1,6 +1,6 @@
 {
   "name": "aurelia-store",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Aurelia single state store based on RxJS",
   "keywords": [
     "rxjs",
@@ -45,7 +45,7 @@
     ],
     "testEnvironment": "node",
     "moduleNameMapper": {
-      "aurelia-(.*)": "<rootDir>/node_modules/aurelia-$1",
+      "(test\\\\unit\\\\)aurelia-(.*)": "<rootDir>/node_modules/aurelia-$2",
       "^.+\\.(css)$": "<rootDir>/test/jest-css-stub.js"
     },
     "collectCoverage": true,
