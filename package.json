@@ -1,6 +1,6 @@
 {
   "name": "aurelia-store",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Aurelia single state store based on RxJS",
   "keywords": [
     "rxjs",
@@ -94,7 +94,7 @@
     "rxjs": "^5.5.2"
   },
   "devDependencies": {
-    "@types/jest": "^21.1.4",
+    "@types/jest": "^21.1.9",
     "@types/node": "^8.0.0",
     "aurelia-bootstrapper": "^2.1.1",
     "aurelia-loader-nodejs": "^1.0.1",
@@ -106,12 +106,12 @@
     "cross-env": "^5.0.1",
     "gulp": "^3.9.1",
     "gulp-sass": "^3.1.0",
-    "jest": "^21.2.1",
+    "jest": "^22.0.4",
     "jest-css-modules": "^1.1.0",
     "node-sass": "^4.5.3",
     "rimraf": "^2.6.1",
     "semantic-release": "^6.3.6",
-    "ts-jest": "^21.1.3",
+    "ts-jest": "^22.0.0",
     "tslint": "^5.4.3",
     "typescript": "^2.6.1"
   }

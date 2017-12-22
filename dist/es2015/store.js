@@ -40,7 +40,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 import { BehaviorSubject } from "rxjs/BehaviorSubject";
-import { autoinject, LogManager } from "aurelia-framework";
+import { autoinject, Container, LogManager } from "aurelia-framework";
 import { jump } from "./history";
 import { MiddlewarePlacement } from "./middleware";
 var Store = /** @class */ (function () {
@@ -174,3 +174,13 @@ var Store = /** @class */ (function () {
     return Store;
 }());
 export { Store };
+export function dispatchify(action) {
+    var store = Container.instance.get(Store);
+    return function () {
+        var params = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            params[_i] = arguments[_i];
+        }
+        store.dispatch.apply(store, [action].concat(params));
+    };
+}

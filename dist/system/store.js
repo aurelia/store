@@ -42,6 +42,17 @@ System.register(["rxjs/BehaviorSubject", "aurelia-framework", "./history", "./mi
         }
     };
     var __moduleName = context_1 && context_1.id;
+    function dispatchify(action) {
+        var store = aurelia_framework_1.Container.instance.get(Store);
+        return function () {
+            var params = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                params[_i] = arguments[_i];
+            }
+            store.dispatch.apply(store, [action].concat(params));
+        };
+    }
+    exports_1("dispatchify", dispatchify);
     var BehaviorSubject_1, aurelia_framework_1, history_1, middleware_1, Store;
     return {
         setters: [

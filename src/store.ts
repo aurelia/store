@@ -3,6 +3,7 @@ import { BehaviorSubject } from "rxjs/BehaviorSubject";
 
 import {
   autoinject,
+  Container,
   LogManager
 } from "aurelia-framework";
 import { jump, StateHistory } from "./history";
@@ -116,5 +117,13 @@ export class Store<T> {
 
   private registerHistoryMethods() {
     this.registerAction("jump", jump);
+  }
+}
+
+export function dispatchify<T>(action: Reducer<T>) {
+  const store = Container.instance.get(Store);
+  
+  return function(...params: any[]) {
+    store.dispatch(action, ...params);
   }
 }

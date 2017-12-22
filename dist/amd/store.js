@@ -173,4 +173,15 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./hi
         return Store;
     }());
     exports.Store = Store;
+    function dispatchify(action) {
+        var store = aurelia_framework_1.Container.instance.get(Store);
+        return function () {
+            var params = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                params[_i] = arguments[_i];
+            }
+            store.dispatch.apply(store, [action].concat(params));
+        };
+    }
+    exports.dispatchify = dispatchify;
 });

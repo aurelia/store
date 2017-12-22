@@ -1,7 +1,8 @@
+import { Container } from "aurelia-framework";
 import "rxjs/add/operator/skip";
 
 import { executeSteps } from "../../src/test-helpers";
-import { Store } from "../../src/store";
+import { dispatchify, Store, NextState } from "../../src/store";
 import { createTestStore, testState } from "./helpers";
 
 describe("store", () => {
@@ -39,6 +40,24 @@ describe("store", () => {
 
     store.registerAction("FakeAction", fakeAction as any);
     expect(store.dispatch(fakeAction as any)).rejects.toBeDefined();
+  });
+
+  it("should help create dispatchifyable functions", done => {
+    const cont = new Container().makeGlobal();
+    const { initialState, store } = createTestStore();
+    const fakeAction = (currentState, param1: number, param2: number) => {
+      return Object.assign({}, currentState, { foo: param1 + param2 })
+    };
+
+    store.registerAction("FakeAction", fakeAction as any);
+    cont.registerInstance(Store, store);
+    
+    dispatchify(fakeAction)("A", "B");
+
+    store.state.skip(1).subscribe((state: testState) => {
+      expect(state.foo).toEqual("AB");
+      done();
+    });
   });
 
   it("should accept reducers taking multiple parameters", done => {

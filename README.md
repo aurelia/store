@@ -144,6 +144,17 @@ const greetingAction = (state: State, greetingTarget: string) => {
 this.store.dispatch(greetingAction, "zewa666");
 ```
 
+### Dispatchifying actions
+Perhaps you don't want or can't obtain a reference to the store but still would like to dispatch your actions.
+In order to do so you can leverage the higher order function `dispatchify` like this:
+
+```typescript
+import { dispatchify } from "aurelia-store";
+import { yourAction } from "./where/ever";
+
+dispatchify(yourAction)("PARAM1", "MYPARAM2", "AND_SO_ON");
+```
+
 ## Undo / Redo support
 If you need to keep track of the history of states you can pass a third parameter to the Store initialization with the value of `true` to setup the store to work on a `StateHistory` vs `State` model.
 
