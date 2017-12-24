@@ -156,7 +156,7 @@ dispatchify(yourAction)("PARAM1", "MYPARAM2", "AND_SO_ON");
 ```
 
 ## Undo / Redo support
-If you need to keep track of the history of states you can pass a third parameter to the Store initialization with the value of `true` to setup the store to work on a `StateHistory` vs `State` model.
+If you need to keep track of the history of states you can pass a third parameter to the Store initialization by providing additional options to setup the store to work on a `StateHistory` vs `State` model.
 
 ```typescript
 export function configure(aurelia: Aurelia) {
@@ -170,7 +170,7 @@ export function configure(aurelia: Aurelia) {
     frameworks: ["Aurelia", "React", "Angular"]
   };
 
-  aurelia.use.plugin("aurelia-store", initialState, true);  // <----- REGISTER THE PLUGIN WITH HISTORY SUPPORT
+  aurelia.use.plugin("aurelia-store", initialState, { history: { undoable: true } });  // <----- REGISTER THE PLUGIN WITH HISTORY SUPPORT
 
   aurelia.start().then(() => aurelia.setRoot());
 }
@@ -237,6 +237,18 @@ store.dispatch(jump, -1);
 store.dispatch(jump, 1);
 
 ```
+
+### Limiting the number of history items
+Having too many items could result in a memory hit. Thus you can specify the `limit` for when the histories past and future start to overflow.
+That means your past and future arrays can hold only a max of the provided limit and new entries start to kick out respectively the first or last item
+of your history stacks.
+
+```typescript
+...
+// REGISTER THE PLUGIN WITH HISTORY SUPPORT AND OVERFLOW LIMIT OF 10
+aurelia.use.plugin("aurelia-store", initialState, { history: { undoable: true, limit: 10 } });
+```
+
 
 ## Async actions
 You may also register actions which resolve the newly created state with a promise. Same applies for history enhanced Stores. Just make sure the all past/present/future states by themselves are synchronous values.
