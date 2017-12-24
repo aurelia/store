@@ -62,6 +62,11 @@ var Store = /** @class */ (function () {
     Store.prototype.registerMiddleware = function (reducer, placement) {
         this.middlewares.set(reducer, { placement: placement, reducer: reducer });
     };
+    Store.prototype.unregisterMiddleware = function (reducer) {
+        if (this.middlewares.has(reducer)) {
+            this.middlewares.delete(reducer);
+        }
+    };
     Store.prototype.registerAction = function (name, reducer) {
         if (reducer.length === 0) {
             throw new Error("The reducer is expected to have one or more parameters, where the first will be the present state");

@@ -2,7 +2,7 @@ import "rxjs/add/operator/skip";
 import "rxjs/add/operator/take";
 
 import { Store } from "../../src/store";
-import { createStoreWithState } from "./helpers";
+import { createStoreWithState, testState } from "./helpers";
 import {
   MiddlewarePlacement,
   logMiddleware,
@@ -33,6 +33,31 @@ describe("middlewares", () => {
     const noopMiddleware = () => { };
 
     expect(() => store.registerMiddleware(noopMiddleware, MiddlewarePlacement.Before)).not.toThrowError();
+  });
+
+  it("should allow unregistering middlewares", async () => {
+    const store = createStoreWithState(initialState);
+    const decreaseBefore = (currentState: TestState) => {
+      const newState = Object.assign({}, currentState);
+      newState.counter += 1000;
+
+      return newState;
+    }
+
+    store.registerMiddleware(decreaseBefore, MiddlewarePlacement.Before);
+    store.registerAction("IncrementAction", incrementAction);
+    
+    await executeSteps(
+      store,
+      false,
+      () => store.dispatch(incrementAction),
+      (res: TestState) => {
+        expect(res.counter).toEqual(1002);
+        store.unregisterMiddleware(decreaseBefore);
+        store.dispatch(incrementAction);
+      },
+      (res: TestState) => expect(res.counter).toEqual(1003)
+    );
   });
 
   describe("which are applied before action dispatches", () => {

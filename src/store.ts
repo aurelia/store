@@ -38,6 +38,12 @@ export class Store<T> {
     this.middlewares.set(reducer, { placement, reducer });
   }
 
+  public unregisterMiddleware(reducer: Middleware<T>) {
+    if (this.middlewares.has(reducer)) {
+      this.middlewares.delete(reducer);
+    }
+  }
+
   public registerAction(name: string, reducer: Reducer<T>) {
     if (reducer.length === 0) {
       throw new Error("The reducer is expected to have one or more parameters, where the first will be the present state");

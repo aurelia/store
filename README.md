@@ -254,6 +254,13 @@ store.registerMiddleware(customLogMiddleware, MiddlewarePlacement.After);
 store.registerMiddleware(customLogMiddleware, "after");
 ```
 
+In order to remove a registered middleware, simply call `store.unregisterMiddleware`
+
+```typescript
+...
+store.unregisterMiddleware(customLogMiddleware);
+```
+
 ### LocalStorage Middleware
 Out of the box aurelia-store provides an `localStorageMiddleware` which stores your most recent emitted state in the [window.localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage). In order to make use of it all you need to do is to register it as usual:
 
