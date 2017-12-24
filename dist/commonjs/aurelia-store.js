@@ -4,10 +4,9 @@ function __export(m) {
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 var store_1 = require("./store");
-function configure(aurelia, initialState, undoable) {
-    if (undoable === void 0) { undoable = false; }
+function configure(aurelia, initialState, options) {
     aurelia.container
-        .registerInstance(store_1.Store, new store_1.Store(initialState, undoable));
+        .registerInstance(store_1.Store, new store_1.Store(initialState, options));
 }
 exports.configure = configure;
 __export(require("./store"));

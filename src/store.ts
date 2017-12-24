@@ -6,11 +6,16 @@ import {
   Container,
   LogManager
 } from "aurelia-framework";
-import { jump, StateHistory } from "./history";
+import { jump, StateHistory, applyLimits } from "./history";
 import { Middleware, MiddlewarePlacement } from "./middleware";
+import { HistoryOptions, isStateHistory } from "./aurelia-store";
 
 export type NextState<T> = T | StateHistory<T>;
 export type Reducer<T> = (state: NextState<T>, ...params: any[]) => NextState<T> | Promise<NextState<T>>;
+
+export interface StoreOptions {
+  history: Partial<HistoryOptions>
+}
 
 @autoinject()
 export class Store<T> {
@@ -23,13 +28,14 @@ export class Store<T> {
   private middlewares: Map<Middleware<T>, { placement: MiddlewarePlacement, reducer: Middleware<T> }> = new Map();
   private _state: BehaviorSubject<NextState<T>>;
 
-  constructor(private initialState: T, private undoable: boolean = false) {
-    this._state = new BehaviorSubject<NextState<T>>(this.undoable ? { past: [], present: initialState, future: [] } : initialState);
+  constructor(private initialState: T, private options?: Partial<StoreOptions>) {
+    const isUndoable = this.options && this.options.history && this.options.history.undoable === true;
+    this._state = new BehaviorSubject<NextState<T>>(isUndoable ? { past: [], present: initialState, future: [] } : initialState);
     this.state = this._state.asObservable();
 
     this.setupDevTools();
 
-    if (this.undoable) {
+    if (isUndoable) {
       this.registerHistoryMethods();
     }
   }
@@ -67,12 +73,19 @@ export class Store<T> {
       }
 
       const apply = async (newState: T) => {
-        const afterMiddleswaresResult = await this.executeMiddlewares(
+        let resultingState = await this.executeMiddlewares(
           newState,
           MiddlewarePlacement.After
         );
 
-        this._state.next(afterMiddleswaresResult);
+        if (isStateHistory(resultingState) &&
+            this.options &&
+            this.options.history &&
+            this.options.history.limit) {
+          resultingState = applyLimits(resultingState as StateHistory<T>, this.options.history.limit);
+        }
+
+        this._state.next(resultingState);
         this.updateDevToolsState(action!.name, newState);
       }
 
@@ -128,8 +141,8 @@ export class Store<T> {
 
 export function dispatchify<T>(action: Reducer<T>) {
   const store = Container.instance.get(Store);
-  
-  return function(...params: any[]) {
+
+  return function (...params: any[]) {
     store.dispatch(action, ...params);
   }
 }

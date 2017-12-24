@@ -37,6 +37,26 @@ System.register([], function (exports_1, context_1) {
         });
     }
     exports_1("nextStateHistory", nextStateHistory);
+    function applyLimits(state, limit) {
+        if (isStateHistory(state)) {
+            if (state.past.length > limit) {
+                state.past = state.past.slice(state.past.length - limit);
+            }
+            if (state.future.length > limit) {
+                state.future = state.future.slice(0, limit);
+            }
+        }
+        return state;
+    }
+    exports_1("applyLimits", applyLimits);
+    function isStateHistory(history) {
+        return typeof history.present !== "undefined" &&
+            typeof history.future !== "undefined" &&
+            typeof history.past !== "undefined" &&
+            Array.isArray(history.future) &&
+            Array.isArray(history.past);
+    }
+    exports_1("isStateHistory", isStateHistory);
     return {
         setters: [],
         execute: function () {

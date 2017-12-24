@@ -6,6 +6,11 @@ export interface StateHistory<T> {
   future: T[];
 }
 
+export interface HistoryOptions {
+  undoable: boolean;
+  limit?: number;
+}
+
 export function jump<T>(state: NextState<T>, n: number) {
   if (n > 0) return jumpToFuture(state, n - 1)
   if (n < 0) return jumpToPast(state, (state as StateHistory<T>).past.length + n)
@@ -51,4 +56,26 @@ export function nextStateHistory<T>(presentStateHistory: StateHistory<T>, nextPr
       future: []
     }
   );
+}
+
+export function applyLimits<T>(state: StateHistory<T>, limit: number): StateHistory<T> {
+  if (isStateHistory(state)) {
+    if (state.past.length > limit) {
+      state.past = state.past.slice(state.past.length - limit);
+    }
+
+    if (state.future.length > limit) {
+      state.future = state.future.slice(0, limit);
+    }
+  }
+
+  return state;
+}
+
+export function isStateHistory(history: any) {
+  return typeof history.present !== "undefined" &&
+    typeof history.future !== "undefined" &&
+    typeof history.past !== "undefined" &&
+    Array.isArray(history.future) &&
+    Array.isArray(history.past)
 }

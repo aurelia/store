@@ -1,11 +1,15 @@
 import { Observable } from "rxjs/Observable";
 import { StateHistory } from "./history";
 import { Middleware, MiddlewarePlacement } from "./middleware";
+import { HistoryOptions } from "./aurelia-store";
 export declare type NextState<T> = T | StateHistory<T>;
 export declare type Reducer<T> = (state: NextState<T>, ...params: any[]) => NextState<T> | Promise<NextState<T>>;
+export interface StoreOptions {
+    history: Partial<HistoryOptions>;
+}
 export declare class Store<T> {
     private initialState;
-    private undoable;
+    private options;
     readonly state: Observable<NextState<T>>;
     private logger;
     private devToolsAvailable;
@@ -13,7 +17,7 @@ export declare class Store<T> {
     private actions;
     private middlewares;
     private _state;
-    constructor(initialState: T, undoable?: boolean);
+    constructor(initialState: T, options?: Partial<StoreOptions> | undefined);
     registerMiddleware(reducer: Middleware<T>, placement: MiddlewarePlacement): void;
     unregisterMiddleware(reducer: Middleware<T>): void;
     registerAction(name: string, reducer: Reducer<T>): void;

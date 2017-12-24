@@ -1,5 +1,6 @@
 import { FrameworkConfiguration } from "aurelia-framework";
-export declare function configure<T>(aurelia: FrameworkConfiguration, initialState: T, undoable?: boolean): void;
+import { StoreOptions } from "./store";
+export declare function configure<T>(aurelia: FrameworkConfiguration, initialState: T, options?: Partial<StoreOptions>): void;
 export * from "./store";
 export * from "./test-helpers";
 export * from "./history";

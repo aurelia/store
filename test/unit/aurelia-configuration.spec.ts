@@ -33,8 +33,8 @@ describe("aurelia setup", () => {
 
     expect(aurelia.container.hasResolver(Store)).toBeFalsy();
 
-    configure<State>(aurelia, { foo: "bar" }, true);
+    configure<State>(aurelia, { foo: "bar" }, { history: { undoable: true }});
 
-    expect(aurelia.container.get(Store).undoable).toBe(true);
+    expect(aurelia.container.get(Store).options.history.undoable).toBe(true);
   });
 });

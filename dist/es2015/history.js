@@ -32,3 +32,21 @@ export function nextStateHistory(presentStateHistory, nextPresent) {
         future: []
     });
 }
+export function applyLimits(state, limit) {
+    if (isStateHistory(state)) {
+        if (state.past.length > limit) {
+            state.past = state.past.slice(state.past.length - limit);
+        }
+        if (state.future.length > limit) {
+            state.future = state.future.slice(0, limit);
+        }
+    }
+    return state;
+}
+export function isStateHistory(history) {
+    return typeof history.present !== "undefined" &&
+        typeof history.future !== "undefined" &&
+        typeof history.past !== "undefined" &&
+        Array.isArray(history.future) &&
+        Array.isArray(history.past);
+}

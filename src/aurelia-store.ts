@@ -1,13 +1,13 @@
 import { FrameworkConfiguration } from "aurelia-framework";
-import { Store } from "./store";
+import { Store, StoreOptions } from "./store";
 
 export function configure<T>(
   aurelia: FrameworkConfiguration,
   initialState: T,
-  undoable: boolean = false
+  options?: Partial<StoreOptions>
 ) {
   aurelia.container
-    .registerInstance(Store, new Store(initialState, undoable));
+    .registerInstance(Store, new Store(initialState, options));
 }
 
 export * from "./store";

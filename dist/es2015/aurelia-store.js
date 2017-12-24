@@ -1,8 +1,7 @@
 import { Store } from "./store";
-export function configure(aurelia, initialState, undoable) {
-    if (undoable === void 0) { undoable = false; }
+export function configure(aurelia, initialState, options) {
     aurelia.container
-        .registerInstance(Store, new Store(initialState, undoable));
+        .registerInstance(Store, new Store(initialState, options));
 }
 export * from "./store";
 export * from "./test-helpers";

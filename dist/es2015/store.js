@@ -41,21 +41,22 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { BehaviorSubject } from "rxjs/BehaviorSubject";
 import { autoinject, Container, LogManager } from "aurelia-framework";
-import { jump } from "./history";
+import { jump, applyLimits } from "./history";
 import { MiddlewarePlacement } from "./middleware";
+import { isStateHistory } from "./aurelia-store";
 var Store = /** @class */ (function () {
-    function Store(initialState, undoable) {
-        if (undoable === void 0) { undoable = false; }
+    function Store(initialState, options) {
         this.initialState = initialState;
-        this.undoable = undoable;
+        this.options = options;
         this.logger = LogManager.getLogger("aurelia-store");
         this.devToolsAvailable = false;
         this.actions = new Map();
         this.middlewares = new Map();
-        this._state = new BehaviorSubject(this.undoable ? { past: [], present: initialState, future: [] } : initialState);
+        var isUndoable = this.options && this.options.history && this.options.history.undoable === true;
+        this._state = new BehaviorSubject(isUndoable ? { past: [], present: initialState, future: [] } : initialState);
         this.state = this._state.asObservable();
         this.setupDevTools();
-        if (this.undoable) {
+        if (isUndoable) {
             this.registerHistoryMethods();
         }
     }
@@ -94,13 +95,19 @@ var Store = /** @class */ (function () {
                             throw new Error("The reducer has to return a new state");
                         }
                         apply_1 = function (newState) { return __awaiter(_this, void 0, void 0, function () {
-                            var afterMiddleswaresResult;
+                            var resultingState;
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
                                     case 0: return [4 /*yield*/, this.executeMiddlewares(newState, MiddlewarePlacement.After)];
                                     case 1:
-                                        afterMiddleswaresResult = _a.sent();
-                                        this._state.next(afterMiddleswaresResult);
+                                        resultingState = _a.sent();
+                                        if (isStateHistory(resultingState) &&
+                                            this.options &&
+                                            this.options.history &&
+                                            this.options.history.limit) {
+                                            resultingState = applyLimits(resultingState, this.options.history.limit);
+                                        }
+                                        this._state.next(resultingState);
                                         this.updateDevToolsState(action_1.name, newState);
                                         return [2 /*return*/];
                                 }
