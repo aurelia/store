@@ -21,6 +21,12 @@ describe("middlewares", () => {
     counter: 1
   };
 
+  const initialHistoryState: StateHistory<TestState> = {
+    past: [],
+    present: { counter: 1 },
+    future: [],
+  };
+
   const incrementAction = (currentState: TestState) => {
     const newState = Object.assign({}, currentState);
     newState.counter++;
@@ -75,7 +81,7 @@ describe("middlewares", () => {
       store.registerAction("IncrementAction", incrementAction);
       store.dispatch(incrementAction);
 
-      store.state.subscribe((state: TestState) => {
+      store.state.subscribe((state) => {
         expect(state.counter).toEqual(1);
         done();
       });
@@ -95,7 +101,7 @@ describe("middlewares", () => {
       store.registerAction("IncrementAction", incrementAction);
       store.dispatch(incrementAction);
 
-      store.state.subscribe((state: TestState) => {
+      store.state.subscribe((state) => {
         expect(state.counter).toEqual(1);
         done();
       });
@@ -133,7 +139,7 @@ describe("middlewares", () => {
       store.registerAction("IncrementAction", incrementAction);
       store.dispatch(incrementAction);
 
-      store.state.skip(1).take(1).subscribe((state: TestState) => {
+      store.state.skip(1).take(1).subscribe((state) => {
         expect(state.counter).toEqual(1000);
         done();
       });
@@ -153,7 +159,7 @@ describe("middlewares", () => {
       store.registerAction("IncrementAction", incrementAction);
       store.dispatch(incrementAction);
 
-      store.state.skip(1).take(1).subscribe((state: TestState) => {
+      store.state.skip(1).take(1).subscribe((state) => {
         expect(state.counter).toEqual(1000);
         done();
       });
@@ -179,7 +185,7 @@ describe("middlewares", () => {
     store.registerAction("IncrementAction", incrementAction);
     store.dispatch(incrementAction);
 
-    store.state.skip(1).take(1).subscribe((state: TestState) => {
+    store.state.skip(1).take(1).subscribe((state) => {
       expect(state.counter).toEqual(14);
       done();
     });
@@ -217,7 +223,7 @@ describe("middlewares", () => {
     store.registerAction("Demo", demoAction);
     store.dispatch(demoAction);
 
-    store.state.skip(1).take(1).subscribe((state: State) => {
+    store.state.skip(1).take(1).subscribe((state) => {
       expect(state.values).toEqual(["Demo", ...new Array(26).fill("").map((val, idx) => String.fromCharCode(65 + idx))]);
       done();
     });
@@ -234,7 +240,7 @@ describe("middlewares", () => {
     store.registerAction("IncrementAction", incrementAction);
     store.dispatch(incrementAction);
 
-    store.state.skip(1).subscribe((state: TestState) => {
+    store.state.skip(1).subscribe((state) => {
       expect(global.console.log).toHaveBeenCalled();
       (global.console.log as any).mockReset();
       (global.console.log as any).mockRestore();
@@ -253,7 +259,7 @@ describe("middlewares", () => {
       store.registerAction("IncrementAction", incrementAction);
       store.dispatch(incrementAction);
 
-      store.state.skip(1).subscribe((state: TestState) => {
+      store.state.skip(1).subscribe((state) => {
         expect(state.counter).toEqual(2);
         expect(global.console.log).toHaveBeenCalled();
 
@@ -282,7 +288,7 @@ describe("middlewares", () => {
       store.registerAction("IncrementAction", incrementAction);
       store.dispatch(incrementAction);
 
-      store.state.skip(1).subscribe((state: TestState) => {
+      store.state.skip(1).subscribe((state) => {
         expect(state.counter).toEqual(2);
         expect(window.localStorage.getItem("aurelia-store-state")).toBe(JSON.stringify(state));
         done();
@@ -305,7 +311,7 @@ describe("middlewares", () => {
       store.registerAction("Rehydrate", rehydrateFromLocalStorage);
       store.dispatch(rehydrateFromLocalStorage);
 
-      store.state.skip(1).subscribe((state: TestState) => {
+      store.state.skip(1).subscribe((state) => {
         expect(state.counter).toEqual(1000);
         done();
       });
@@ -320,7 +326,7 @@ describe("middlewares", () => {
       store.registerAction("Rehydrate", rehydrateFromLocalStorage);
       store.dispatch(rehydrateFromLocalStorage);
 
-      store.state.skip(1).subscribe((state: TestState) => {
+      store.state.skip(1).subscribe((state) => {
         expect(state.counter).toEqual(1);
         done();
       });
@@ -339,14 +345,14 @@ describe("middlewares", () => {
       store.registerAction("Rehydrate", rehydrateFromLocalStorage);
       store.dispatch(rehydrateFromLocalStorage);
 
-      store.state.skip(1).subscribe((state: TestState) => {
+      store.state.skip(1).subscribe((state) => {
         expect(state.counter).toEqual(1);
         done();
       });
     });
 
     it("should rehydrate from history state", done => {
-      const store = createStoreWithState(initialState, true);
+      const store = createStoreWithState(initialHistoryState, true);
 
       (window as any).localStorage = {
         getItem(key: string) {
@@ -361,7 +367,7 @@ describe("middlewares", () => {
       store.registerAction("Rehydrate", rehydrateFromLocalStorage);
       store.dispatch(rehydrateFromLocalStorage);
 
-      store.state.skip(1).subscribe((state: StateHistory<TestState>) => {
+      store.state.skip(1).subscribe((state) => {
         expect(state.present.counter).toEqual(1000);
         done();
       });
@@ -380,7 +386,7 @@ describe("middlewares", () => {
       store.registerAction("Rehydrate", rehydrateFromLocalStorage);
       store.dispatch(rehydrateFromLocalStorage);
 
-      store.state.skip(1).subscribe((state: TestState) => {
+      store.state.skip(1).subscribe((state) => {
         expect(state.counter).toEqual(1);
         done();
       });

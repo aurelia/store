@@ -51,7 +51,7 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./hi
             this.actions = new Map();
             this.middlewares = new Map();
             var isUndoable = this.options && this.options.history && this.options.history.undoable === true;
-            this._state = new BehaviorSubject_1.BehaviorSubject(isUndoable ? { past: [], present: initialState, future: [] } : initialState);
+            this._state = new BehaviorSubject_1.BehaviorSubject(initialState);
             this.state = this._state.asObservable();
             this.setupDevTools();
             if (isUndoable) {

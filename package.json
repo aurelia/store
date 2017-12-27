@@ -1,6 +1,6 @@
 {
   "name": "aurelia-store",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "description": "Aurelia single state store based on RxJS",
   "keywords": [
     "rxjs",

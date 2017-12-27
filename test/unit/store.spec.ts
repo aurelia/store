@@ -2,7 +2,7 @@ import { Container } from "aurelia-framework";
 import "rxjs/add/operator/skip";
 
 import { executeSteps } from "../../src/test-helpers";
-import { dispatchify, Store, NextState } from "../../src/store";
+import { dispatchify, Store } from "../../src/store";
 import { createTestStore, testState } from "./helpers";
 
 describe("store", () => {
@@ -54,7 +54,7 @@ describe("store", () => {
     
     dispatchify(fakeAction)("A", "B");
 
-    store.state.skip(1).subscribe((state: testState) => {
+    store.state.skip(1).subscribe((state) => {
       expect(state.foo).toEqual("AB");
       done();
     });
@@ -69,7 +69,7 @@ describe("store", () => {
     store.registerAction("FakeAction", fakeAction as any);
     store.dispatch(fakeAction, "A", "B");
 
-    store.state.skip(1).subscribe((state: testState) => {
+    store.state.skip(1).subscribe((state) => {
       expect(state.foo).toEqual("AB");
       done();
     });
@@ -122,9 +122,9 @@ describe("store", () => {
       store,
       false,
       (res) => store.dispatch(actionA),
-      (res: testState) => { expect(res.foo).toBe("A"); store.dispatch(actionB); },
-      (res: testState) => { expect(res.foo).toBe("B"); store.dispatch(actionC); },
-      (res: testState) => expect(res.foo).toBe("C")
+      (res) => { expect(res.foo).toBe("A"); store.dispatch(actionB); },
+      (res) => { expect(res.foo).toBe("B"); store.dispatch(actionC); },
+      (res) => expect(res.foo).toBe("C")
     );
   });
 });

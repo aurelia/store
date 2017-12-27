@@ -6,12 +6,11 @@ import {
   Container,
   LogManager
 } from "aurelia-framework";
-import { jump, StateHistory, applyLimits } from "./history";
+import { jump, applyLimits } from "./history";
 import { Middleware, MiddlewarePlacement } from "./middleware";
 import { HistoryOptions, isStateHistory } from "./aurelia-store";
 
-export type NextState<T> = T | StateHistory<T>;
-export type Reducer<T> = (state: NextState<T>, ...params: any[]) => NextState<T> | Promise<NextState<T>>;
+export type Reducer<T> = (state: T, ...params: any[]) => T | Promise<T>;
 
 export interface StoreOptions {
   history: Partial<HistoryOptions>
@@ -19,18 +18,18 @@ export interface StoreOptions {
 
 @autoinject()
 export class Store<T> {
-  public readonly state: Observable<NextState<T>>;
+  public readonly state: Observable<T>;
 
   private logger = LogManager.getLogger("aurelia-store");
   private devToolsAvailable: boolean = false;
   private devTools: any;
   private actions: Map<Reducer<T>, { name: string, reducer: Reducer<T> }> = new Map();
   private middlewares: Map<Middleware<T>, { placement: MiddlewarePlacement, reducer: Middleware<T> }> = new Map();
-  private _state: BehaviorSubject<NextState<T>>;
+  private _state: BehaviorSubject<T>;
 
   constructor(private initialState: T, private options?: Partial<StoreOptions>) {
     const isUndoable = this.options && this.options.history && this.options.history.undoable === true;
-    this._state = new BehaviorSubject<NextState<T>>(isUndoable ? { past: [], present: initialState, future: [] } : initialState);
+    this._state = new BehaviorSubject<T>(initialState);
     this.state = this._state.asObservable();
 
     this.setupDevTools();
@@ -82,7 +81,7 @@ export class Store<T> {
             this.options &&
             this.options.history &&
             this.options.history.limit) {
-          resultingState = applyLimits(resultingState as StateHistory<T>, this.options.history.limit);
+          resultingState = applyLimits(resultingState, this.options.history.limit);
         }
 
         this._state.next(resultingState);
@@ -97,7 +96,7 @@ export class Store<T> {
     }
   }
 
-  private executeMiddlewares(state: NextState<T>, placement: MiddlewarePlacement): NextState<T> {
+  private executeMiddlewares(state: T, placement: MiddlewarePlacement): T {
     return Array.from(this.middlewares.values())
       .filter((middleware) => middleware.placement === placement)
       .map((middleware) => middleware.reducer)
@@ -135,7 +134,7 @@ export class Store<T> {
   }
 
   private registerHistoryMethods() {
-    this.registerAction("jump", jump);
+    this.registerAction("jump", jump as any as Reducer<T>);
   }
 }
 

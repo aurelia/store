@@ -1,9 +1,7 @@
-import { NextState } from "./store";
-
 export interface StateHistory<T> {
-  past: T[];
-  present: T;
-  future: T[];
+  past: T[],
+  present: T,
+  future: T[]
 }
 
 export interface HistoryOptions {
@@ -11,19 +9,27 @@ export interface HistoryOptions {
   limit?: number;
 }
 
-export function jump<T>(state: NextState<T>, n: number) {
+export function jump<T>(state: T, n: number) {
+  if (!isStateHistory(state)) {
+    return state;
+  }
+
   if (n > 0) return jumpToFuture(state, n - 1)
-  if (n < 0) return jumpToPast(state, (state as StateHistory<T>).past.length + n)
+  if (n < 0) return jumpToPast(state, state.past.length + n)
 
   return state;
 }
 
-function jumpToFuture<T>(state: NextState<T>, index: number): NextState<T> {
-  if (index < 0 || index >= (state as StateHistory<T>).future.length) {
+function jumpToFuture<T>(state: StateHistory<T>, index: number): StateHistory<T> {
+  if (!isStateHistory(state)) {
     return state;
   }
 
-  const { past, future, present } = (state as StateHistory<T>);
+  if (index < 0 || index >= state.future.length) {
+    return state;
+  }
+
+  const { past, future, present } = state;
 
   const newPast = [...past, present, ...future.slice(0, index)];
   const newPresent = future[index];
@@ -32,12 +38,16 @@ function jumpToFuture<T>(state: NextState<T>, index: number): NextState<T> {
   return { past: newPast, present: newPresent, future: newFuture };
 }
 
-function jumpToPast<T>(state: NextState<T>, index: number): NextState<T> {
-  if (index < 0 || index >= (state as StateHistory<T>).past.length) {
+function jumpToPast<T>(state: StateHistory<T>, index: number): StateHistory<T> {
+  if (!isStateHistory(state)) {
     return state;
   }
 
-  const { past, future, present } = (state as StateHistory<T>);
+  if (index < 0 || index >= state.past.length) {
+    return state;
+  }
+
+  const { past, future, present } = state;
 
   const newPast = past.slice(0, index);
   const newFuture = [...past.slice(index + 1), present, ...future];
@@ -58,7 +68,7 @@ export function nextStateHistory<T>(presentStateHistory: StateHistory<T>, nextPr
   );
 }
 
-export function applyLimits<T>(state: StateHistory<T>, limit: number): StateHistory<T> {
+export function applyLimits<T>(state: T, limit: number): T {
   if (isStateHistory(state)) {
     if (state.past.length > limit) {
       state.past = state.past.slice(state.past.length - limit);
@@ -72,7 +82,7 @@ export function applyLimits<T>(state: StateHistory<T>, limit: number): StateHist
   return state;
 }
 
-export function isStateHistory(history: any) {
+export function isStateHistory(history: any): history is StateHistory<any> {
   return typeof history.present !== "undefined" &&
     typeof history.future !== "undefined" &&
     typeof history.past !== "undefined" &&

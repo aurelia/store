@@ -179,6 +179,13 @@ export function configure(aurelia: Aurelia) {
 Now when you subscribe to new state changes instead of a simple State you'll get a StateHistory<State> object returned:
 
 ```typescript
+import {StateHistory} from "aurelia-store";
+...
+
+constructor(private store: Store<StateHistory<State>>) {
+  this.store.registerAction("DemoAction", demoAction);
+}
+
 attached() {
   this.store.state.subscribe(
     (state: StateHistory<State>) => this.state = state

@@ -1,22 +1,20 @@
-import { NextState } from "./store";
-
-export type Middleware<T> = (state: NextState<T>, ...params: any[]) => NextState<T> | Promise<NextState<T>> | void;
+export type Middleware<T> = (state: T, ...params: any[]) => T | Promise<T> | void;
 export enum MiddlewarePlacement {
   Before = "before",
   After = "after"
 }
 
-export function logMiddleware<T>(state: NextState<T>) {
+export function logMiddleware<T>(state: T) {
   console.log("New state: ", state);
 }
 
-export function localStorageMiddleware<T>(state: NextState<T>) {
+export function localStorageMiddleware<T>(state: T) {
   if (window.localStorage) {
     window.localStorage.setItem("aurelia-store-state", JSON.stringify(state));
   }
 }
 
-export function rehydrateFromLocalStorage<T>(state: NextState<T>) {
+export function rehydrateFromLocalStorage<T>(state: T) {
   if (!window.localStorage) {
     return state;
   }

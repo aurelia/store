@@ -1,12 +1,18 @@
 import "rxjs/add/operator/skip";
 
 import { executeSteps } from "../../src/test-helpers";
-import { createTestStore, testState, createStoreWithStateAndOptions } from "./helpers";
-import { jump, StateHistory, nextStateHistory } from "../../src/history";
+import {
+  createTestStore,
+  testState,
+  createStoreWithStateAndOptions,
+  createUndoableTestStore
+} from "./helpers";
+import { jump, nextStateHistory } from "../../src/history";
+import { StateHistory } from "../../src/aurelia-store";
 
 describe("an undoable store", () => {
   it("should jump back and forth in time", async () => {
-    const { store } = createTestStore(true);
+    const { store } = createUndoableTestStore();
 
     const actionA = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "A" }));
     const actionB = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "B" }));
@@ -19,16 +25,16 @@ describe("an undoable store", () => {
       store,
       false,
       () => store.dispatch(actionA),
-      (res: StateHistory<testState>) => { expect(res.present.foo).toBe("A"); store.dispatch(actionB); },
-      (res: StateHistory<testState>) => { expect(res.present.foo).toBe("B"); store.dispatch(actionC); },
-      (res: StateHistory<testState>) => { expect(res.present.foo).toBe("C"); store.dispatch(jump, -1); },
-      (res: StateHistory<testState>) => { expect(res.present.foo).toBe("B"); store.dispatch(jump, 1); },
-      (res: StateHistory<testState>) => expect(res.present.foo).toBe("C")
+      (res) => { expect(res.present.foo).toBe("A"); store.dispatch(actionB); },
+      (res) => { expect(res.present.foo).toBe("B"); store.dispatch(actionC); },
+      (res) => { expect(res.present.foo).toBe("C"); store.dispatch(jump, -1); },
+      (res) => { expect(res.present.foo).toBe("B"); store.dispatch(jump, 1); },
+      (res) => expect(res.present.foo).toBe("C")
     );
   });
 
   it("should return the same state if jumping zero times", async () => {
-    const { store } = createTestStore(true);
+    const { store } = createUndoableTestStore();
     const actionA = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "A" }));
     const actionB = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "B" }));
 
@@ -39,14 +45,14 @@ describe("an undoable store", () => {
       store,
       false,
       () => store.dispatch(actionA),
-      (res: StateHistory<testState>) => { expect(res.present.foo).toBe("A"); store.dispatch(actionB); },
-      (res: StateHistory<testState>) => { expect(res.present.foo).toBe("B"); store.dispatch(jump, 0); },
-      (res: StateHistory<testState>) => expect(res.present.foo).toBe("B")
+      (res) => { expect(res.present.foo).toBe("A"); store.dispatch(actionB); },
+      (res) => { expect(res.present.foo).toBe("B"); store.dispatch(jump, 0); },
+      (res) => expect(res.present.foo).toBe("B")
     );
   });
 
   it("should return the same state if jumping too far into future", async () => {
-    const { store } = createTestStore(true);
+    const { store } = createUndoableTestStore();
     const actionA = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "A" }));
     const actionB = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "B" }));
 
@@ -57,14 +63,14 @@ describe("an undoable store", () => {
       store,
       false,
       () => store.dispatch(actionA),
-      (res: StateHistory<testState>) => { expect(res.present.foo).toBe("A"); store.dispatch(actionB); },
-      (res: StateHistory<testState>) => { expect(res.present.foo).toBe("B"); store.dispatch(jump, 3); },
-      (res: StateHistory<testState>) => expect(res.present.foo).toBe("B")
+      (res) => { expect(res.present.foo).toBe("A"); store.dispatch(actionB); },
+      (res) => { expect(res.present.foo).toBe("B"); store.dispatch(jump, 3); },
+      (res) => expect(res.present.foo).toBe("B")
     );
   });
 
   it("should return the same state if jumping too far into past", async () => {
-    const { store } = createTestStore(true);
+    const { store } = createUndoableTestStore();
     const actionA = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "A" }));
     const actionB = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "B" }));
 
@@ -75,14 +81,18 @@ describe("an undoable store", () => {
       store,
       false,
       () => store.dispatch(actionA),
-      (res: StateHistory<testState>) => { expect(res.present.foo).toBe("A"); store.dispatch(actionB); },
-      (res: StateHistory<testState>) => { expect(res.present.foo).toBe("B"); store.dispatch(jump, -3); },
-      (res: StateHistory<testState>) => expect(res.present.foo).toBe("B")
+      (res) => { expect(res.present.foo).toBe("A"); store.dispatch(actionB); },
+      (res) => { expect(res.present.foo).toBe("B"); store.dispatch(jump, -3); },
+      (res) => expect(res.present.foo).toBe("B")
     );
   });
 
   it("should limit the resulting states past if option is passed", async () => {
-    const initialState: testState = { foo: "bar" };
+    const initialState: StateHistory<testState> = {
+      past: [],
+      present: { foo: "bar" },
+      future: []
+    };
     const limit = 3;
     const store = createStoreWithStateAndOptions(initialState, { history: { undoable: true, limit } });
     const fakeAction = (currentState, idx) => Promise.resolve(nextStateHistory(currentState, { foo: idx.toString() }));
@@ -99,7 +109,7 @@ describe("an undoable store", () => {
           expect(res.past.length).toBe(idx >= limit ? limit : idx);
         };
       }),
-      (res: StateHistory<testState>) => {
+      (res) => {
         expect(res.past.length).toBe(limit)
         expect(res.past.map(i => i.foo)).toEqual(Array.from(new Array(limit)).map((a, idx) => (limit + idx).toString()));
       }
@@ -107,7 +117,11 @@ describe("an undoable store", () => {
   });
 
   it("should limit the resulting states future if option is passed", async () => {
-    const initialState: testState = { foo: "bar" };
+    const initialState: StateHistory<testState> = {
+      past: [],
+      present: { foo: "bar" },
+      future: []
+    };
     const limit = 3;
     const store = createStoreWithStateAndOptions(initialState, { history: { undoable: true, limit } });
     const stateAfterInitial = {
@@ -125,9 +139,9 @@ describe("an undoable store", () => {
     await executeSteps(
       store,
       false,
-      (res: StateHistory<testState>) => store.dispatch(fakeAction),
-      (res: StateHistory<testState>) => { expect(res).toEqual(stateAfterInitial); store.dispatch(jump, - limit); },
-      (res: StateHistory<testState>) => {
+      (res) => store.dispatch(fakeAction),
+      (res) => { expect(res).toEqual(stateAfterInitial); store.dispatch(jump, - limit); },
+      (res) => {
         expect(res.future.length).toBe(limit);
         expect(res.present).toEqual(stateAfterInitial.past[0]);
         expect(res.past).toEqual([]);

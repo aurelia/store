@@ -2,13 +2,13 @@ import "rxjs/add/operator/skip";
 import "rxjs/add/operator/take";
 import "rxjs/add/operator/delay";
 
-import { Store, NextState } from "./store";
+import { Store } from "./store";
 
 
-export type StepFn<T> = (res: NextState<T>) => void;
+export type StepFn<T> = (res: T) => void;
 
 export async function executeSteps<T>(store: Store<T>, shouldLogResults: boolean, ...steps: StepFn<T>[]) {
-  const logStep = (step: StepFn<T>, stepIdx: number) => (res: NextState<T>) => {
+  const logStep = (step: StepFn<T>, stepIdx: number) => (res: T) => {
     if (shouldLogResults) {
       console.group(`Step ${stepIdx}`)
       console.log(res);
@@ -19,17 +19,17 @@ export async function executeSteps<T>(store: Store<T>, shouldLogResults: boolean
 
   // tslint:disable-next-line:no-any
   const tryStep = (step: StepFn<T>, reject: (reason?: any) => void) =>
-    (res: NextState<T>) => {
+    (res: T) => {
       try {
-        step(res as any);
+        step(res);
       } catch (err) {
         reject(err);
       }
     };
 
   const lastStep = (step: StepFn<T>, resolve: () => void) =>
-    (res: NextState<T>) => {
-      step(res as any);
+    (res: T) => {
+      step(res);
       resolve();
     };
 

@@ -1,12 +1,16 @@
-System.register(["./store", "./test-helpers", "./history", "./middleware"], function (exports_1, context_1) {
+System.register(["./store", "./history", "./test-helpers", "./middleware"], function (exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     function configure(aurelia, initialState, options) {
+        var initState = initialState;
+        if (options && options.history && options.history.undoable && !history_1.isStateHistory(initialState)) {
+            initState = { past: [], present: initialState, future: [] };
+        }
         aurelia.container
-            .registerInstance(store_1.Store, new store_1.Store(initialState, options));
+            .registerInstance(store_1.Store, new store_1.Store(initState, options));
     }
     exports_1("configure", configure);
-    var store_1;
+    var store_1, history_1;
     var exportedNames_1 = {
         "configure": true
     };
@@ -23,11 +27,12 @@ System.register(["./store", "./test-helpers", "./history", "./middleware"], func
                 store_1 = store_1_1;
                 exportStar_1(store_1_1);
             },
+            function (history_1_1) {
+                history_1 = history_1_1;
+                exportStar_1(history_1_1);
+            },
             function (test_helpers_1_1) {
                 exportStar_1(test_helpers_1_1);
-            },
-            function (history_1_1) {
-                exportStar_1(history_1_1);
             },
             function (middleware_1_1) {
                 exportStar_1(middleware_1_1);
