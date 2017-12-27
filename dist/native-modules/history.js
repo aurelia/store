@@ -9,9 +9,6 @@ export function jump(state, n) {
     return state;
 }
 function jumpToFuture(state, index) {
-    if (!isStateHistory(state)) {
-        return state;
-    }
     if (index < 0 || index >= state.future.length) {
         return state;
     }
@@ -22,9 +19,6 @@ function jumpToFuture(state, index) {
     return { past: newPast, present: newPresent, future: newFuture };
 }
 function jumpToPast(state, index) {
-    if (!isStateHistory(state)) {
-        return state;
-    }
     if (index < 0 || index >= state.past.length) {
         return state;
     }

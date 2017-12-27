@@ -1,16 +1,19 @@
 import "rxjs/add/operator/skip";
 import "rxjs/add/operator/delay";
 
-import { createTestStore } from "./helpers";
+import {
+  createTestStore,
+  testState
+} from "./helpers";
 
 describe("redux devtools", () => {
   it("should update Redux DevTools", done => {
-    const { initialState, store } = createTestStore();
+    const { store } = createTestStore();
 
     const spy = jest.spyOn(store, "updateDevToolsState" as any);
 
     const modifiedState = { foo: "bert" };
-    const fakeAction = (currentState) => {
+    const fakeAction = (currentState: testState) => {
       return Object.assign({}, currentState, modifiedState);
     };
 

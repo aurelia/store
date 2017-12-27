@@ -4,7 +4,10 @@ import {
   FrameworkConfiguration
 } from "aurelia-framework";
 
-import { configure, Store } from "../../src/aurelia-store";
+import {
+  configure,
+  Store
+} from "../../src/aurelia-store";
 
 describe("aurelia setup", () => {
   it("should provide a configuration method registering the store instance", () => {
@@ -33,7 +36,7 @@ describe("aurelia setup", () => {
 
     expect(aurelia.container.hasResolver(Store)).toBeFalsy();
 
-    configure<State>(aurelia, { foo: "bar" }, { history: { undoable: true }});
+    configure<State>(aurelia, { foo: "bar" }, { history: { undoable: true } });
 
     expect(aurelia.container.get(Store).options.history.undoable).toBe(true);
   });

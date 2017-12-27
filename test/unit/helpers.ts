@@ -1,4 +1,8 @@
-import { Store } from "../../src/store";
+import {
+  Store,
+  StoreOptions
+} from "../../src/store";
+
 import { StateHistory } from "../../src/history";
 
 export type testState = {
@@ -17,18 +21,18 @@ export function createUndoableTestStore() {
     past: [],
     present: { foo: "bar" },
     future: []
-  };
-  const options = { history: { undoable: true }};
-  const store: Store<StateHistory<testState>> = new Store(initialState, options);
+  } as StateHistory<testState>;
+  const options = { history: { undoable: true } };
+  const store = new Store(initialState, options);
 
   return { initialState, store };
 }
 
 export function createStoreWithState<T>(state: T, withUndo = false) {
-  const options = withUndo ? { history: { undoable: true }} : {};
+  const options = withUndo ? { history: { undoable: true } } : {};
   return new Store<T>(state, options);
 }
 
-export function createStoreWithStateAndOptions<T>(state: T, options) {
+export function createStoreWithStateAndOptions<T>(state: T, options: StoreOptions) {
   return new Store<T>(state, options);
 }

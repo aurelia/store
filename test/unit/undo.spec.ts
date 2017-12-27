@@ -1,22 +1,42 @@
 import "rxjs/add/operator/skip";
 
-import { executeSteps } from "../../src/test-helpers";
 import {
-  createTestStore,
-  testState,
   createStoreWithStateAndOptions,
-  createUndoableTestStore
+  createUndoableTestStore,
+  testState
 } from "./helpers";
-import { jump, nextStateHistory } from "../../src/history";
+import {
+  applyLimits,
+  jump,
+  nextStateHistory
+} from "../../src/history";
+
+import { executeSteps } from "../../src/test-helpers";
 import { StateHistory } from "../../src/aurelia-store";
 
 describe("an undoable store", () => {
+  it("should return state as is if not matching type of StateHistory", () => {
+    const simpleState: testState = {
+      foo: "Bar"
+    };
+
+    expect(jump(simpleState, 0)).toBe(simpleState);
+  });
+
+  it("should return state as is from applyLimits if not matching type of StateHistory", () => {
+    const simpleState: testState = {
+      foo: "Bar"
+    };
+
+    expect(applyLimits(simpleState, 0)).toBe(simpleState);
+  });
+
   it("should jump back and forth in time", async () => {
     const { store } = createUndoableTestStore();
 
-    const actionA = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "A" }));
-    const actionB = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "B" }));
-    const actionC = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "C" }));
+    const actionA = (currentState: StateHistory<testState>) => Promise.resolve(nextStateHistory(currentState, { foo: "A" }));
+    const actionB = (currentState: StateHistory<testState>) => Promise.resolve(nextStateHistory(currentState, { foo: "B" }));
+    const actionC = (currentState: StateHistory<testState>) => Promise.resolve(nextStateHistory(currentState, { foo: "C" }));
     store.registerAction("Action A", actionA);
     store.registerAction("Action B", actionB);
     store.registerAction("Action C", actionC);
@@ -35,8 +55,8 @@ describe("an undoable store", () => {
 
   it("should return the same state if jumping zero times", async () => {
     const { store } = createUndoableTestStore();
-    const actionA = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "A" }));
-    const actionB = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "B" }));
+    const actionA = (currentState: StateHistory<testState>) => Promise.resolve(nextStateHistory(currentState, { foo: "A" }));
+    const actionB = (currentState: StateHistory<testState>) => Promise.resolve(nextStateHistory(currentState, { foo: "B" }));
 
     store.registerAction("Action A", actionA);
     store.registerAction("Action B", actionB);
@@ -53,8 +73,8 @@ describe("an undoable store", () => {
 
   it("should return the same state if jumping too far into future", async () => {
     const { store } = createUndoableTestStore();
-    const actionA = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "A" }));
-    const actionB = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "B" }));
+    const actionA = (currentState: StateHistory<testState>) => Promise.resolve(nextStateHistory(currentState, { foo: "A" }));
+    const actionB = (currentState: StateHistory<testState>) => Promise.resolve(nextStateHistory(currentState, { foo: "B" }));
 
     store.registerAction("Action A", actionA);
     store.registerAction("Action B", actionB);
@@ -71,8 +91,8 @@ describe("an undoable store", () => {
 
   it("should return the same state if jumping too far into past", async () => {
     const { store } = createUndoableTestStore();
-    const actionA = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "A" }));
-    const actionB = (currentState) => Promise.resolve(nextStateHistory(currentState, { foo: "B" }));
+    const actionA = (currentState: StateHistory<testState>) => Promise.resolve(nextStateHistory(currentState, { foo: "A" }));
+    const actionB = (currentState: StateHistory<testState>) => Promise.resolve(nextStateHistory(currentState, { foo: "B" }));
 
     store.registerAction("Action A", actionA);
     store.registerAction("Action B", actionB);
@@ -95,14 +115,14 @@ describe("an undoable store", () => {
     };
     const limit = 3;
     const store = createStoreWithStateAndOptions(initialState, { history: { undoable: true, limit } });
-    const fakeAction = (currentState, idx) => Promise.resolve(nextStateHistory(currentState, { foo: idx.toString() }));
+    const fakeAction = (currentState: StateHistory<testState>, idx: number) => Promise.resolve(nextStateHistory(currentState, { foo: idx.toString() }));
 
     store.registerAction("FakeAction", fakeAction);
 
     await executeSteps(
       store,
       false,
-      ...Array.from(new Array(limit + limit)).map((a, idx) => {
+      ...Array.from(new Array(limit + limit)).map((_, idx) => {
         return (res: StateHistory<testState>) => {
           store.dispatch(fakeAction, idx + 1);
 
@@ -111,7 +131,7 @@ describe("an undoable store", () => {
       }),
       (res) => {
         expect(res.past.length).toBe(limit)
-        expect(res.past.map(i => i.foo)).toEqual(Array.from(new Array(limit)).map((a, idx) => (limit + idx).toString()));
+        expect(res.past.map(i => i.foo)).toEqual(Array.from(new Array(limit)).map((_, idx) => (limit + idx).toString()));
       }
     );
   });
@@ -125,12 +145,12 @@ describe("an undoable store", () => {
     const limit = 3;
     const store = createStoreWithStateAndOptions(initialState, { history: { undoable: true, limit } });
     const stateAfterInitial = {
-      past: Array.from(new Array(limit)).map((a, idx) => ({ foo: idx.toString() })),
+      past: Array.from(new Array(limit)).map((_, idx) => ({ foo: idx.toString() })),
       present: { foo: "x" },
-      future: Array.from(new Array(limit)).map((a, idx) => ({ foo: (limit + idx).toString() }))
+      future: Array.from(new Array(limit)).map((_, idx) => ({ foo: (limit + idx).toString() }))
     };
 
-    const fakeAction = (currentState) => {
+    const fakeAction = (currentState: StateHistory<testState>) => {
       return Promise.resolve(stateAfterInitial);
     };
 
@@ -139,7 +159,7 @@ describe("an undoable store", () => {
     await executeSteps(
       store,
       false,
-      (res) => store.dispatch(fakeAction),
+      () => store.dispatch(fakeAction),
       (res) => { expect(res).toEqual(stateAfterInitial); store.dispatch(jump, - limit); },
       (res) => {
         expect(res.future.length).toBe(limit);

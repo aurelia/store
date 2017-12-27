@@ -1,9 +1,16 @@
 import { Container } from "aurelia-framework";
 import "rxjs/add/operator/skip";
 
+import {
+  dispatchify,
+  Store
+} from "../../src/store";
+import {
+  createTestStore,
+  testState
+} from "./helpers";
+
 import { executeSteps } from "../../src/test-helpers";
-import { dispatchify, Store } from "../../src/store";
-import { createTestStore, testState } from "./helpers";
 
 describe("store", () => {
   it("should accept an initial state", done => {
@@ -17,16 +24,16 @@ describe("store", () => {
 
   it("shouldn't fail when dispatching unknown actions", async () => {
     const { store } = createTestStore();
-    const unregisteredAction = (currentState, param1, param2) => {
+    const unregisteredAction = (currentState: testState, param1: number, param2: number) => {
       return Object.assign({}, currentState, { foo: param1 + param2 })
     };
-    
+
     const result = await store.dispatch(unregisteredAction);
-    expect(result).toBe(undefined);    
+    expect(result).toBe(undefined);
   })
 
   it("should only accept reducers taking at least one parameter", () => {
-    const { initialState, store } = createTestStore();
+    const { store } = createTestStore();
     const fakeAction = () => { };
 
     expect(() => {
@@ -35,8 +42,8 @@ describe("store", () => {
   });
 
   it("should force reducers to return a new state", async () => {
-    const { initialState, store } = createTestStore();
-    const fakeAction = (currentState) => { };
+    const { store } = createTestStore();
+    const fakeAction = (currentState: testState) => { };
 
     store.registerAction("FakeAction", fakeAction as any);
     expect(store.dispatch(fakeAction as any)).rejects.toBeDefined();
@@ -44,14 +51,14 @@ describe("store", () => {
 
   it("should help create dispatchifyable functions", done => {
     const cont = new Container().makeGlobal();
-    const { initialState, store } = createTestStore();
-    const fakeAction = (currentState, param1: number, param2: number) => {
+    const { store } = createTestStore();
+    const fakeAction = (currentState: testState, param1: number, param2: number) => {
       return Object.assign({}, currentState, { foo: param1 + param2 })
     };
 
     store.registerAction("FakeAction", fakeAction as any);
     cont.registerInstance(Store, store);
-    
+
     dispatchify(fakeAction)("A", "B");
 
     store.state.skip(1).subscribe((state) => {
@@ -61,8 +68,8 @@ describe("store", () => {
   });
 
   it("should accept reducers taking multiple parameters", done => {
-    const { initialState, store } = createTestStore();
-    const fakeAction = (currentState, param1, param2) => {
+    const { store } = createTestStore();
+    const fakeAction = (currentState: testState, param1: string, param2: string) => {
       return Object.assign({}, currentState, { foo: param1 + param2 })
     };
 
@@ -76,9 +83,9 @@ describe("store", () => {
   });
 
   it("should queue the next state after dispatching an action", done => {
-    const { initialState, store } = createTestStore();
+    const { store } = createTestStore();
     const modifiedState = { foo: "bert" };
-    const fakeAction = (currentState) => {
+    const fakeAction = (currentState: testState) => {
       return Object.assign({}, currentState, modifiedState);
     };
 
@@ -92,9 +99,9 @@ describe("store", () => {
   });
 
   it("should support promised actions", done => {
-    const { initialState, store } = createTestStore();
+    const { store } = createTestStore();
     const modifiedState = { foo: "bert" };
-    const fakeAction = (currentState) => Promise.resolve(modifiedState);
+    const fakeAction = (currentState: testState) => Promise.resolve(modifiedState);
 
     store.registerAction("FakeAction", fakeAction);
     store.dispatch(fakeAction);
@@ -108,12 +115,11 @@ describe("store", () => {
 
   it("should provide easy means to test sequences", async () => {
     expect.assertions(3);
-    const { initialState, store } = createTestStore();
-    const modifiedState = { foo: "bert" };
+    const { store } = createTestStore();
 
-    const actionA = (currentState) => Promise.resolve({ foo: "A" });
-    const actionB = (currentState) => Promise.resolve({ foo: "B" });
-    const actionC = (currentState) => Promise.resolve({ foo: "C" });
+    const actionA = (currentState: testState) => Promise.resolve({ foo: "A" });
+    const actionB = (currentState: testState) => Promise.resolve({ foo: "B" });
+    const actionC = (currentState: testState) => Promise.resolve({ foo: "C" });
     store.registerAction("Action A", actionA);
     store.registerAction("Action B", actionB);
     store.registerAction("Action C", actionC);
@@ -121,7 +127,7 @@ describe("store", () => {
     await executeSteps(
       store,
       false,
-      (res) => store.dispatch(actionA),
+      () => store.dispatch(actionA),
       (res) => { expect(res.foo).toBe("A"); store.dispatch(actionB); },
       (res) => { expect(res.foo).toBe("B"); store.dispatch(actionC); },
       (res) => expect(res.foo).toBe("C")

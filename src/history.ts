@@ -21,10 +21,6 @@ export function jump<T>(state: T, n: number) {
 }
 
 function jumpToFuture<T>(state: StateHistory<T>, index: number): StateHistory<T> {
-  if (!isStateHistory(state)) {
-    return state;
-  }
-
   if (index < 0 || index >= state.future.length) {
     return state;
   }
@@ -39,10 +35,6 @@ function jumpToFuture<T>(state: StateHistory<T>, index: number): StateHistory<T>
 }
 
 function jumpToPast<T>(state: StateHistory<T>, index: number): StateHistory<T> {
-  if (!isStateHistory(state)) {
-    return state;
-  }
-
   if (index < 0 || index >= state.past.length) {
     return state;
   }

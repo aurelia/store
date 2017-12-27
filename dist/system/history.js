@@ -13,9 +13,6 @@ System.register([], function (exports_1, context_1) {
     }
     exports_1("jump", jump);
     function jumpToFuture(state, index) {
-        if (!isStateHistory(state)) {
-            return state;
-        }
         if (index < 0 || index >= state.future.length) {
             return state;
         }
@@ -26,9 +23,6 @@ System.register([], function (exports_1, context_1) {
         return { past: newPast, present: newPresent, future: newFuture };
     }
     function jumpToPast(state, index) {
-        if (!isStateHistory(state)) {
-            return state;
-        }
         if (index < 0 || index >= state.past.length) {
             return state;
         }

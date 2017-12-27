@@ -1,16 +1,16 @@
 import "rxjs/add/operator/skip";
 import "rxjs/add/operator/take";
 
-import { Store } from "../../src/store";
-import { createStoreWithState, testState } from "./helpers";
 import {
   MiddlewarePlacement,
   logMiddleware,
   localStorageMiddleware,
   rehydrateFromLocalStorage
 } from "../../src/middleware";
+
+import { createStoreWithState } from "./helpers";
 import { executeSteps } from "../../src/test-helpers";
-import { nextStateHistory, StateHistory } from "../../src/history";
+import { StateHistory } from "../../src/history";
 
 describe("middlewares", () => {
   interface TestState {
@@ -52,7 +52,7 @@ describe("middlewares", () => {
 
     store.registerMiddleware(decreaseBefore, MiddlewarePlacement.Before);
     store.registerAction("IncrementAction", incrementAction);
-    
+
     await executeSteps(
       store,
       false,
@@ -64,6 +64,24 @@ describe("middlewares", () => {
       },
       (res: TestState) => expect(res.counter).toEqual(1003)
     );
+  });
+
+  it("should not try to delete previously unregistered middlewares", async () => {
+    const store = createStoreWithState(initialState);
+
+    spyOn((store as any).middlewares, "delete");
+
+    const decreaseBefore = (currentState: TestState) => {
+      const newState = Object.assign({}, currentState);
+      newState.counter += 1000;
+
+      return newState;
+    }
+
+    store.registerAction("IncrementAction", incrementAction);
+    store.unregisterMiddleware(decreaseBefore);
+
+    expect((store as any).middlewares.delete).not.toHaveBeenCalled();
   });
 
   describe("which are applied before action dispatches", () => {
@@ -208,7 +226,7 @@ describe("middlewares", () => {
     }
 
     new Array(26).fill("")
-      .forEach((val, idx) => store.registerMiddleware(
+      .forEach((_, idx) => store.registerMiddleware(
         middlewareFactory(String.fromCharCode(65 + idx)),
         MiddlewarePlacement.After)
       );
@@ -224,7 +242,7 @@ describe("middlewares", () => {
     store.dispatch(demoAction);
 
     store.state.skip(1).take(1).subscribe((state) => {
-      expect(state.values).toEqual(["Demo", ...new Array(26).fill("").map((val, idx) => String.fromCharCode(65 + idx))]);
+      expect(state.values).toEqual(["Demo", ...new Array(26).fill("").map((_, idx) => String.fromCharCode(65 + idx))]);
       done();
     });
   });
@@ -234,13 +252,13 @@ describe("middlewares", () => {
 
     global.console.log = jest.fn();
 
-    const customLogMiddleware = (currentState) => console.log(currentState);
+    const customLogMiddleware = (currentState: TestState) => console.log(currentState);
     store.registerMiddleware(customLogMiddleware, MiddlewarePlacement.Before);
 
     store.registerAction("IncrementAction", incrementAction);
     store.dispatch(incrementAction);
 
-    store.state.skip(1).subscribe((state) => {
+    store.state.skip(1).subscribe(() => {
       expect(global.console.log).toHaveBeenCalled();
       (global.console.log as any).mockReset();
       (global.console.log as any).mockRestore();
@@ -299,7 +317,7 @@ describe("middlewares", () => {
       const store = createStoreWithState(initialState);
 
       (window as any).localStorage = {
-        getItem(key: string) {
+        getItem() {
           const storedState = Object.assign({}, initialState);
           storedState.counter = 1000;
 
@@ -336,7 +354,7 @@ describe("middlewares", () => {
       const store = createStoreWithState(initialState);
 
       (window as any).localStorage = {
-        getItem(key: string) {
+        getItem() {
           return null;
         }
       };
@@ -355,7 +373,7 @@ describe("middlewares", () => {
       const store = createStoreWithState(initialHistoryState, true);
 
       (window as any).localStorage = {
-        getItem(key: string) {
+        getItem() {
           const storedState = Object.assign({}, initialState);
           storedState.counter = 1000;
 
@@ -377,7 +395,7 @@ describe("middlewares", () => {
       const store = createStoreWithState(initialState);
 
       (window as any).localStorage = {
-        getItem(key: string) {
+        getItem() {
           return global;
         }
       };
