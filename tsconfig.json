@@ -17,7 +17,8 @@
     "forceConsistentCasingInFileNames": true,
     "experimentalDecorators": true,
     "noEmitHelpers": false,
-    "strict": true
+    "strict": true,
+    "newLine": "LF"
   },
   "exclude": [
     ".vscode",
