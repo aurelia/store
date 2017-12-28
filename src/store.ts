@@ -102,7 +102,7 @@ export class Store<T> {
       .map((middleware) => middleware.reducer)
       .reduce(async (prev: any, curr) => {
         try {
-          const result = await curr(await prev);
+          const result = await curr(await prev, (placement === MiddlewarePlacement.After) ? this._state.getValue() : undefined);
           return result || await prev;
         } catch (e) {
           return await prev;

@@ -182,6 +182,26 @@ describe("middlewares", () => {
         done();
       });
     });
+
+    it("should get additionally the original state, before prev modifications passed in", done => {
+      const store = createStoreWithState(initialState);
+
+      const decreaseBefore = (currentState: TestState, originalState: TestState) => {
+        const newState = Object.assign({}, currentState);
+        newState.counter = originalState.counter;
+
+        return newState;
+      }
+      store.registerMiddleware(decreaseBefore, MiddlewarePlacement.After);
+
+      store.registerAction("IncrementAction", incrementAction);
+      store.dispatch(incrementAction);
+
+      store.state.skip(1).take(1).subscribe((state) => {
+        expect(state.counter).toEqual(1);
+        done();
+      });
+    });
   });
 
   it("should handle multiple middlewares", done => {

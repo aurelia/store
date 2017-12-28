@@ -280,6 +280,18 @@ In order to remove a registered middleware, simply call `store.unregisterMiddlew
 store.unregisterMiddleware(customLogMiddleware);
 ```
 
+Additionally a middleware placed after the action might accept a second argument which reflects the current unmodified state, this means the one before any other middlewares or the result of the dispatched action. This can be useful to determine the state diff that happened in the middleware chain or to reset the next state at certain conditions.
+
+```typescript
+...
+const decreaseBefore = (currentState: TestState, originalState: TestState) => {
+  const newState = Object.assign({}, currentState);
+  newState.counter = originalState.counter;
+
+  return newState;
+}
+```
+
 ### LocalStorage Middleware
 Out of the box aurelia-store provides an `localStorageMiddleware` which stores your most recent emitted state in the [window.localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage). In order to make use of it all you need to do is to register it as usual:
 

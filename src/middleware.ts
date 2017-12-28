@@ -1,4 +1,4 @@
-export type Middleware<T> = (state: T, ...params: any[]) => T | Promise<T> | void;
+export type Middleware<T> = (state: T, originalState?: T) => T | Promise<T | undefined> | void;
 export enum MiddlewarePlacement {
   Before = "before",
   After = "after"

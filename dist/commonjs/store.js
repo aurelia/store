@@ -140,7 +140,7 @@ var Store = /** @class */ (function () {
                         _c.trys.push([0, 5, , 7]);
                         _a = curr;
                         return [4 /*yield*/, prev];
-                    case 1: return [4 /*yield*/, _a.apply(void 0, [_c.sent()])];
+                    case 1: return [4 /*yield*/, _a.apply(void 0, [_c.sent(), (placement === middleware_1.MiddlewarePlacement.After) ? this._state.getValue() : undefined])];
                     case 2:
                         result = _c.sent();
                         _b = result;
