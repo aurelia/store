@@ -4,6 +4,7 @@ import { HistoryOptions } from "./aurelia-store";
 export declare type Reducer<T> = (state: T, ...params: any[]) => T | Promise<T>;
 export interface StoreOptions {
     history: Partial<HistoryOptions>;
+    logDispatchedActions?: boolean;
 }
 export declare class Store<T> {
     private initialState;
@@ -15,11 +16,14 @@ export declare class Store<T> {
     private actions;
     private middlewares;
     private _state;
+    private dispatchQueue;
     constructor(initialState: T, options?: Partial<StoreOptions> | undefined);
     registerMiddleware(reducer: Middleware<T>, placement: MiddlewarePlacement): void;
     unregisterMiddleware(reducer: Middleware<T>): void;
     registerAction(name: string, reducer: Reducer<T>): void;
-    dispatch(reducer: Reducer<T>, ...params: any[]): Promise<void>;
+    dispatch(reducer: Reducer<T>, ...params: any[]): Promise<{}>;
+    private handleQueue();
+    private internalDispatch(reducer, ...params);
     private executeMiddlewares(state, placement);
     private setupDevTools();
     private updateDevToolsState(action, state);

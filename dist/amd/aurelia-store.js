@@ -4,11 +4,15 @@ define(["require", "exports", "./store", "./history", "./store", "./test-helpers
         for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
     }
     Object.defineProperty(exports, "__esModule", { value: true });
-    function configure(aurelia, initialState, options) {
-        var initState = initialState;
-        if (options && options.history && options.history.undoable && !history_1.isStateHistory(initialState)) {
-            initState = { past: [], present: initialState, future: [] };
+    function configure(aurelia, options) {
+        if (!options || !options.initialState) {
+            throw new Error("initialState must be provided via options");
         }
+        var initState = options.initialState;
+        if (options && options.history && options.history.undoable && !history_1.isStateHistory(options.initialState)) {
+            initState = { past: [], present: options.initialState, future: [] };
+        }
+        delete options.initialState;
         aurelia.container
             .registerInstance(store_1.Store, new store_1.Store(initState, options));
     }

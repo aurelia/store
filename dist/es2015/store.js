@@ -52,6 +52,7 @@ var Store = /** @class */ (function () {
         this.devToolsAvailable = false;
         this.actions = new Map();
         this.middlewares = new Map();
+        this.dispatchQueue = [];
         var isUndoable = this.options && this.options.history && this.options.history.undoable === true;
         this._state = new BehaviorSubject(initialState);
         this.state = this._state.asObservable();
@@ -75,24 +76,70 @@ var Store = /** @class */ (function () {
         this.actions.set(reducer, { name: name, reducer: reducer });
     };
     Store.prototype.dispatch = function (reducer) {
+        var _this = this;
+        var params = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            params[_i - 1] = arguments[_i];
+        }
+        var result = new Promise(function (resolve, reject) {
+            _this.dispatchQueue.push({ reducer: reducer, params: params, resolve: resolve, reject: reject });
+            if (_this.dispatchQueue.length === 1) {
+                _this.handleQueue();
+            }
+        });
+        return result;
+    };
+    Store.prototype.handleQueue = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var queueItem, e_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!(this.dispatchQueue.length > 0)) return [3 /*break*/, 5];
+                        queueItem = this.dispatchQueue[0];
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, this.internalDispatch.apply(this, [queueItem.reducer].concat(queueItem.params))];
+                    case 2:
+                        _a.sent();
+                        queueItem.resolve();
+                        return [3 /*break*/, 4];
+                    case 3:
+                        e_1 = _a.sent();
+                        queueItem.reject(e_1);
+                        return [3 /*break*/, 4];
+                    case 4:
+                        this.dispatchQueue.shift();
+                        this.handleQueue();
+                        _a.label = 5;
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Store.prototype.internalDispatch = function (reducer) {
         var params = [];
         for (var _i = 1; _i < arguments.length; _i++) {
             params[_i - 1] = arguments[_i];
         }
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
-            var action, beforeMiddleswaresResult, result, apply, _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var action, beforeMiddleswaresResult, result, apply, _a, _b;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         if (!this.actions.has(reducer)) {
                             throw new Error("Tried to dispatch an unregistered action " + reducer.name);
                         }
+                        if (this.options && this.options.logDispatchedActions) {
+                            this.logger.info("Dispatching: " + reducer.name);
+                        }
                         action = this.actions.get(reducer);
                         return [4 /*yield*/, this.executeMiddlewares(this._state.getValue(), MiddlewarePlacement.Before)];
                     case 1:
-                        beforeMiddleswaresResult = _b.sent();
-                        result = (_a = action).reducer.apply(_a, [beforeMiddleswaresResult].concat(params));
+                        beforeMiddleswaresResult = _c.sent();
+                        result = (_b = action).reducer.apply(_b, [beforeMiddleswaresResult].concat(params));
                         if (!result && typeof result !== "object") {
                             throw new Error("The reducer has to return a new state");
                         }
@@ -115,13 +162,18 @@ var Store = /** @class */ (function () {
                                 }
                             });
                         }); };
-                        if (typeof result.then === "function") {
-                            result.then(function (resolvedState) { return apply(resolvedState); });
-                        }
-                        else {
-                            apply(result);
-                        }
-                        return [2 /*return*/];
+                        if (!(typeof result.then === "function")) return [3 /*break*/, 4];
+                        _a = apply;
+                        return [4 /*yield*/, result];
+                    case 2: return [4 /*yield*/, _a.apply(void 0, [_c.sent()])];
+                    case 3:
+                        _c.sent();
+                        return [3 /*break*/, 6];
+                    case 4: return [4 /*yield*/, apply(result)];
+                    case 5:
+                        _c.sent();
+                        _c.label = 6;
+                    case 6: return [2 /*return*/];
                 }
             });
         });
@@ -132,7 +184,7 @@ var Store = /** @class */ (function () {
             .filter(function (middleware) { return middleware.placement === placement; })
             .map(function (middleware) { return middleware.reducer; })
             .reduce(function (prev, curr) { return __awaiter(_this, void 0, void 0, function () {
-            var result, _a, _b, e_1;
+            var result, _a, _b, e_2;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -150,7 +202,7 @@ var Store = /** @class */ (function () {
                         _c.label = 4;
                     case 4: return [2 /*return*/, _b];
                     case 5:
-                        e_1 = _c.sent();
+                        e_2 = _c.sent();
                         return [4 /*yield*/, prev];
                     case 6: return [2 /*return*/, _c.sent()];
                     case 7: return [2 /*return*/];

@@ -1,10 +1,14 @@
 import { Store } from "./store";
 import { isStateHistory } from "./history";
-export function configure(aurelia, initialState, options) {
-    var initState = initialState;
-    if (options && options.history && options.history.undoable && !isStateHistory(initialState)) {
-        initState = { past: [], present: initialState, future: [] };
+export function configure(aurelia, options) {
+    if (!options || !options.initialState) {
+        throw new Error("initialState must be provided via options");
     }
+    var initState = options.initialState;
+    if (options && options.history && options.history.undoable && !isStateHistory(options.initialState)) {
+        initState = { past: [], present: options.initialState, future: [] };
+    }
+    delete options.initialState;
     aurelia.container
         .registerInstance(Store, new Store(initState, options));
 }

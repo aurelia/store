@@ -13,7 +13,15 @@ import { HistoryOptions, isStateHistory } from "./aurelia-store";
 export type Reducer<T> = (state: T, ...params: any[]) => T | Promise<T>;
 
 export interface StoreOptions {
-  history: Partial<HistoryOptions>
+  history: Partial<HistoryOptions>,
+  logDispatchedActions?: boolean
+}
+
+interface DispatchQueueItem<T> {
+  reducer: Reducer<T>;
+  params: any[];
+  resolve: any;
+  reject: any;
 }
 
 @autoinject()
@@ -26,6 +34,8 @@ export class Store<T> {
   private actions: Map<Reducer<T>, { name: string, reducer: Reducer<T> }> = new Map();
   private middlewares: Map<Middleware<T>, { placement: MiddlewarePlacement, reducer: Middleware<T> }> = new Map();
   private _state: BehaviorSubject<T>;
+
+  private dispatchQueue: DispatchQueueItem<T>[] = [];
 
   constructor(private initialState: T, private options?: Partial<StoreOptions>) {
     const isUndoable = this.options && this.options.history && this.options.history.undoable === true;
@@ -57,9 +67,40 @@ export class Store<T> {
     this.actions.set(reducer, { name, reducer });
   }
 
-  public async dispatch(reducer: Reducer<T>, ...params: any[]) {
+  public dispatch(reducer: Reducer<T>, ...params: any[]) {
+    const result = new Promise((resolve, reject) => {
+      this.dispatchQueue.push({ reducer, params, resolve, reject });
+      if (this.dispatchQueue.length === 1) {
+        this.handleQueue();
+      }
+    });
+
+    return result;
+  }
+
+  private async handleQueue() {
+    if (this.dispatchQueue.length > 0) {
+      const queueItem = this.dispatchQueue[0];
+
+      try {
+        await this.internalDispatch(queueItem.reducer, ...queueItem.params);
+        queueItem.resolve();
+      } catch (e) {
+        queueItem.reject(e);
+      }
+
+      this.dispatchQueue.shift();
+      this.handleQueue();
+    }
+  }
+
+  private async internalDispatch(reducer: Reducer<T>, ...params: any[]) {
     if (!this.actions.has(reducer)) {
       throw new Error(`Tried to dispatch an unregistered action ${reducer.name}`);
+    }
+
+    if (this.options && this.options.logDispatchedActions) {
+      this.logger.info(`Dispatching: ${reducer.name}`);
     }
 
     const action = this.actions.get(reducer);
@@ -92,9 +133,9 @@ export class Store<T> {
     }
 
     if (typeof (result as Promise<T>).then === "function") {
-      (result as Promise<T>).then((resolvedState: T) => apply(resolvedState));
+      await apply(await result);
     } else {
-      apply(result as T);
+      await apply(result as T);
     }
 
   }

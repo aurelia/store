@@ -2,15 +2,24 @@ import { FrameworkConfiguration } from "aurelia-framework";
 import { Store, StoreOptions } from "./store";
 import { isStateHistory } from "./history";
 
+export interface StorePluginOptions<T> extends StoreOptions {
+  initialState: T;
+}
+
 export function configure<T>(
   aurelia: FrameworkConfiguration,
-  initialState: T,
-  options?: Partial<StoreOptions>
+  options: Partial<StorePluginOptions<T>>
 ) {
-  let initState: any = initialState;
-  if (options && options.history && options.history.undoable && !isStateHistory(initialState)) {
-    initState =  { past: [], present: initialState, future: [] };
+  if (!options || !options.initialState) {
+    throw new Error("initialState must be provided via options");
   }
+
+  let initState: any = options.initialState;
+  if (options && options.history && options.history.undoable && !isStateHistory(options.initialState)) {
+    initState =  { past: [], present: options.initialState, future: [] };
+  }
+
+  delete options.initialState;
 
   aurelia.container
     .registerInstance(Store, new Store(initState, options));

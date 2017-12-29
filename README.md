@@ -46,7 +46,7 @@ export function configure(aurelia: Aurelia) {
 
   ...
 
-  aurelia.use.plugin("aurelia-store", initialState);  // <----- REGISTER THE PLUGIN
+  aurelia.use.plugin("aurelia-store", { initialState });  // <----- REGISTER THE PLUGIN
 
   aurelia.start().then(() => aurelia.setRoot());
 }
@@ -129,7 +129,7 @@ export class App {
 > Dispatching unregistered actions will result in an error
 
 ## Passing parameters to actions
-You can provide parameters to your actions by adding them after the initial state parameter. When dispatching provide your values which will be spread to the actual reducer.
+You can provide parameters to your actions by adding them after the state parameter. When dispatching provide your values which will be spread to the actual reducer.
 
 ```typescript
 // additional parameter
@@ -158,7 +158,7 @@ dispatchify(yourAction)("PARAM1", "MYPARAM2", "AND_SO_ON");
 ```
 
 ## Undo / Redo support
-If you need to keep track of the history of states you can pass a third parameter to the Store initialization by providing additional options to setup the store to work on a `StateHistory` vs `State` model.
+If you need to keep track of the history of states you can provide additional options to setup the store to work on a `StateHistory` vs `State` model.
 
 ```typescript
 export function configure(aurelia: Aurelia) {
@@ -172,7 +172,7 @@ export function configure(aurelia: Aurelia) {
     frameworks: ["Aurelia", "React", "Angular"]
   };
 
-  aurelia.use.plugin("aurelia-store", initialState, { history: { undoable: true } });  // <----- REGISTER THE PLUGIN WITH HISTORY SUPPORT
+  aurelia.use.plugin("aurelia-store", { initialState, history: { undoable: true } });  // <----- REGISTER THE PLUGIN WITH HISTORY SUPPORT
 
   aurelia.start().then(() => aurelia.setRoot());
 }
@@ -255,7 +255,7 @@ of your history stacks.
 ```typescript
 ...
 // REGISTER THE PLUGIN WITH HISTORY SUPPORT AND OVERFLOW LIMIT OF 10
-aurelia.use.plugin("aurelia-store", initialState, { history: { undoable: true, limit: 10 } });
+aurelia.use.plugin("aurelia-store", { initialState, history: { undoable: true, limit: 10 } });
 ```
 
 
