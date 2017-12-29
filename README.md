@@ -318,6 +318,20 @@ store.registerAction("Rehydrate", rehydrateFromLocalStorage);
 store.dispatch(rehydrateFromLocalStorage);
 ```
 
+## Performance measurement
+In order to get insights in total run durations to effectively calculate and dispatch the next state you can pass in additional options in the plugin configuration section:
+
+```typescript
+...
+// typescript options (PerformanceMeasurement.All | PerformanceMeasurement.StartEnd)
+aurelia.use.plugin("aurelia-store", { initialState, measurePerformance: PerformanceMeasurement.All });
+
+// javascript options ("all" | "startEnd")
+aurelia.use.plugin("aurelia-store", { initialState, measurePerformance: "all" });
+```
+
+You can choose between `startEnd` - which gets you a single measure with the duration - or `all`, which will provide you, besides the total duration, all single marks after every middleware and the actual dispatching.
+
 ## Acknowledgement
 Thanks goes to Dwayne Charrington for his Aurelia-TypeScript starter package https://github.com/Vheissu/aurelia-typescript-plugin
 

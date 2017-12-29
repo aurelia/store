@@ -12,9 +12,15 @@ import { HistoryOptions, isStateHistory } from "./aurelia-store";
 
 export type Reducer<T> = (state: T, ...params: any[]) => T | Promise<T>;
 
+export enum PerformanceMeasurement {
+  StartEnd = "startEnd",
+  All = "all"
+}
+
 export interface StoreOptions {
-  history: Partial<HistoryOptions>,
-  logDispatchedActions?: boolean
+  history: Partial<HistoryOptions>;
+  logDispatchedActions?: boolean;
+  measurePerformance?: PerformanceMeasurement;
 }
 
 interface DispatchQueueItem<T> {
@@ -98,6 +104,7 @@ export class Store<T> {
     if (!this.actions.has(reducer)) {
       throw new Error(`Tried to dispatch an unregistered action ${reducer.name}`);
     }
+    performance.mark("dispatch-start");
 
     if (this.options && this.options.logDispatchedActions) {
       this.logger.info(`Dispatching: ${reducer.name}`);
@@ -110,6 +117,7 @@ export class Store<T> {
       MiddlewarePlacement.Before
     );
     const result = action!.reducer(beforeMiddleswaresResult, ...params);
+    performance.mark("dispatch-after-reducer-" + reducer.name);
 
     if (!result && typeof result !== "object") {
       throw new Error("The reducer has to return a new state");
@@ -129,6 +137,28 @@ export class Store<T> {
       }
 
       this._state.next(resultingState);
+      performance.mark("dispatch-end");
+
+      if (this.options) {
+        if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
+          performance.measure(
+            "startEndDispatchDuration",
+            "dispatch-start",
+            "dispatch-end"
+          );
+
+          const measures = performance.getEntriesByName("startEndDispatchDuration");
+          this.logger.info(`Total duration ${measures[0].duration} of dispatched action ${reducer.name}:`, measures);
+        } else if (this.options.measurePerformance === PerformanceMeasurement.All) {
+          const marks = performance.getEntriesByType("mark");
+          const totalDuration = marks[marks.length - 1].startTime - marks[0].startTime; 
+          this.logger.info(`Total duration ${totalDuration} of dispatched action ${reducer.name}:`, marks);
+        }
+      }
+
+      performance.clearMarks();
+      performance.clearMeasures();
+
       this.updateDevToolsState(action!.name, newState);
     }
 
@@ -150,6 +180,8 @@ export class Store<T> {
           return result || await prev;
         } catch (e) {
           return await prev;
+        } finally {
+          performance.mark(`dispatch-${placement}-${curr.name}`);
         }
       }, state);
   }

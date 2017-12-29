@@ -3,7 +3,8 @@ import "rxjs/add/operator/skip";
 
 import {
   dispatchify,
-  Store
+  Store,
+  PerformanceMeasurement
 } from "../../src/store";
 import {
   createTestStore,
@@ -178,5 +179,51 @@ describe("store", () => {
     store.dispatch(actionA);
 
     expect(loggerSpy).toHaveBeenCalled();
+  });
+
+  it("should log start-end dispatch duration if turned on via options", async () => {
+    const initialState: testState = {
+      foo: "bar"
+    };
+
+    const store = createStoreWithStateAndOptions<testState>(
+      initialState,
+      { measurePerformance: PerformanceMeasurement.StartEnd }
+    );
+    const loggerSpy = spyOn((store as any).logger, "info");
+
+    const actionA = (currentState: testState) => {
+      return new Promise<testState>((resolve) => {
+        setTimeout(() => resolve({ foo: "A" }), 1);
+      });
+    };
+
+    store.registerAction("Action A", actionA);
+    await store.dispatch(actionA);
+
+    expect(loggerSpy).toHaveBeenCalledWith(expect.any(String), expect.any(Array));
+  });
+
+  it("should log all dispatch durations if turned on via options", async () => {
+    const initialState: testState = {
+      foo: "bar"
+    };
+
+    const store = createStoreWithStateAndOptions<testState>(
+      initialState,
+      { measurePerformance: PerformanceMeasurement.All }
+    );
+    const loggerSpy = spyOn((store as any).logger, "info");
+
+    const actionA = (currentState: testState) => {
+      return new Promise<testState>((resolve) => {
+        setTimeout(() => resolve({ foo: "A" }), 1);
+      });
+    };
+
+    store.registerAction("Action A", actionA);
+    await store.dispatch(actionA);
+
+    expect(loggerSpy).toHaveBeenCalledWith(expect.any(String), expect.any(Array));
   });
 });
