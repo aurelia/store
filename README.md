@@ -126,6 +126,8 @@ export class App {
 
 ```
 
+> Dispatching unregistered actions will result in an error
+
 ## Passing parameters to actions
 You can provide parameters to your actions by adding them after the initial state parameter. When dispatching provide your values which will be spread to the actual reducer.
 

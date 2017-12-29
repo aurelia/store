@@ -83,20 +83,22 @@ var Store = /** @class */ (function () {
         }
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
-            var action_1, beforeMiddleswaresResult, result, apply_1, _a;
+            var action, beforeMiddleswaresResult, result, apply, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        if (!this.actions.has(reducer)) return [3 /*break*/, 2];
-                        action_1 = this.actions.get(reducer);
+                        if (!this.actions.has(reducer)) {
+                            throw new Error("Tried to dispatch an unregistered action " + reducer.name);
+                        }
+                        action = this.actions.get(reducer);
                         return [4 /*yield*/, this.executeMiddlewares(this._state.getValue(), middleware_1.MiddlewarePlacement.Before)];
                     case 1:
                         beforeMiddleswaresResult = _b.sent();
-                        result = (_a = action_1).reducer.apply(_a, [beforeMiddleswaresResult].concat(params));
+                        result = (_a = action).reducer.apply(_a, [beforeMiddleswaresResult].concat(params));
                         if (!result && typeof result !== "object") {
                             throw new Error("The reducer has to return a new state");
                         }
-                        apply_1 = function (newState) { return __awaiter(_this, void 0, void 0, function () {
+                        apply = function (newState) { return __awaiter(_this, void 0, void 0, function () {
                             var resultingState;
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
@@ -110,19 +112,18 @@ var Store = /** @class */ (function () {
                                             resultingState = history_1.applyLimits(resultingState, this.options.history.limit);
                                         }
                                         this._state.next(resultingState);
-                                        this.updateDevToolsState(action_1.name, newState);
+                                        this.updateDevToolsState(action.name, newState);
                                         return [2 /*return*/];
                                 }
                             });
                         }); };
                         if (typeof result.then === "function") {
-                            result.then(function (resolvedState) { return apply_1(resolvedState); });
+                            result.then(function (resolvedState) { return apply(resolvedState); });
                         }
                         else {
-                            apply_1(result);
+                            apply(result);
                         }
-                        _b.label = 2;
-                    case 2: return [2 /*return*/];
+                        return [2 /*return*/];
                 }
             });
         });

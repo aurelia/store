@@ -22,14 +22,13 @@ describe("store", () => {
     });
   });
 
-  it("shouldn't fail when dispatching unknown actions", async () => {
+  it("should fail when dispatching unknown actions", async () => {
     const { store } = createTestStore();
     const unregisteredAction = (currentState: testState, param1: number, param2: number) => {
       return Object.assign({}, currentState, { foo: param1 + param2 })
     };
 
-    const result = await store.dispatch(unregisteredAction);
-    expect(result).toBe(undefined);
+    expect(store.dispatch(unregisteredAction)).rejects.toThrowError();
   })
 
   it("should only accept reducers taking at least one parameter", () => {

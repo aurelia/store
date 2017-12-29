@@ -58,42 +58,45 @@ export class Store<T> {
   }
 
   public async dispatch(reducer: Reducer<T>, ...params: any[]) {
-    if (this.actions.has(reducer)) {
-      const action = this.actions.get(reducer);
-
-      const beforeMiddleswaresResult = await this.executeMiddlewares(
-        this._state.getValue(),
-        MiddlewarePlacement.Before
-      );
-      const result = action!.reducer(beforeMiddleswaresResult, ...params);
-
-      if (!result && typeof result !== "object") {
-        throw new Error("The reducer has to return a new state");
-      }
-
-      const apply = async (newState: T) => {
-        let resultingState = await this.executeMiddlewares(
-          newState,
-          MiddlewarePlacement.After
-        );
-
-        if (isStateHistory(resultingState) &&
-            this.options &&
-            this.options.history &&
-            this.options.history.limit) {
-          resultingState = applyLimits(resultingState, this.options.history.limit);
-        }
-
-        this._state.next(resultingState);
-        this.updateDevToolsState(action!.name, newState);
-      }
-
-      if (typeof (result as Promise<T>).then === "function") {
-        (result as Promise<T>).then((resolvedState: T) => apply(resolvedState));
-      } else {
-        apply(result as T);
-      }
+    if (!this.actions.has(reducer)) {
+      throw new Error(`Tried to dispatch an unregistered action ${reducer.name}`);
     }
+
+    const action = this.actions.get(reducer);
+
+    const beforeMiddleswaresResult = await this.executeMiddlewares(
+      this._state.getValue(),
+      MiddlewarePlacement.Before
+    );
+    const result = action!.reducer(beforeMiddleswaresResult, ...params);
+
+    if (!result && typeof result !== "object") {
+      throw new Error("The reducer has to return a new state");
+    }
+
+    const apply = async (newState: T) => {
+      let resultingState = await this.executeMiddlewares(
+        newState,
+        MiddlewarePlacement.After
+      );
+
+      if (isStateHistory(resultingState) &&
+        this.options &&
+        this.options.history &&
+        this.options.history.limit) {
+        resultingState = applyLimits(resultingState, this.options.history.limit);
+      }
+
+      this._state.next(resultingState);
+      this.updateDevToolsState(action!.name, newState);
+    }
+
+    if (typeof (result as Promise<T>).then === "function") {
+      (result as Promise<T>).then((resolvedState: T) => apply(resolvedState));
+    } else {
+      apply(result as T);
+    }
+
   }
 
   private executeMiddlewares(state: T, placement: MiddlewarePlacement): T {
