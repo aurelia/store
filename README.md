@@ -128,6 +128,8 @@ export class App {
 
 > Dispatching unregistered actions will result in an error
 
+## Execution order
+If multiple actions are dispatched, they will get queued and executed one after another in order to make sure that each dispatch starts with an up to date state.
 ## Passing parameters to actions
 You can provide parameters to your actions by adding them after the state parameter. When dispatching provide your values which will be spread to the actual reducer.
 

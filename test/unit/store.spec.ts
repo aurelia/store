@@ -7,7 +7,8 @@ import {
 } from "../../src/store";
 import {
   createTestStore,
-  testState
+  testState,
+  createStoreWithStateAndOptions
 } from "./helpers";
 
 import { executeSteps } from "../../src/test-helpers";
@@ -131,5 +132,51 @@ describe("store", () => {
       (res) => { expect(res.foo).toBe("B"); store.dispatch(actionC); },
       (res) => expect(res.foo).toBe("C")
     );
+  });
+
+  it("should dispatch actions one after another", (done) => {
+    const { store } = createTestStore();
+
+    const actionA = (currentState: testState) => Promise.resolve({ foo: currentState.foo + "A" });
+    const actionB = (currentState: testState) => Promise.resolve({ foo: currentState.foo + "B" });
+
+    store.registerAction("Action A", actionA);
+    store.registerAction("Action B", actionB);
+    store.dispatch(actionA);
+    store.dispatch(actionB);
+
+    store.state.skip(2).subscribe((state) => {
+      expect(state.foo).toEqual("barAB");
+      done();
+    });
+  });
+
+  it("should maintain queue of execution in concurrency constraints", () => {
+    const { store } = createTestStore();
+    spyOn((store as any).dispatchQueue, "push");
+    const handleQueueSpy = spyOn(store, "handleQueue");
+
+    const actionA = (currentState: testState) => Promise.resolve({ foo: "A" });
+
+    store.registerAction("Action A", actionA);
+    store.dispatch(actionA);
+
+    expect(handleQueueSpy).not.toHaveBeenCalled();
+  });
+
+  it("should log info about dispatched action if turned on via options", () => {
+    const initialState: testState = {
+      foo: "bar"
+    };
+
+    const store = createStoreWithStateAndOptions<testState>(initialState, { logDispatchedActions: true });
+    const loggerSpy = spyOn((store as any).logger, "info");
+
+    const actionA = (currentState: testState) => Promise.resolve({ foo: "A" });
+
+    store.registerAction("Action A", actionA);
+    store.dispatch(actionA);
+
+    expect(loggerSpy).toHaveBeenCalled();
   });
 });

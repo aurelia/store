@@ -33,6 +33,6 @@ export function createStoreWithState<T>(state: T, withUndo = false) {
   return new Store<T>(state, options);
 }
 
-export function createStoreWithStateAndOptions<T>(state: T, options: StoreOptions) {
+export function createStoreWithStateAndOptions<T>(state: T, options: Partial<StoreOptions>) {
   return new Store<T>(state, options);
 }
