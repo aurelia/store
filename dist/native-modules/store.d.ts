@@ -2,9 +2,15 @@ import { Observable } from "rxjs/Observable";
 import { Middleware, MiddlewarePlacement } from "./middleware";
 import { HistoryOptions } from "./aurelia-store";
 export declare type Reducer<T> = (state: T, ...params: any[]) => T | Promise<T>;
+export declare enum PerformanceMeasurement {
+    StartEnd = "startEnd",
+    All = "all",
+}
 export interface StoreOptions {
     history: Partial<HistoryOptions>;
     logDispatchedActions?: boolean;
+    measurePerformance?: PerformanceMeasurement;
+    propagateError?: boolean;
 }
 export declare class Store<T> {
     private initialState;

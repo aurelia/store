@@ -8,7 +8,10 @@ import {
   rehydrateFromLocalStorage
 } from "../../src/middleware";
 
-import { createStoreWithState } from "./helpers";
+import {
+  createStoreWithState,
+  createStoreWithStateAndOptions
+} from "./helpers";
 import { executeSteps } from "../../src/test-helpers";
 import { StateHistory } from "../../src/history";
 
@@ -124,22 +127,6 @@ describe("middlewares", () => {
         done();
       });
     });
-
-    it("should handle throwing middlewares and maintain queue", done => {
-      const store = createStoreWithState(initialState);
-      const decreaseBefore = (currentState: TestState) => {
-        throw new Error("Failed on purpose");
-      }
-      store.registerMiddleware(decreaseBefore, MiddlewarePlacement.Before);
-
-      store.registerAction("IncrementAction", incrementAction);
-      store.dispatch(incrementAction);
-
-      store.state.skip(1).subscribe((state: TestState) => {
-        expect(state.counter).toEqual(2);
-        done();
-      });
-    });
   });
 
   describe("which are applied after the action dispatches", () => {
@@ -202,6 +189,63 @@ describe("middlewares", () => {
         done();
       });
     });
+  });
+
+  it("should handle throwing middlewares and maintain queue", done => {
+    const store = createStoreWithState(initialState);
+    const decreaseBefore = (currentState: TestState) => {
+      throw new Error("Failed on purpose");
+    }
+    store.registerMiddleware(decreaseBefore, MiddlewarePlacement.Before);
+
+    store.registerAction("IncrementAction", incrementAction);
+    store.dispatch(incrementAction);
+
+    store.state.skip(1).subscribe((state: TestState) => {
+      expect(state.counter).toEqual(2);
+      done();
+    });
+  });
+
+  it("should not swallow errors from middlewares and interrupt queue if option provided", async () => {
+    const errorMsg = "Failed on purpose";
+    const store = createStoreWithStateAndOptions(initialState, { propagateError: true });
+    const decreaseBefore = (currentState: TestState) => {
+      throw new Error(errorMsg);
+    }
+    store.registerMiddleware(decreaseBefore, MiddlewarePlacement.Before);
+
+    store.registerAction("IncrementAction", incrementAction);
+
+    try {
+      await store.dispatch(incrementAction);
+    } catch (e) {
+      expect(e.message).toBe(errorMsg);
+    }
+  });
+
+  it("should not continue with next middleware if error propagation is turned on", async () => {
+    const errorMsg = "Failed on purpose";
+    const store = createStoreWithStateAndOptions(initialState, { propagateError: true });
+    let secondMiddlewareIsCalled = false;
+    const firstMiddleware = (currentState: TestState) => {
+      throw new Error(errorMsg);
+    }
+    const secondMiddleware = (currentState: TestState) => {
+      secondMiddlewareIsCalled = true;
+    }
+    store.registerMiddleware(firstMiddleware, MiddlewarePlacement.Before);
+    store.registerMiddleware(secondMiddleware, MiddlewarePlacement.Before);
+
+    store.registerAction("IncrementAction", incrementAction);
+
+    try {
+      await store.dispatch(incrementAction);
+    } catch (e) {
+      expect(e.message).toBe(errorMsg);
+    }
+
+    expect(secondMiddlewareIsCalled).toBe(false);
   });
 
   it("should handle multiple middlewares", done => {

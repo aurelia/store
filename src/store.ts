@@ -21,6 +21,7 @@ export interface StoreOptions {
   history: Partial<HistoryOptions>;
   logDispatchedActions?: boolean;
   measurePerformance?: PerformanceMeasurement;
+  propagateError?: boolean;
 }
 
 interface DispatchQueueItem<T> {
@@ -174,11 +175,16 @@ export class Store<T> {
     return Array.from(this.middlewares.values())
       .filter((middleware) => middleware.placement === placement)
       .map((middleware) => middleware.reducer)
-      .reduce(async (prev: any, curr) => {
+      .reduce(async (prev: any, curr, _, _arr: Middleware<T>[]) => {
         try {
           const result = await curr(await prev, (placement === MiddlewarePlacement.After) ? this._state.getValue() : undefined);
           return result || await prev;
         } catch (e) {
+          if (this.options && this.options.propagateError) {
+            _arr = [];
+            throw e;
+          }
+
           return await prev;
         } finally {
           performance.mark(`dispatch-${placement}-${curr.name}`);

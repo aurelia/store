@@ -42,6 +42,11 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./history", "./middleware", "./aurelia-store"], function (require, exports, BehaviorSubject_1, aurelia_framework_1, history_1, middleware_1, aurelia_store_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    var PerformanceMeasurement;
+    (function (PerformanceMeasurement) {
+        PerformanceMeasurement["StartEnd"] = "startEnd";
+        PerformanceMeasurement["All"] = "all";
+    })(PerformanceMeasurement = exports.PerformanceMeasurement || (exports.PerformanceMeasurement = {}));
     var Store = /** @class */ (function () {
         function Store(initialState, options) {
             this.initialState = initialState;
@@ -130,6 +135,7 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./hi
                             if (!this.actions.has(reducer)) {
                                 throw new Error("Tried to dispatch an unregistered action " + reducer.name);
                             }
+                            performance.mark("dispatch-start");
                             if (this.options && this.options.logDispatchedActions) {
                                 this.logger.info("Dispatching: " + reducer.name);
                             }
@@ -138,11 +144,12 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./hi
                         case 1:
                             beforeMiddleswaresResult = _c.sent();
                             result = (_b = action).reducer.apply(_b, [beforeMiddleswaresResult].concat(params));
+                            performance.mark("dispatch-after-reducer-" + reducer.name);
                             if (!result && typeof result !== "object") {
                                 throw new Error("The reducer has to return a new state");
                             }
                             apply = function (newState) { return __awaiter(_this, void 0, void 0, function () {
-                                var resultingState;
+                                var resultingState, measures, marks, totalDuration;
                                 return __generator(this, function (_a) {
                                     switch (_a.label) {
                                         case 0: return [4 /*yield*/, this.executeMiddlewares(newState, middleware_1.MiddlewarePlacement.After)];
@@ -155,6 +162,21 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./hi
                                                 resultingState = history_1.applyLimits(resultingState, this.options.history.limit);
                                             }
                                             this._state.next(resultingState);
+                                            performance.mark("dispatch-end");
+                                            if (this.options) {
+                                                if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
+                                                    performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
+                                                    measures = performance.getEntriesByName("startEndDispatchDuration");
+                                                    this.logger.info("Total duration " + measures[0].duration + " of dispatched action " + reducer.name + ":", measures);
+                                                }
+                                                else if (this.options.measurePerformance === PerformanceMeasurement.All) {
+                                                    marks = performance.getEntriesByType("mark");
+                                                    totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
+                                                    this.logger.info("Total duration " + totalDuration + " of dispatched action " + reducer.name + ":", marks);
+                                                }
+                                            }
+                                            performance.clearMarks();
+                                            performance.clearMeasures();
                                             this.updateDevToolsState(action.name, newState);
                                             return [2 /*return*/];
                                     }
@@ -181,12 +203,12 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./hi
             return Array.from(this.middlewares.values())
                 .filter(function (middleware) { return middleware.placement === placement; })
                 .map(function (middleware) { return middleware.reducer; })
-                .reduce(function (prev, curr) { return __awaiter(_this, void 0, void 0, function () {
+                .reduce(function (prev, curr, _, _arr) { return __awaiter(_this, void 0, void 0, function () {
                 var result, _a, _b, e_2;
                 return __generator(this, function (_c) {
                     switch (_c.label) {
                         case 0:
-                            _c.trys.push([0, 5, , 7]);
+                            _c.trys.push([0, 5, 7, 8]);
                             _a = curr;
                             return [4 /*yield*/, prev];
                         case 1: return [4 /*yield*/, _a.apply(void 0, [_c.sent(), (placement === middleware_1.MiddlewarePlacement.After) ? this._state.getValue() : undefined])];
@@ -201,9 +223,16 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./hi
                         case 4: return [2 /*return*/, _b];
                         case 5:
                             e_2 = _c.sent();
+                            if (this.options && this.options.propagateError) {
+                                _arr = [];
+                                throw e_2;
+                            }
                             return [4 /*yield*/, prev];
                         case 6: return [2 /*return*/, _c.sent()];
-                        case 7: return [2 /*return*/];
+                        case 7:
+                            performance.mark("dispatch-" + placement + "-" + curr.name);
+                            return [7 /*endfinally*/];
+                        case 8: return [2 /*return*/];
                     }
                 });
             }); }, state);
