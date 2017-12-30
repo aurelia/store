@@ -296,6 +296,13 @@ const decreaseBefore = (currentState: TestState, originalState: TestState) => {
 }
 ```
 
+### Propagating errors
+By default errors thrown by middlewares will be thrown in order to guarantee continues states. If you would like to stop state propagation you need to pass in the `propagateError` option:
+
+```typescript
+aurelia.use.plugin("aurelia-store", { initialState, propagateError: true });
+```
+
 ### LocalStorage Middleware
 Out of the box aurelia-store provides an `localStorageMiddleware` which stores your most recent emitted state in the [window.localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage). In order to make use of it all you need to do is to register it as usual:
 
