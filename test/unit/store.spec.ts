@@ -114,27 +114,6 @@ describe("store", () => {
     });
   });
 
-  it("should provide easy means to test sequences", async () => {
-    expect.assertions(3);
-    const { store } = createTestStore();
-
-    const actionA = (currentState: testState) => Promise.resolve({ foo: "A" });
-    const actionB = (currentState: testState) => Promise.resolve({ foo: "B" });
-    const actionC = (currentState: testState) => Promise.resolve({ foo: "C" });
-    store.registerAction("Action A", actionA);
-    store.registerAction("Action B", actionB);
-    store.registerAction("Action C", actionC);
-
-    await executeSteps(
-      store,
-      false,
-      () => store.dispatch(actionA),
-      (res) => { expect(res.foo).toBe("A"); store.dispatch(actionB); },
-      (res) => { expect(res.foo).toBe("B"); store.dispatch(actionC); },
-      (res) => expect(res.foo).toBe("C")
-    );
-  });
-
   it("should dispatch actions one after another", (done) => {
     const { store } = createTestStore();
 

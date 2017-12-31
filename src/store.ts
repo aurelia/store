@@ -152,7 +152,7 @@ export class Store<T> {
           this.logger.info(`Total duration ${measures[0].duration} of dispatched action ${reducer.name}:`, measures);
         } else if (this.options.measurePerformance === PerformanceMeasurement.All) {
           const marks = performance.getEntriesByType("mark");
-          const totalDuration = marks[marks.length - 1].startTime - marks[0].startTime; 
+          const totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
           this.logger.info(`Total duration ${totalDuration} of dispatched action ${reducer.name}:`, marks);
         }
       }

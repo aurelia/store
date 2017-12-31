@@ -16,7 +16,7 @@ export function configure<T>(
 
   let initState: any = options.initialState;
   if (options && options.history && options.history.undoable && !isStateHistory(options.initialState)) {
-    initState =  { past: [], present: options.initialState, future: [] };
+    initState = { past: [], present: options.initialState, future: [] };
   }
 
   delete options.initialState;
