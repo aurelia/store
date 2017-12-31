@@ -1,6 +1,6 @@
 {
   "name": "aurelia-store",
-  "version": "0.14.1",
+  "version": "0.14.2",
   "description": "Aurelia single state store based on RxJS",
   "keywords": [
     "rxjs",
@@ -114,5 +114,28 @@
     "ts-jest": "^22.0.0",
     "tslint": "^5.4.3",
     "typescript": "^2.6.1"
+  },
+  "aurelia": {
+    "import": {
+      "dependencies": [
+        {
+          "name": "aurelia-store",
+          "main": "aurelia-store",
+          "path": "../node_modules/aurelia-store/dist/commonjs",
+          "resources": []
+        },
+        {
+          "name": "rxjs",
+          "main": false,
+          "path": "../node_modules/rxjs"
+        }
+      ],
+      "tutorial": [
+        "1. Create a state object",
+        "2. in main.js add .plugin('aurelia-store', { initialState: yourInitialState })",
+        "3. register actions using store.registerAction",
+        "4. dispatch actions using store.dispatch(yourPreviouslyRegisteredAction, ...)"
+      ]
+    }
   }
 }

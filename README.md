@@ -13,8 +13,20 @@ Install the npm dependency via
 npm install aurelia-store
 ```
 
+or via the CLI
+
+```bash
+au install aurelia-store
+```
+
 ## Aurelia CLI Support
 If your Aurelia CLI build is based on RequireJS or SystemJS you can setup the plugin using the following dependency declaration:
+
+```bash
+au import aurelia-store
+```
+
+alternatively you can manually add these dependencies to your vendor bundle:
 
 ```json
 ...
