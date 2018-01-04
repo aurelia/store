@@ -351,6 +351,39 @@ aurelia.use.plugin("aurelia-store", { initialState, measurePerformance: "all" }
 
 You can choose between `startEnd` - which gets you a single measure with the duration - or `all`, which will provide you, besides the total duration, all single marks after every middleware and the actual dispatching.
 
+## Custom LogLevels
+For various features, the plugin does create log statements if turned on. E.g the dispatch info of the currently dispatched action will log on an info level by default. Combining multiple of those features, might create an overflow of your console window. As such you can define the log level to be used per feature in the plugin init options. In the following example we'd like to have the logLevel for the dispatchAction info set to `debug` instead of the default `info` level:
+
+```typescript
+// Available features
+export interface LogDefinitions {
+  performanceLog?: LogLevel;
+  dispatchedActions?: LogLevel;
+  devToolsStatus?: LogLevel;
+}
+
+// Available log levels
+
+// Setup TypeScript
+import { LogLevel } from "aurelia-store";
+...
+aurelia.use.plugin("aurelia-store", { initialState, history: {
+  logDispatchedActions: true,
+  logDefinitions: {
+    dispatchedActions: LogLevel.debug
+  }
+}});
+
+// Setup JavaScript
+...
+aurelia.use.plugin("aurelia-store", { initialState, history: {
+  logDispatchedActions: true,
+  logDefinitions: {
+    dispatchedActions: "debug"
+  }
+}});
+```
+
 ## Acknowledgement
 Thanks goes to Dwayne Charrington for his Aurelia-TypeScript starter package https://github.com/Vheissu/aurelia-typescript-plugin
 

@@ -45,7 +45,7 @@ var BehaviorSubject_1 = require("rxjs/BehaviorSubject");
 var aurelia_framework_1 = require("aurelia-framework");
 var history_1 = require("./history");
 var middleware_1 = require("./middleware");
-var aurelia_store_1 = require("./aurelia-store");
+var logging_1 = require("./logging");
 var PerformanceMeasurement;
 (function (PerformanceMeasurement) {
     PerformanceMeasurement["StartEnd"] = "startEnd";
@@ -54,13 +54,13 @@ var PerformanceMeasurement;
 var Store = /** @class */ (function () {
     function Store(initialState, options) {
         this.initialState = initialState;
-        this.options = options;
         this.logger = aurelia_framework_1.LogManager.getLogger("aurelia-store");
         this.devToolsAvailable = false;
         this.actions = new Map();
         this.middlewares = new Map();
         this.dispatchQueue = [];
-        var isUndoable = this.options && this.options.history && this.options.history.undoable === true;
+        this.options = options || {};
+        var isUndoable = this.options.history && this.options.history.undoable === true;
         this._state = new BehaviorSubject_1.BehaviorSubject(initialState);
         this.state = this._state.asObservable();
         this.setupDevTools();
@@ -140,8 +140,8 @@ var Store = /** @class */ (function () {
                             throw new Error("Tried to dispatch an unregistered action " + reducer.name);
                         }
                         performance.mark("dispatch-start");
-                        if (this.options && this.options.logDispatchedActions) {
-                            this.logger.info("Dispatching: " + reducer.name);
+                        if (this.options.logDispatchedActions) {
+                            this.logger[logging_1.getLogType(this.options, "dispatchedActions", logging_1.LogLevel.info)]("Dispatching: " + reducer.name);
                         }
                         action = this.actions.get(reducer);
                         return [4 /*yield*/, this.executeMiddlewares(this._state.getValue(), middleware_1.MiddlewarePlacement.Before)];
@@ -159,25 +159,22 @@ var Store = /** @class */ (function () {
                                     case 0: return [4 /*yield*/, this.executeMiddlewares(newState, middleware_1.MiddlewarePlacement.After)];
                                     case 1:
                                         resultingState = _a.sent();
-                                        if (aurelia_store_1.isStateHistory(resultingState) &&
-                                            this.options &&
+                                        if (history_1.isStateHistory(resultingState) &&
                                             this.options.history &&
                                             this.options.history.limit) {
                                             resultingState = history_1.applyLimits(resultingState, this.options.history.limit);
                                         }
                                         this._state.next(resultingState);
                                         performance.mark("dispatch-end");
-                                        if (this.options) {
-                                            if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
-                                                performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
-                                                measures = performance.getEntriesByName("startEndDispatchDuration");
-                                                this.logger.info("Total duration " + measures[0].duration + " of dispatched action " + reducer.name + ":", measures);
-                                            }
-                                            else if (this.options.measurePerformance === PerformanceMeasurement.All) {
-                                                marks = performance.getEntriesByType("mark");
-                                                totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
-                                                this.logger.info("Total duration " + totalDuration + " of dispatched action " + reducer.name + ":", marks);
-                                            }
+                                        if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
+                                            performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
+                                            measures = performance.getEntriesByName("startEndDispatchDuration");
+                                            this.logger[logging_1.getLogType(this.options, "performanceLog", logging_1.LogLevel.info)]("Total duration " + measures[0].duration + " of dispatched action " + reducer.name + ":", measures);
+                                        }
+                                        else if (this.options.measurePerformance === PerformanceMeasurement.All) {
+                                            marks = performance.getEntriesByType("mark");
+                                            totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
+                                            this.logger[logging_1.getLogType(this.options, "performanceLog", logging_1.LogLevel.info)]("Total duration " + totalDuration + " of dispatched action " + reducer.name + ":", marks);
                                         }
                                         performance.clearMarks();
                                         performance.clearMeasures();
@@ -227,7 +224,7 @@ var Store = /** @class */ (function () {
                     case 4: return [2 /*return*/, _b];
                     case 5:
                         e_2 = _c.sent();
-                        if (this.options && this.options.propagateError) {
+                        if (this.options.propagateError) {
                             _arr = [];
                             throw e_2;
                         }
@@ -244,12 +241,12 @@ var Store = /** @class */ (function () {
     Store.prototype.setupDevTools = function () {
         var _this = this;
         if (window.devToolsExtension) {
-            this.logger.info("DevTools are available");
+            this.logger[logging_1.getLogType(this.options, "devToolsStatus", logging_1.LogLevel.debug)]("DevTools are available");
             this.devToolsAvailable = true;
             this.devTools = window.__REDUX_DEVTOOLS_EXTENSION__.connect();
             this.devTools.init(this.initialState);
             this.devTools.subscribe(function (message) {
-                _this.logger.debug("DevTools sent change " + message.type);
+                _this.logger[logging_1.getLogType(_this.options, "devToolsStatus", logging_1.LogLevel.debug)]("DevTools sent change " + message.type);
                 if (message.type === "DISPATCH") {
                     _this._state.next(JSON.parse(message.state));
                 }

@@ -6,9 +6,9 @@ import {
   Container,
   LogManager
 } from "aurelia-framework";
-import { jump, applyLimits } from "./history";
+import { jump, applyLimits, HistoryOptions, isStateHistory } from "./history";
 import { Middleware, MiddlewarePlacement } from "./middleware";
-import { HistoryOptions, isStateHistory } from "./aurelia-store";
+import { LogDefinitions, LogLevel, getLogType } from "./logging";
 
 export type Reducer<T> = (state: T, ...params: any[]) => T | Promise<T>;
 
@@ -22,6 +22,7 @@ export interface StoreOptions {
   logDispatchedActions?: boolean;
   measurePerformance?: PerformanceMeasurement;
   propagateError?: boolean;
+  logDefinitions?: LogDefinitions;
 }
 
 interface DispatchQueueItem<T> {
@@ -41,11 +42,13 @@ export class Store<T> {
   private actions: Map<Reducer<T>, { name: string, reducer: Reducer<T> }> = new Map();
   private middlewares: Map<Middleware<T>, { placement: MiddlewarePlacement, reducer: Middleware<T> }> = new Map();
   private _state: BehaviorSubject<T>;
+  private options: Partial<StoreOptions>;
 
   private dispatchQueue: DispatchQueueItem<T>[] = [];
 
-  constructor(private initialState: T, private options?: Partial<StoreOptions>) {
-    const isUndoable = this.options && this.options.history && this.options.history.undoable === true;
+  constructor(private initialState: T, options?: Partial<StoreOptions>) {
+    this.options = options || {};
+    const isUndoable = this.options.history && this.options.history.undoable === true;
     this._state = new BehaviorSubject<T>(initialState);
     this.state = this._state.asObservable();
 
@@ -107,8 +110,8 @@ export class Store<T> {
     }
     performance.mark("dispatch-start");
 
-    if (this.options && this.options.logDispatchedActions) {
-      this.logger.info(`Dispatching: ${reducer.name}`);
+    if (this.options.logDispatchedActions) {
+      this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)](`Dispatching: ${reducer.name}`);
     }
 
     const action = this.actions.get(reducer);
@@ -131,7 +134,6 @@ export class Store<T> {
       );
 
       if (isStateHistory(resultingState) &&
-        this.options &&
         this.options.history &&
         this.options.history.limit) {
         resultingState = applyLimits(resultingState, this.options.history.limit);
@@ -140,21 +142,25 @@ export class Store<T> {
       this._state.next(resultingState);
       performance.mark("dispatch-end");
 
-      if (this.options) {
-        if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
-          performance.measure(
-            "startEndDispatchDuration",
-            "dispatch-start",
-            "dispatch-end"
-          );
+      if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
+        performance.measure(
+          "startEndDispatchDuration",
+          "dispatch-start",
+          "dispatch-end"
+        );
 
-          const measures = performance.getEntriesByName("startEndDispatchDuration");
-          this.logger.info(`Total duration ${measures[0].duration} of dispatched action ${reducer.name}:`, measures);
-        } else if (this.options.measurePerformance === PerformanceMeasurement.All) {
-          const marks = performance.getEntriesByType("mark");
-          const totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
-          this.logger.info(`Total duration ${totalDuration} of dispatched action ${reducer.name}:`, marks);
-        }
+        const measures = performance.getEntriesByName("startEndDispatchDuration");
+        this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
+          `Total duration ${measures[0].duration} of dispatched action ${reducer.name}:`,
+          measures
+        );
+      } else if (this.options.measurePerformance === PerformanceMeasurement.All) {
+        const marks = performance.getEntriesByType("mark");
+        const totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
+        this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
+          `Total duration ${totalDuration} of dispatched action ${reducer.name}:`,
+          marks
+        );
       }
 
       performance.clearMarks();
@@ -180,7 +186,7 @@ export class Store<T> {
           const result = await curr(await prev, (placement === MiddlewarePlacement.After) ? this._state.getValue() : undefined);
           return result || await prev;
         } catch (e) {
-          if (this.options && this.options.propagateError) {
+          if (this.options.propagateError) {
             _arr = [];
             throw e;
           }
@@ -194,13 +200,13 @@ export class Store<T> {
 
   private setupDevTools() {
     if ((<any>window).devToolsExtension) {
-      this.logger.info("DevTools are available");
+      this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)]("DevTools are available");
       this.devToolsAvailable = true;
       this.devTools = (<any>window).__REDUX_DEVTOOLS_EXTENSION__.connect();
       this.devTools.init(this.initialState);
 
       this.devTools.subscribe((message: any) => {
-        this.logger.debug(`DevTools sent change ${message.type}`);
+        this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)](`DevTools sent change ${message.type}`);
 
         if (message.type === "DISPATCH") {
           this._state.next(JSON.parse(message.state));

@@ -22,3 +22,4 @@ __export(require("./store"));
 __export(require("./test-helpers"));
 __export(require("./history"));
 __export(require("./middleware"));
+__export(require("./logging"));

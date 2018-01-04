@@ -13,6 +13,7 @@ import {
 } from "./helpers";
 
 import { executeSteps } from "../../src/test-helpers";
+import { LogLevel } from "../../src/aurelia-store";
 
 describe("store", () => {
   it("should accept an initial state", done => {
@@ -150,6 +151,48 @@ describe("store", () => {
     };
 
     const store = createStoreWithStateAndOptions<testState>(initialState, { logDispatchedActions: true });
+    const loggerSpy = spyOn((store as any).logger, "info");
+
+    const actionA = (currentState: testState) => Promise.resolve({ foo: "A" });
+
+    store.registerAction("Action A", actionA);
+    store.dispatch(actionA);
+
+    expect(loggerSpy).toHaveBeenCalled();
+  });
+
+  it("should log info about dispatched action if turned on via options via custom loglevel", () => {
+    const initialState: testState = {
+      foo: "bar"
+    };
+
+    const store = createStoreWithStateAndOptions<testState>(initialState, {
+      logDispatchedActions: true,
+      logDefinitions: {
+        dispatchedActions: LogLevel.debug
+      }
+    });
+    const loggerSpy = spyOn((store as any).logger, LogLevel.debug);
+
+    const actionA = (currentState: testState) => Promise.resolve({ foo: "A" });
+
+    store.registerAction("Action A", actionA);
+    store.dispatch(actionA);
+
+    expect(loggerSpy).toHaveBeenCalled();
+  });
+
+  it("should log info about dispatched action and return to default log level if wrong one provided", () => {
+    const initialState: testState = {
+      foo: "bar"
+    };
+
+    const store = createStoreWithStateAndOptions<testState>(initialState, {
+      logDispatchedActions: true,
+      logDefinitions: {
+        dispatchedActions: "foo" as any
+      }
+    });
     const loggerSpy = spyOn((store as any).logger, "info");
 
     const actionA = (currentState: testState) => Promise.resolve({ foo: "A" });

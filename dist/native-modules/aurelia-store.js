@@ -16,3 +16,4 @@ export * from "./store";
 export * from "./test-helpers";
 export * from "./history";
 export * from "./middleware";
+export * from "./logging";

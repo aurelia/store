@@ -41,9 +41,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { BehaviorSubject } from "rxjs/BehaviorSubject";
 import { autoinject, Container, LogManager } from "aurelia-framework";
-import { jump, applyLimits } from "./history";
+import { jump, applyLimits, isStateHistory } from "./history";
 import { MiddlewarePlacement } from "./middleware";
-import { isStateHistory } from "./aurelia-store";
+import { LogLevel, getLogType } from "./logging";
 export var PerformanceMeasurement;
 (function (PerformanceMeasurement) {
     PerformanceMeasurement["StartEnd"] = "startEnd";
@@ -52,13 +52,13 @@ export var PerformanceMeasurement;
 var Store = /** @class */ (function () {
     function Store(initialState, options) {
         this.initialState = initialState;
-        this.options = options;
         this.logger = LogManager.getLogger("aurelia-store");
         this.devToolsAvailable = false;
         this.actions = new Map();
         this.middlewares = new Map();
         this.dispatchQueue = [];
-        var isUndoable = this.options && this.options.history && this.options.history.undoable === true;
+        this.options = options || {};
+        var isUndoable = this.options.history && this.options.history.undoable === true;
         this._state = new BehaviorSubject(initialState);
         this.state = this._state.asObservable();
         this.setupDevTools();
@@ -138,8 +138,8 @@ var Store = /** @class */ (function () {
                             throw new Error("Tried to dispatch an unregistered action " + reducer.name);
                         }
                         performance.mark("dispatch-start");
-                        if (this.options && this.options.logDispatchedActions) {
-                            this.logger.info("Dispatching: " + reducer.name);
+                        if (this.options.logDispatchedActions) {
+                            this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)]("Dispatching: " + reducer.name);
                         }
                         action = this.actions.get(reducer);
                         return [4 /*yield*/, this.executeMiddlewares(this._state.getValue(), MiddlewarePlacement.Before)];
@@ -158,24 +158,21 @@ var Store = /** @class */ (function () {
                                     case 1:
                                         resultingState = _a.sent();
                                         if (isStateHistory(resultingState) &&
-                                            this.options &&
                                             this.options.history &&
                                             this.options.history.limit) {
                                             resultingState = applyLimits(resultingState, this.options.history.limit);
                                         }
                                         this._state.next(resultingState);
                                         performance.mark("dispatch-end");
-                                        if (this.options) {
-                                            if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
-                                                performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
-                                                measures = performance.getEntriesByName("startEndDispatchDuration");
-                                                this.logger.info("Total duration " + measures[0].duration + " of dispatched action " + reducer.name + ":", measures);
-                                            }
-                                            else if (this.options.measurePerformance === PerformanceMeasurement.All) {
-                                                marks = performance.getEntriesByType("mark");
-                                                totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
-                                                this.logger.info("Total duration " + totalDuration + " of dispatched action " + reducer.name + ":", marks);
-                                            }
+                                        if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
+                                            performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
+                                            measures = performance.getEntriesByName("startEndDispatchDuration");
+                                            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)]("Total duration " + measures[0].duration + " of dispatched action " + reducer.name + ":", measures);
+                                        }
+                                        else if (this.options.measurePerformance === PerformanceMeasurement.All) {
+                                            marks = performance.getEntriesByType("mark");
+                                            totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
+                                            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)]("Total duration " + totalDuration + " of dispatched action " + reducer.name + ":", marks);
                                         }
                                         performance.clearMarks();
                                         performance.clearMeasures();
@@ -225,7 +222,7 @@ var Store = /** @class */ (function () {
                     case 4: return [2 /*return*/, _b];
                     case 5:
                         e_2 = _c.sent();
-                        if (this.options && this.options.propagateError) {
+                        if (this.options.propagateError) {
                             _arr = [];
                             throw e_2;
                         }
@@ -242,12 +239,12 @@ var Store = /** @class */ (function () {
     Store.prototype.setupDevTools = function () {
         var _this = this;
         if (window.devToolsExtension) {
-            this.logger.info("DevTools are available");
+            this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)]("DevTools are available");
             this.devToolsAvailable = true;
             this.devTools = window.__REDUX_DEVTOOLS_EXTENSION__.connect();
             this.devTools.init(this.initialState);
             this.devTools.subscribe(function (message) {
-                _this.logger.debug("DevTools sent change " + message.type);
+                _this.logger[getLogType(_this.options, "devToolsStatus", LogLevel.debug)]("DevTools sent change " + message.type);
                 if (message.type === "DISPATCH") {
                     _this._state.next(JSON.parse(message.state));
                 }
