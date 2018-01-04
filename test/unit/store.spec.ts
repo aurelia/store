@@ -51,6 +51,24 @@ describe("store", () => {
     expect(store.dispatch(fakeAction as any)).rejects.toBeDefined();
   });
 
+  it("should unregister previously registered actions", async () => {
+    const { store } = createTestStore();
+    const fakeAction = (currentState: testState) => currentState;
+
+    store.registerAction("FakeAction", fakeAction);
+    expect(store.dispatch(fakeAction)).resolves;
+
+    store.unregisterAction(fakeAction);
+    expect(store.dispatch(fakeAction)).rejects.toThrowError();
+  });
+
+  it("should not try to unregister previously unregistered actions", async () => {
+    const { store } = createTestStore();
+    const fakeAction = (currentState: testState) => currentState;
+
+    expect( () => store.unregisterAction(fakeAction)).not.toThrow();
+  });
+
   it("should help create dispatchifyable functions", done => {
     const cont = new Container().makeGlobal();
     const { store } = createTestStore();

@@ -77,6 +77,12 @@ export class Store<T> {
     this.actions.set(reducer, { name, reducer });
   }
 
+  public unregisterAction(reducer: Reducer<T>) {
+    if (this.actions.has(reducer)) {
+      this.actions.delete(reducer);
+    }
+  }
+
   public dispatch(reducer: Reducer<T>, ...params: any[]) {
     const result = new Promise((resolve, reject) => {
       this.dispatchQueue.push({ reducer, params, resolve, reject });

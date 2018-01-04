@@ -80,6 +80,11 @@ var Store = /** @class */ (function () {
         }
         this.actions.set(reducer, { name: name, reducer: reducer });
     };
+    Store.prototype.unregisterAction = function (reducer) {
+        if (this.actions.has(reducer)) {
+            this.actions.delete(reducer);
+        }
+    };
     Store.prototype.dispatch = function (reducer) {
         var _this = this;
         var params = [];

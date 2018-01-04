@@ -109,6 +109,11 @@ System.register(["rxjs/BehaviorSubject", "aurelia-framework", "./history", "./mi
                     }
                     this.actions.set(reducer, { name: name, reducer: reducer });
                 };
+                Store.prototype.unregisterAction = function (reducer) {
+                    if (this.actions.has(reducer)) {
+                        this.actions.delete(reducer);
+                    }
+                };
                 Store.prototype.dispatch = function (reducer) {
                     var _this = this;
                     var params = [];
