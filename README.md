@@ -2,7 +2,9 @@
 
 [![CircleCI](https://circleci.com/gh/zewa666/aurelia-store/tree/master.svg?style=svg)](https://circleci.com/gh/zewa666/aurelia-store/tree/master)
 
-Aurelia single state store based on RxJS
+Aurelia single state store based on RxJS.
+
+Various examples can be found in the [samples repository](https://github.com/zewa666/aurelia-store-examples).
 
 THIS IS WORK IN PROGRESS, DO NOT USE YET FOR PRODUCTION
 
@@ -139,6 +141,13 @@ export class App {
 ```
 
 > Dispatching unregistered actions will result in an error
+
+In order to remove a registered action, simply call `store.unregisterAction`
+
+```typescript
+...
+store.unregisterAction(demoAction);
+```
 
 ## Execution order
 If multiple actions are dispatched, they will get queued and executed one after another in order to make sure that each dispatch starts with an up to date state.
