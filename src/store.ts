@@ -39,8 +39,8 @@ export class Store<T> {
   private logger = LogManager.getLogger("aurelia-store");
   private devToolsAvailable: boolean = false;
   private devTools: any;
-  private actions: Map<Reducer<T>, { name: string, reducer: Reducer<T> }> = new Map();
-  private middlewares: Map<Middleware<T>, { placement: MiddlewarePlacement, reducer: Middleware<T> }> = new Map();
+  private actions: Map<Reducer<T>, { name: string }> = new Map();
+  private middlewares: Map<Middleware<T>, { placement: MiddlewarePlacement }> = new Map();
   private _state: BehaviorSubject<T>;
   private options: Partial<StoreOptions>;
 
@@ -60,7 +60,7 @@ export class Store<T> {
   }
 
   public registerMiddleware(reducer: Middleware<T>, placement: MiddlewarePlacement) {
-    this.middlewares.set(reducer, { placement, reducer });
+    this.middlewares.set(reducer, { placement });
   }
 
   public unregisterMiddleware(reducer: Middleware<T>) {
@@ -74,7 +74,7 @@ export class Store<T> {
       throw new Error("The reducer is expected to have one or more parameters, where the first will be the present state");
     }
 
-    this.actions.set(reducer, { name, reducer });
+    this.actions.set(reducer, { name });
   }
 
   public unregisterAction(reducer: Reducer<T>) {
@@ -112,22 +112,22 @@ export class Store<T> {
 
   private async internalDispatch(reducer: Reducer<T>, ...params: any[]) {
     if (!this.actions.has(reducer)) {
-      throw new Error(`Tried to dispatch an unregistered action ${reducer.name}`);
+      throw new Error(`Tried to dispatch an unregistered action${reducer ? " " + reducer.name : ""}`);
     }
     performance.mark("dispatch-start");
 
-    if (this.options.logDispatchedActions) {
-      this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)](`Dispatching: ${reducer.name}`);
-    }
-
     const action = this.actions.get(reducer);
+
+    if (this.options.logDispatchedActions) {
+      this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)](`Dispatching: ${action!.name}`);
+    }
 
     const beforeMiddleswaresResult = await this.executeMiddlewares(
       this._state.getValue(),
       MiddlewarePlacement.Before
     );
-    const result = action!.reducer(beforeMiddleswaresResult, ...params);
-    performance.mark("dispatch-after-reducer-" + reducer.name);
+    const result = reducer(beforeMiddleswaresResult, ...params);
+    performance.mark("dispatch-after-reducer-" + action!.name);
 
     if (!result && typeof result !== "object") {
       throw new Error("The reducer has to return a new state");
@@ -157,14 +157,14 @@ export class Store<T> {
 
         const measures = performance.getEntriesByName("startEndDispatchDuration");
         this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
-          `Total duration ${measures[0].duration} of dispatched action ${reducer.name}:`,
+          `Total duration ${measures[0].duration} of dispatched action ${action!.name}:`,
           measures
         );
       } else if (this.options.measurePerformance === PerformanceMeasurement.All) {
         const marks = performance.getEntriesByType("mark");
         const totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
         this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
-          `Total duration ${totalDuration} of dispatched action ${reducer.name}:`,
+          `Total duration ${totalDuration} of dispatched action ${action!.name}:`,
           marks
         );
       }
@@ -184,9 +184,9 @@ export class Store<T> {
   }
 
   private executeMiddlewares(state: T, placement: MiddlewarePlacement): T {
-    return Array.from(this.middlewares.values())
-      .filter((middleware) => middleware.placement === placement)
-      .map((middleware) => middleware.reducer)
+    return Array.from(this.middlewares)
+      .filter((middleware) => middleware[1].placement === placement)
+      .map((middleware) => middleware[0])
       .reduce(async (prev: any, curr, _, _arr: Middleware<T>[]) => {
         try {
           const result = await curr(await prev, (placement === MiddlewarePlacement.After) ? this._state.getValue() : undefined);

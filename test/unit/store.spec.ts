@@ -34,6 +34,12 @@ describe("store", () => {
     expect(store.dispatch(unregisteredAction)).rejects.toThrowError();
   })
 
+  it("should fail when dispatching non actions", async () => {
+    const { store } = createTestStore();
+
+    expect(store.dispatch(undefined)).rejects.toThrowError();
+  })
+
   it("should only accept reducers taking at least one parameter", () => {
     const { store } = createTestStore();
     const fakeAction = () => { };
