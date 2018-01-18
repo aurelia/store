@@ -22,3 +22,4 @@ define(["require", "exports"], function (require, exports) {
     }
     exports.getLogType = getLogType;
 });
+//# sourceMappingURL=logging.js.map

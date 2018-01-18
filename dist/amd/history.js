@@ -61,3 +61,4 @@ define(["require", "exports"], function (require, exports) {
     }
     exports.isStateHistory = isStateHistory;
 });
+//# sourceMappingURL=history.js.map

@@ -67,7 +67,7 @@ var Store = /** @class */ (function () {
         }
     }
     Store.prototype.registerMiddleware = function (reducer, placement) {
-        this.middlewares.set(reducer, { placement: placement, reducer: reducer });
+        this.middlewares.set(reducer, { placement: placement });
     };
     Store.prototype.unregisterMiddleware = function (reducer) {
         if (this.middlewares.has(reducer)) {
@@ -78,7 +78,7 @@ var Store = /** @class */ (function () {
         if (reducer.length === 0) {
             throw new Error("The reducer is expected to have one or more parameters, where the first will be the present state");
         }
-        this.actions.set(reducer, { name: name, reducer: reducer });
+        this.actions.set(reducer, { name: name });
     };
     Store.prototype.unregisterAction = function (reducer) {
         if (this.actions.has(reducer)) {
@@ -135,23 +135,23 @@ var Store = /** @class */ (function () {
         }
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
-            var action, beforeMiddleswaresResult, result, apply, _a, _b;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            var action, beforeMiddleswaresResult, result, apply, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         if (!this.actions.has(reducer)) {
-                            throw new Error("Tried to dispatch an unregistered action " + reducer.name);
+                            throw new Error("Tried to dispatch an unregistered action" + (reducer ? " " + reducer.name : ""));
                         }
                         performance.mark("dispatch-start");
-                        if (this.options.logDispatchedActions) {
-                            this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)]("Dispatching: " + reducer.name);
-                        }
                         action = this.actions.get(reducer);
+                        if (this.options.logDispatchedActions) {
+                            this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)]("Dispatching: " + action.name);
+                        }
                         return [4 /*yield*/, this.executeMiddlewares(this._state.getValue(), MiddlewarePlacement.Before)];
                     case 1:
-                        beforeMiddleswaresResult = _c.sent();
-                        result = (_b = action).reducer.apply(_b, [beforeMiddleswaresResult].concat(params));
-                        performance.mark("dispatch-after-reducer-" + reducer.name);
+                        beforeMiddleswaresResult = _b.sent();
+                        result = reducer.apply(void 0, [beforeMiddleswaresResult].concat(params));
+                        performance.mark("dispatch-after-reducer-" + action.name);
                         if (!result && typeof result !== "object") {
                             throw new Error("The reducer has to return a new state");
                         }
@@ -172,12 +172,12 @@ var Store = /** @class */ (function () {
                                         if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
                                             performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
                                             measures = performance.getEntriesByName("startEndDispatchDuration");
-                                            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)]("Total duration " + measures[0].duration + " of dispatched action " + reducer.name + ":", measures);
+                                            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)]("Total duration " + measures[0].duration + " of dispatched action " + action.name + ":", measures);
                                         }
                                         else if (this.options.measurePerformance === PerformanceMeasurement.All) {
                                             marks = performance.getEntriesByType("mark");
                                             totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
-                                            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)]("Total duration " + totalDuration + " of dispatched action " + reducer.name + ":", marks);
+                                            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)]("Total duration " + totalDuration + " of dispatched action " + action.name + ":", marks);
                                         }
                                         performance.clearMarks();
                                         performance.clearMeasures();
@@ -189,14 +189,14 @@ var Store = /** @class */ (function () {
                         if (!(typeof result.then === "function")) return [3 /*break*/, 4];
                         _a = apply;
                         return [4 /*yield*/, result];
-                    case 2: return [4 /*yield*/, _a.apply(void 0, [_c.sent()])];
+                    case 2: return [4 /*yield*/, _a.apply(void 0, [_b.sent()])];
                     case 3:
-                        _c.sent();
+                        _b.sent();
                         return [3 /*break*/, 6];
                     case 4: return [4 /*yield*/, apply(result)];
                     case 5:
-                        _c.sent();
-                        _c.label = 6;
+                        _b.sent();
+                        _b.label = 6;
                     case 6: return [2 /*return*/];
                 }
             });
@@ -204,9 +204,9 @@ var Store = /** @class */ (function () {
     };
     Store.prototype.executeMiddlewares = function (state, placement) {
         var _this = this;
-        return Array.from(this.middlewares.values())
-            .filter(function (middleware) { return middleware.placement === placement; })
-            .map(function (middleware) { return middleware.reducer; })
+        return Array.from(this.middlewares)
+            .filter(function (middleware) { return middleware[1].placement === placement; })
+            .map(function (middleware) { return middleware[0]; })
             .reduce(function (prev, curr, _, _arr) { return __awaiter(_this, void 0, void 0, function () {
             var result, _a, _b, e_2;
             return __generator(this, function (_c) {
@@ -280,3 +280,4 @@ export function dispatchify(action) {
         store.dispatch.apply(store, [action].concat(params));
     };
 }
+//# sourceMappingURL=store.js.map

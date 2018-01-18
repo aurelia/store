@@ -23,3 +23,4 @@ define(["require", "exports", "./store", "./history", "./store", "./test-helpers
     __export(middleware_1);
     __export(logging_1);
 });
+//# sourceMappingURL=aurelia-store.js.map

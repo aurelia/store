@@ -49,3 +49,4 @@ System.register(["./store", "./history", "./test-helpers", "./middleware", "./lo
         }
     };
 });
+//# sourceMappingURL=aurelia-store.js.map

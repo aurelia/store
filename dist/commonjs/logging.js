@@ -20,3 +20,4 @@ function getLogType(options, definition, defaultLevel) {
     return defaultLevel;
 }
 exports.getLogType = getLogType;
+//# sourceMappingURL=logging.js.map

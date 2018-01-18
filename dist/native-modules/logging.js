@@ -17,3 +17,4 @@ export function getLogType(options, definition, defaultLevel) {
     }
     return defaultLevel;
 }
+//# sourceMappingURL=logging.js.map

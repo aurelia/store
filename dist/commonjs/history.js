@@ -59,3 +59,4 @@ function isStateHistory(history) {
         Array.isArray(history.past);
 }
 exports.isStateHistory = isStateHistory;
+//# sourceMappingURL=history.js.map
