@@ -5,17 +5,20 @@ System.register([], function (exports_1, context_1) {
         console.log("New state: ", state);
     }
     exports_1("logMiddleware", logMiddleware);
-    function localStorageMiddleware(state) {
+    function localStorageMiddleware(state, _, settings) {
         if (window.localStorage) {
-            window.localStorage.setItem("aurelia-store-state", JSON.stringify(state));
+            var key = settings && settings.key && typeof settings.key === "string"
+                ? settings.key
+                : "aurelia-store-state";
+            window.localStorage.setItem(key, JSON.stringify(state));
         }
     }
     exports_1("localStorageMiddleware", localStorageMiddleware);
-    function rehydrateFromLocalStorage(state) {
+    function rehydrateFromLocalStorage(state, key) {
         if (!window.localStorage) {
             return state;
         }
-        var storedState = window.localStorage.getItem("aurelia-store-state");
+        var storedState = window.localStorage.getItem(key || "aurelia-store-state");
         if (!storedState) {
             return state;
         }

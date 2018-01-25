@@ -341,8 +341,10 @@ import { localStorageMiddleware } from "aurelia-store";
 
 ...
 
-store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
+store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After, { key: "my-storage-key" });
 ```
+
+> The third option is optional, and if no key is provided the default key will be `aurelia-store-state`
 
 Now in order to rehydrate the stored state all you need to do is to dispatch the provided `rehydrateFromLocalStorage` action:
 

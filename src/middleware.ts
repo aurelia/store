@@ -8,18 +8,22 @@ export function logMiddleware<T>(state: T) {
   console.log("New state: ", state);
 }
 
-export function localStorageMiddleware<T>(state: T) {
+export function localStorageMiddleware<T>(state: T, _: T, settings?: any) {
   if (window.localStorage) {
-    window.localStorage.setItem("aurelia-store-state", JSON.stringify(state));
+    const key = settings && settings.key && typeof settings.key === "string"
+      ? settings.key
+      : "aurelia-store-state";
+
+    window.localStorage.setItem(key, JSON.stringify(state));
   }
 }
 
-export function rehydrateFromLocalStorage<T>(state: T) {
+export function rehydrateFromLocalStorage<T>(state: T, key?: string) {
   if (!window.localStorage) {
     return state;
   }
 
-  const storedState = window.localStorage.getItem("aurelia-store-state");
+  const storedState = window.localStorage.getItem(key || "aurelia-store-state");
   if (!storedState) {
     return state;
   }

@@ -4,5 +4,5 @@ export declare enum MiddlewarePlacement {
     After = "after",
 }
 export declare function logMiddleware<T>(state: T): void;
-export declare function localStorageMiddleware<T>(state: T): void;
-export declare function rehydrateFromLocalStorage<T>(state: T): any;
+export declare function localStorageMiddleware<T>(state: T, _: T, settings?: any): void;
+export declare function rehydrateFromLocalStorage<T>(state: T, key?: string): any;

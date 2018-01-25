@@ -26,7 +26,7 @@ export declare class Store<T> {
     private options;
     private dispatchQueue;
     constructor(initialState: T, options?: Partial<StoreOptions>);
-    registerMiddleware(reducer: Middleware<T>, placement: MiddlewarePlacement): void;
+    registerMiddleware(reducer: Middleware<T>, placement: MiddlewarePlacement, settings?: any): void;
     unregisterMiddleware(reducer: Middleware<T>): void;
     registerAction(name: string, reducer: Reducer<T>): void;
     unregisterAction(reducer: Reducer<T>): void;

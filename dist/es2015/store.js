@@ -66,8 +66,8 @@ var Store = /** @class */ (function () {
             this.registerHistoryMethods();
         }
     }
-    Store.prototype.registerMiddleware = function (reducer, placement) {
-        this.middlewares.set(reducer, { placement: placement });
+    Store.prototype.registerMiddleware = function (reducer, placement, settings) {
+        this.middlewares.set(reducer, { placement: placement, settings: settings });
     };
     Store.prototype.unregisterMiddleware = function (reducer) {
         if (this.middlewares.has(reducer)) {
@@ -206,35 +206,34 @@ var Store = /** @class */ (function () {
         var _this = this;
         return Array.from(this.middlewares)
             .filter(function (middleware) { return middleware[1].placement === placement; })
-            .map(function (middleware) { return middleware[0]; })
             .reduce(function (prev, curr, _, _arr) { return __awaiter(_this, void 0, void 0, function () {
-            var result, _a, _b, e_2;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            var result, _a, _b, _c, e_2;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
                     case 0:
-                        _c.trys.push([0, 5, 7, 8]);
-                        _a = curr;
+                        _d.trys.push([0, 5, 7, 8]);
+                        _b = (_a = curr)[0];
                         return [4 /*yield*/, prev];
-                    case 1: return [4 /*yield*/, _a.apply(void 0, [_c.sent(), (placement === MiddlewarePlacement.After) ? this._state.getValue() : undefined])];
+                    case 1: return [4 /*yield*/, _b.apply(_a, [_d.sent(), this._state.getValue(), curr[1].settings])];
                     case 2:
-                        result = _c.sent();
-                        _b = result;
-                        if (_b) return [3 /*break*/, 4];
+                        result = _d.sent();
+                        _c = result;
+                        if (_c) return [3 /*break*/, 4];
                         return [4 /*yield*/, prev];
                     case 3:
-                        _b = (_c.sent());
-                        _c.label = 4;
-                    case 4: return [2 /*return*/, _b];
+                        _c = (_d.sent());
+                        _d.label = 4;
+                    case 4: return [2 /*return*/, _c];
                     case 5:
-                        e_2 = _c.sent();
+                        e_2 = _d.sent();
                         if (this.options.propagateError) {
                             _arr = [];
                             throw e_2;
                         }
                         return [4 /*yield*/, prev];
-                    case 6: return [2 /*return*/, _c.sent()];
+                    case 6: return [2 /*return*/, _d.sent()];
                     case 7:
-                        performance.mark("dispatch-" + placement + "-" + curr.name);
+                        performance.mark("dispatch-" + placement + "-" + curr[0].name);
                         return [7 /*endfinally*/];
                     case 8: return [2 /*return*/];
                 }

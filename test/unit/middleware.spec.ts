@@ -423,6 +423,31 @@ describe("middlewares", () => {
       });
     });
 
+    it("should provide a localStorage middleware supporting a custom key", done => {
+      const store = createStoreWithState(initialState);
+      const key = "foobar";
+      (window as any).localStorage = {
+        store: { foo: "bar" },
+        getItem(key: string) {
+          return this.store[key] || null;
+        },
+        setItem(key: string, value: string) {
+          this.store[key] = value;
+        }
+      };
+
+      store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After, { key });
+
+      store.registerAction("IncrementAction", incrementAction);
+      store.dispatch(incrementAction);
+
+      store.state.skip(1).subscribe((state) => {
+        expect(state.counter).toEqual(2);
+        expect(window.localStorage.getItem(key)).toBe(JSON.stringify(state));
+        done();
+      });
+    });
+
     it("should rehydrate state from localStorage", done => {
       const store = createStoreWithState(initialState);
 
@@ -436,6 +461,29 @@ describe("middlewares", () => {
       };
 
       store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
+      store.registerAction("Rehydrate", rehydrateFromLocalStorage);
+      store.dispatch(rehydrateFromLocalStorage);
+
+      store.state.skip(1).subscribe((state) => {
+        expect(state.counter).toEqual(1000);
+        done();
+      });
+    });
+
+    it("should rehydrate state from localStorage using a custom key", done => {
+      const store = createStoreWithState(initialState);
+      const key = "foobar";
+
+      (window as any).localStorage = {
+        getItem() {
+          const storedState = Object.assign({}, initialState);
+          storedState.counter = 1000;
+
+          return JSON.stringify(storedState);
+        }
+      };
+
+      store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After, { key });
       store.registerAction("Rehydrate", rehydrateFromLocalStorage);
       store.dispatch(rehydrateFromLocalStorage);
 
