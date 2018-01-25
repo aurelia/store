@@ -189,7 +189,7 @@ export class Store<T> {
       .map((middleware) => middleware[0])
       .reduce(async (prev: any, curr, _, _arr: Middleware<T>[]) => {
         try {
-          const result = await curr(await prev, (placement === MiddlewarePlacement.After) ? this._state.getValue() : undefined);
+          const result = await curr(await prev, this._state.getValue());
           return result || await prev;
         } catch (e) {
           if (this.options.propagateError) {

@@ -305,7 +305,7 @@ In order to remove a registered middleware, simply call `store.unregisterMiddlew
 store.unregisterMiddleware(customLogMiddleware);
 ```
 
-Additionally a middleware placed after the action might accept a second argument which reflects the current unmodified state, this means the one before any other middlewares or the result of the dispatched action. This can be useful to determine the state diff that happened in the middleware chain or to reset the next state at certain conditions.
+Additionally a middleware might accept a second argument which reflects the current unmodified state, this means the one before any other middlewares or, in case of a after positioning, the result of the dispatched action. This can be useful to determine the state diff that happened in the middleware chain or to reset the next state at certain conditions.
 
 ```typescript
 ...
