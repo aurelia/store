@@ -288,7 +288,9 @@ You may also register actions which resolve the newly created state with a promi
 ## Middleware
 A middleware is similar to an action, with the difference that it may return void as well. Middlewares can be executed before the dispatched action, thus potentially manipulating the current state which will be passed to the action, or afterwards, thus modifying the returned value from the action. Either way the middleware reducer can be sync as well as async.
 
-You register a middleware by it as the first parameter to `store.registerMiddleware` and the placement `before` or `after` as second. 
+You register a middleware by it as the first parameter to `store.registerMiddleware` and the placement `before` or `after` as second, followed by an optional third
+settings parameter. This will be passed into your middleware itself during execution.
+
 ```typescript
 const customLogMiddleware = (currentState) => console.log(currentState);
 // In TypeScript you can use the exported MiddlewarePlacement string enum
@@ -315,6 +317,13 @@ const decreaseBefore = (currentState: TestState, originalState: TestState) => {
 
   return newState;
 }
+```
+
+Last but not least a potential third argument can be any settings as mentioned during middleware registration.
+
+```typescript
+const customLogMiddleware = (currentState, originalState, settings) => console[settings.logType](currentState);
+store.registerMiddleware(customLogMiddleware, MiddlewarePlacement.After, { logType: "log" });
 ```
 
 ### Propagating errors

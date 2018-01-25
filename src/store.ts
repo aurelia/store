@@ -40,7 +40,7 @@ export class Store<T> {
   private devToolsAvailable: boolean = false;
   private devTools: any;
   private actions: Map<Reducer<T>, { name: string }> = new Map();
-  private middlewares: Map<Middleware<T>, { placement: MiddlewarePlacement }> = new Map();
+  private middlewares: Map<Middleware<T>, { placement: MiddlewarePlacement, settings?: any }> = new Map();
   private _state: BehaviorSubject<T>;
   private options: Partial<StoreOptions>;
 
@@ -59,8 +59,8 @@ export class Store<T> {
     }
   }
 
-  public registerMiddleware(reducer: Middleware<T>, placement: MiddlewarePlacement) {
-    this.middlewares.set(reducer, { placement });
+  public registerMiddleware(reducer: Middleware<T>, placement: MiddlewarePlacement, settings?: any) {
+    this.middlewares.set(reducer, { placement, settings });
   }
 
   public unregisterMiddleware(reducer: Middleware<T>) {
@@ -186,10 +186,9 @@ export class Store<T> {
   private executeMiddlewares(state: T, placement: MiddlewarePlacement): T {
     return Array.from(this.middlewares)
       .filter((middleware) => middleware[1].placement === placement)
-      .map((middleware) => middleware[0])
-      .reduce(async (prev: any, curr, _, _arr: Middleware<T>[]) => {
+      .reduce(async (prev: any, curr, _, _arr) => {
         try {
-          const result = await curr(await prev, this._state.getValue());
+          const result = await curr[0](await prev, this._state.getValue(), curr[1].settings);
           return result || await prev;
         } catch (e) {
           if (this.options.propagateError) {
@@ -199,7 +198,7 @@ export class Store<T> {
 
           return await prev;
         } finally {
-          performance.mark(`dispatch-${placement}-${curr.name}`);
+          performance.mark(`dispatch-${placement}-${curr[0].name}`);
         }
       }, state);
   }

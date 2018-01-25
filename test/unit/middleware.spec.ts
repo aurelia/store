@@ -5,7 +5,8 @@ import {
   MiddlewarePlacement,
   logMiddleware,
   localStorageMiddleware,
-  rehydrateFromLocalStorage
+  rehydrateFromLocalStorage,
+  Middleware
 } from "../../src/middleware";
 
 import {
@@ -42,6 +43,25 @@ describe("middlewares", () => {
     const noopMiddleware = () => { };
 
     expect(() => store.registerMiddleware(noopMiddleware, MiddlewarePlacement.Before)).not.toThrowError();
+  });
+
+  it("should allow registering middlewares with additional settings", async () => {
+    const store = createStoreWithState(initialState);
+    const fakeSettings = { foo: "bar" };
+    const settingsMiddleware: Middleware<TestState> = (currentState, originalState, settings) => {
+      try {
+        expect(settings.foo).toBeDefined();
+        expect(settings.foo).toEqual(fakeSettings.foo);
+      } catch {
+        fail("No settings were passed");
+      }
+    };
+
+    expect(() => store.registerMiddleware(settingsMiddleware, MiddlewarePlacement.Before, fakeSettings)).not.toThrowError();
+
+    store.registerAction("IncrementAction", incrementAction);
+
+    await store.dispatch(incrementAction);
   });
 
   it("should allow unregistering middlewares", async () => {
