@@ -3,8 +3,13 @@ export var MiddlewarePlacement;
     MiddlewarePlacement["Before"] = "before";
     MiddlewarePlacement["After"] = "after";
 })(MiddlewarePlacement || (MiddlewarePlacement = {}));
-export function logMiddleware(state) {
-    console.log("New state: ", state);
+export function logMiddleware(state, _, settings) {
+    if (settings && settings.logType && console.hasOwnProperty(settings.logType)) {
+        console[settings.logType]("New state: ", state);
+    }
+    else {
+        console.log("New state: ", state);
+    }
 }
 export function localStorageMiddleware(state, _, settings) {
     if (window.localStorage) {

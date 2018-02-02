@@ -4,8 +4,12 @@ export enum MiddlewarePlacement {
   After = "after"
 }
 
-export function logMiddleware<T>(state: T) {
-  console.log("New state: ", state);
+export function logMiddleware<T>(state: T, _: T, settings?: any) {
+  if (settings && settings.logType && console.hasOwnProperty(settings.logType)) {
+    (console as any)[settings.logType]("New state: ", state);
+  } else {
+    console.log("New state: ", state);
+  }
 }
 
 export function localStorageMiddleware<T>(state: T, _: T, settings?: any) {

@@ -1,8 +1,13 @@
 System.register([], function (exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
-    function logMiddleware(state) {
-        console.log("New state: ", state);
+    function logMiddleware(state, _, settings) {
+        if (settings && settings.logType && console.hasOwnProperty(settings.logType)) {
+            console[settings.logType]("New state: ", state);
+        }
+        else {
+            console.log("New state: ", state);
+        }
     }
     exports_1("logMiddleware", logMiddleware);
     function localStorageMiddleware(state, _, settings) {

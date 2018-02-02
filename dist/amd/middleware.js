@@ -6,8 +6,13 @@ define(["require", "exports"], function (require, exports) {
         MiddlewarePlacement["Before"] = "before";
         MiddlewarePlacement["After"] = "after";
     })(MiddlewarePlacement = exports.MiddlewarePlacement || (exports.MiddlewarePlacement = {}));
-    function logMiddleware(state) {
-        console.log("New state: ", state);
+    function logMiddleware(state, _, settings) {
+        if (settings && settings.logType && console.hasOwnProperty(settings.logType)) {
+            console[settings.logType]("New state: ", state);
+        }
+        else {
+            console.log("New state: ", state);
+        }
     }
     exports.logMiddleware = logMiddleware;
     function localStorageMiddleware(state, _, settings) {

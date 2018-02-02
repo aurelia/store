@@ -398,6 +398,26 @@ describe("middlewares", () => {
       });
     });
 
+    it("should accept settinsg to override the log behavior for the log middleware", done => {
+      const store = createStoreWithState(initialState);
+
+      global.console.warn = jest.fn();
+      store.registerMiddleware(logMiddleware, MiddlewarePlacement.After, { logType: "warn" });
+
+      store.registerAction("IncrementAction", incrementAction);
+      store.dispatch(incrementAction);
+
+      store.state.skip(1).subscribe((state) => {
+        expect(state.counter).toEqual(2);
+        expect(global.console.warn).toHaveBeenCalled();
+
+        (global.console.warn as any).mockReset();
+        (global.console.warn as any).mockRestore();
+
+        done();
+      });
+    });
+
     it("should provide a localStorage middleware", done => {
       const store = createStoreWithState(initialState);
 
