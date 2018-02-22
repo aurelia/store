@@ -6,8 +6,6 @@ Aurelia single state store based on RxJS.
 
 Various examples can be found in the [samples repository](https://github.com/zewa666/aurelia-store-examples).
 
-THIS IS WORK IN PROGRESS, DO NOT USE YET FOR PRODUCTION
-
 ## Install
 Install the npm dependency via
 
@@ -85,6 +83,8 @@ Once the plugin is installed and configured you can use the Store by injecting i
 
 You register actions (reducers) with methods, which get the current state and have to return the modified next state.
 
+Typically you'd want to subscribe to the exposed observable `state` and work with the streamed state.
+
 An example VM and View can be seen below:
 
 ```typescript
@@ -106,6 +106,7 @@ const demoAction = (state: State) => {
 export class App {
 
   public state: State;
+  private subscription: Subscription;
 
   constructor(private store: Store<State>) {
     this.store.registerAction("DemoAction", demoAction);
@@ -115,9 +116,13 @@ export class App {
     // this is the single point of data subscription, the state inside the component will be automatically updated
     // no need to take care of manually handling that. This will also update all subcomponents.
     // Since the state is an observable you can use all kinds of RxJS witchcraft to skip,filter,map streamed states.
-    this.store.state.subscribe(
+    this.subscription = this.store.state.subscribe(
       (state: State) => this.state = state
     );
+  }
+
+  detached() {
+    this.subscription.unsubscribe();
   }
 
   addAnotherFramework() {
@@ -126,6 +131,8 @@ export class App {
   }
 }
 ```
+
+> Don't forget to unsubscribe from any previous subscriptions you've made. A good place for that could be the `detached` hook as shown in above example.
 
 ```html
 <template>
