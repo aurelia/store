@@ -20,6 +20,11 @@ Install the npm dependency via
 npm install aurelia-store
 ```
 
+or using [Yarn](https://yarnpkg.com)
+```Shell
+yarn add aurelia-store
+```
+
 If your app is based on the Aurelia CLI and the build is based on RequireJS or SystemJS, you can setup the plugin using the following automatic dependency import:
 
 ```Shell
@@ -44,7 +49,38 @@ alternatively you can manually add these dependencies to your vendor bundle:
 ]
 ```
 
-Once you've got the plugin installed, it needs to be configured in your app.
+## Granular (patched) RxJS imports
+Looking at the above dependency configuration for Aurelia CLI you'll note the use of `"main": false`, which tells the loader not to use any default file and not start importing things right away. The reason for this is that importing the whole RxJS library would net result in additional ~250kb for your app, where you'd most of the time need only a minimum subset. Patched imports enable to bundle only things directly referenced.
+
+What you need to make sure of when requesting features from RxJS though is that you do not import the full library itself anywhere. This applies to other bundlers such as Webpack as well. That can happen through one of the following statements:
+
+<code-listing heading="Imports triggering a full RxJS bundle">
+  <source-code lang="TypeScript">
+    
+    import * as rx from 'rxjs';  
+    import { Observable, ... } from 'rxjs';  
+    import 'rxjs';  
+    import 'rxjs/Rx'; 
+  </source-code>
+</code-listing>
+
+So try to avoid these and instead only import operators and observable features as needed like in the following way:
+
+<code-listing heading="Imports triggering a full RxJS bundle">
+  <source-code lang="TypeScript">
+    
+    // Imports the Observable constructor
+    import { Observable } from 'rxjs/Observable'; 
+
+    // Imports only the map operator 
+    import "rxjs/add/operator/map"; 
+
+    // Imports and patches the static method of
+    import "rxjs/add/observable/of"; 
+  </source-code>
+</code-listing>
+
+> Additional information and tips & tricks about size-sensitive bundling with Aurelia CLI can be found [here](http://pragmatic-coder.net/aurelia-cli-and-rxjs-size-sensitive-bundles/)
 
 ## What is the State?
 
