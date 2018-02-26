@@ -5,12 +5,23 @@ author: Vildan Softic (http://github.com/zewa666)
 ---
 ## Introduction
 
-* Intro text
-* Reasons for state management
-* Why RxJS is used (Reactive approach [cycles of states])
-* Benefits of a stream of states over time
+This article covers the Store plugin for Aurelia. It is built on top of two core features of [RxJS](http://reactivex.io/rxjs/), namely Observables and the BehaviorSubject. You're not forced to delve into the reactive universe, in fact you'll barely notice it at the begin, but certainly can benefit a lot when using it wisely.
 
 Various examples, demonstrating individual pieces of the plugin, can be found in the [samples repository](https://github.com/zewa666/aurelia-store-examples).
+
+### Reasons for state management
+
+Currently lot of modern development approaches leverage a single store, which acts as a central basis of your app. The idea is that it holds all data, that makes up your application. The content of your store is your application's state. If you will, the app state is a snapshot of data at a specific moment in time. You modify that by using Actions, which are the only way to manipulate the global state, and create the next app state.
+
+Contrast this to classic service oriented approaches, where data is split amongst several service entities. What turns out to be a simpler approach in the beginning, especially combined with a powerful IoC Container, can become a problem once the apps size grows. Not only do you start to get increased complexity and inter-dependency of your services, but keeping track of who modified what and how to notify every component about a change can become tricky.
+
+Leveraging a single store approach, there is only one source of truth for your data and all modifications happen in a predictable way, potentially leading to a *more* side-effect-free overall application.
+
+### Why is RxJS utilized for this plugin?
+
+* Chart of Store -> Subscription -> Action -> and back
+* Why RxJS is used (Reactive approach [cycles of states])
+* Benefits of a stream of states over time
 
 ## Getting Started
 
