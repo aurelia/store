@@ -9,3 +9,4 @@ export * from "./test-helpers";
 export * from "./history";
 export * from "./middleware";
 export * from "./logging";
+export * from "./decorator";
