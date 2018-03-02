@@ -3,19 +3,35 @@ System.register(["aurelia-dependency-injection", "rxjs/Observable", "rxjs/Subscr
     var __moduleName = context_1 && context_1.id;
     function connectTo(settings) {
         var store = aurelia_dependency_injection_1.Container.instance.get(store_1.Store);
+        function getSource() {
+            if (typeof settings === "function") {
+                var selector = settings(store);
+                if (selector instanceof Observable_1.Observable) {
+                    return selector;
+                }
+            }
+            else if (settings && typeof settings.selector === "function") {
+                var selector = settings.selector(store);
+                if (selector instanceof Observable_1.Observable) {
+                    return selector;
+                }
+            }
+            return store.state;
+        }
         return function (target) {
             var originalBind = target.prototype.bind;
             var originalUnbind = target.prototype.unbind;
             target.prototype.bind = function () {
                 var _this = this;
-                var source = store.state;
-                if (typeof settings === "function") {
-                    var selector = settings(store);
-                    if (selector instanceof Observable_1.Observable) {
-                        source = selector;
+                var source = getSource();
+                this._stateSubscription = source.subscribe(function (state) {
+                    if (typeof settings === "object" && settings.target) {
+                        _this[settings.target] = state;
                     }
-                }
-                this._stateSubscription = source.subscribe(function (state) { return _this.state = state; });
+                    else {
+                        _this.state = state;
+                    }
+                });
                 if (originalBind) {
                     originalBind.apply(this, arguments);
                 }

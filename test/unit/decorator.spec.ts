@@ -53,6 +53,63 @@ describe("using decorators", () => {
     expect(sut.state).toEqual(initialState.bar);
   });
 
+  describe("with a complex settings object", () => {
+    it("should be possible to provide a selector", () => {
+      const { store, initialState } = arrange();
+  
+      @connectTo<DemoState>({
+        selector: (store) => store.state.pluck("bar")
+      })
+      class DemoStoreConsumer {
+        state: DemoState;
+      }
+  
+      const sut = new DemoStoreConsumer();
+      expect(sut.state).toEqual(undefined);
+  
+      (sut as any).bind();
+  
+      expect(sut.state).toEqual(initialState.bar);
+    });
+
+    it("should use the default state observable if selector does not return an observable", () => {
+      const { store, initialState } = arrange();
+  
+      @connectTo<DemoState>({
+        selector: () => "foobar" as any
+      })
+      class DemoStoreConsumer {
+        state: DemoState;
+      }
+  
+      const sut = new DemoStoreConsumer();
+      expect(sut.state).toEqual(undefined);
+  
+      (sut as any).bind();
+  
+      expect(sut.state).toEqual(initialState);
+    });
+
+    it("should be possible to override the target property", () => {
+      const { store, initialState } = arrange();
+  
+      @connectTo<DemoState>({
+        selector: (store) => store.state.pluck("bar"),
+        target: "foo"
+      })
+      class DemoStoreConsumer {
+        foo: DemoState;
+      }
+  
+      const sut = new DemoStoreConsumer();
+      expect(sut.foo).toEqual(undefined);
+  
+      (sut as any).bind();
+  
+      expect(sut.foo).toEqual(initialState.bar);
+    });
+  })
+
   it("should use the default state subscription if provided selector returns no observable", () => {
     const { store, initialState } = arrange();
 
