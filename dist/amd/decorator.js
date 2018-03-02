@@ -1,4 +1,4 @@
-define(["require", "exports", "./store", "aurelia-dependency-injection", "rxjs/Observable"], function (require, exports, store_1, aurelia_dependency_injection_1, Observable_1) {
+define(["require", "exports", "aurelia-dependency-injection", "rxjs/Observable", "rxjs/Subscription", "./store"], function (require, exports, aurelia_dependency_injection_1, Observable_1, Subscription_1, store_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function connectTo(settings) {
@@ -21,7 +21,9 @@ define(["require", "exports", "./store", "aurelia-dependency-injection", "rxjs/O
                 }
             };
             target.prototype.unbind = function () {
-                if (this._stateSubscription && typeof this._stateSubscription.unsubscribe === "function") {
+                if (this._stateSubscription &&
+                    this._stateSubscription instanceof Subscription_1.Subscription &&
+                    this._stateSubscription.closed === false) {
                     this._stateSubscription.unsubscribe();
                 }
                 if (originalUnbind) {

@@ -1,4 +1,4 @@
-System.register(["./store", "aurelia-dependency-injection", "rxjs/Observable"], function (exports_1, context_1) {
+System.register(["aurelia-dependency-injection", "rxjs/Observable", "rxjs/Subscription", "./store"], function (exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     function connectTo(settings) {
@@ -21,7 +21,9 @@ System.register(["./store", "aurelia-dependency-injection", "rxjs/Observable"], 
                 }
             };
             target.prototype.unbind = function () {
-                if (this._stateSubscription && typeof this._stateSubscription.unsubscribe === "function") {
+                if (this._stateSubscription &&
+                    this._stateSubscription instanceof Subscription_1.Subscription &&
+                    this._stateSubscription.closed === false) {
                     this._stateSubscription.unsubscribe();
                 }
                 if (originalUnbind) {
@@ -31,17 +33,20 @@ System.register(["./store", "aurelia-dependency-injection", "rxjs/Observable"], 
         };
     }
     exports_1("connectTo", connectTo);
-    var store_1, aurelia_dependency_injection_1, Observable_1;
+    var aurelia_dependency_injection_1, Observable_1, Subscription_1, store_1;
     return {
         setters: [
-            function (store_1_1) {
-                store_1 = store_1_1;
-            },
             function (aurelia_dependency_injection_1_1) {
                 aurelia_dependency_injection_1 = aurelia_dependency_injection_1_1;
             },
             function (Observable_1_1) {
                 Observable_1 = Observable_1_1;
+            },
+            function (Subscription_1_1) {
+                Subscription_1 = Subscription_1_1;
+            },
+            function (store_1_1) {
+                store_1 = store_1_1;
             }
         ],
         execute: function () {

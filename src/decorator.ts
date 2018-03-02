@@ -1,6 +1,8 @@
-import { Store } from "./store";
 import { Container } from "aurelia-dependency-injection";
 import { Observable } from "rxjs/Observable";
+import { Subscription } from "rxjs/Subscription";
+
+import { Store } from "./store";
 
 export function connectTo<T>(settings?: (store: Store<T>) => Observable<T>) {
   const store = Container.instance.get(Store) as Store<T>;
@@ -25,10 +27,12 @@ export function connectTo<T>(settings?: (store: Store<T>) => Observable<T>) {
       if (originalBind) {
         originalBind.apply(this, arguments);
       }
-    };
+    }
 
     target.prototype.unbind = function () {
-      if (this._stateSubscription && typeof this._stateSubscription.unsubscribe === "function") {
+      if (this._stateSubscription &&
+        this._stateSubscription instanceof Subscription &&
+        (this._stateSubscription as Subscription).closed === false) {
         this._stateSubscription.unsubscribe();
       }
 
