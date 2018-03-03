@@ -1,6 +1,6 @@
 {
   "name": "aurelia-store",
-  "version": "0.18.0",
+  "version": "0.19.0",
   "description": "Aurelia single state store based on RxJS",
   "keywords": [
     "rxjs",
@@ -23,7 +23,8 @@
     "prebuild": "cross-env rimraf dist",
     "postbuild": "gulp",
     "build": "concurrently \"npm run build:amd\" \"npm run build:commonjs\" \"npm run build:es2015\" \"npm run build:native-modules\" \"npm run build:system\"",
-    "prepare-release": "cross-env npm run build && semantic-release pre && npm publish && semantic-release post"
+    "prepare-release": "cross-env npm run build && semantic-release pre && npm publish && semantic-release post",
+    "precommit": "npm run lint"
   },
   "jest": {
     "modulePaths": [
@@ -106,6 +107,7 @@
     "cross-env": "^5.0.1",
     "gulp": "^3.9.1",
     "gulp-sass": "^3.1.0",
+    "husky": "^0.14.3",
     "jest": "^22.0.4",
     "jest-css-modules": "^1.1.0",
     "node-sass": "^4.5.3",
