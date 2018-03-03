@@ -156,6 +156,56 @@ In order to remove a registered action, simply call `store.unregisterAction`
 store.unregisterAction(demoAction);
 ```
 
+## Using the connectTo decorator
+Instead of handling subscriptions and disposal of those by yourself you may prefer to use the `connectTo` decorator.
+What it does is to connect your stores state automatically to a class property called `state`. It does so by overriding the
+`bind` method and the `unbind` method for proper setup and teardown of a subscription. The actual description is stored in another property
+called `_stateSubscription`.
+
+Above ViewModel example thus could look the following:
+
+```typescript
+import { autoinject } from 'aurelia-dependency-injection';
+import { State } from './state';
+import { Store, connectTo } from "aurelia-store";
+
+...
+
+@autoinject()
+@connectTo()
+export class App {
+
+  public state: State;
+
+  constructor(private store: Store<State>) {
+    this.store.registerAction("DemoAction", demoAction);
+  }
+
+  addAnotherFramework() {
+    // you create a new state by dispatching your action using the stores method
+    this.store.dispatch(demoAction);
+  }
+}
+```
+Note that there is no more need to use attached nor bind. We still declare the state property, in order to properly type-cast and use it in the TypeScript workflow. If you're using pure JavaScript, you may omit that definition.
+
+In case you want to provide a custom selector instead of subscribing to the whole state, you may pass a function, which will get the store passed and return an observable to be used instead of `store.state`. The decorator accepts a generic interface which matches your State, for a better TypeScript workflow.
+
+```typescript
+@connectTo<State>((store) => store.state.pluck("bar"))
+
+// resulting state will be only the value of bar
+```
+
+If you also want to override the default target property `state`, you can pass in a settings object instead of the function, where the prop selector matches above function and target specifies the new target property.
+
+```typescript
+@connectTo<State>({
+  selector: (store) => store.state.pluck("bar"), // same as above
+  target: "foo" // link to foo instead of state property
+})
+```
+
 ## Execution order
 If multiple actions are dispatched, they will get queued and executed one after another in order to make sure that each dispatch starts with an up to date state.
 ## Passing parameters to actions
