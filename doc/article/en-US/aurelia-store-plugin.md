@@ -5,23 +5,33 @@ author: Vildan Softic (http://github.com/zewa666)
 ---
 ## Introduction
 
-This article covers the Store plugin for Aurelia. It is built on top of two core features of [RxJS](http://reactivex.io/rxjs/), namely Observables and the BehaviorSubject. You're not forced to delve into the reactive universe, in fact you'll barely notice it at the begin, but certainly can benefit a lot when using it wisely.
+This article covers the Store plugin for Aurelia. It is built on top of two core features of [RxJS](http://reactivex.io/rxjs/), namely Observables and the BehaviorSubject. You're not forced to delve into the reactive universe, in fact, you'll barely notice it at the begin but certainly can benefit a lot when using it wisely.
 
 Various examples, demonstrating individual pieces of the plugin, can be found in the [samples repository](https://github.com/zewa666/aurelia-store-examples).
 
 ### Reasons for state management
 
-Currently lot of modern development approaches leverage a single store, which acts as a central basis of your app. The idea is that it holds all data, that makes up your application. The content of your store is your application's state. If you will, the app state is a snapshot of data at a specific moment in time. You modify that by using Actions, which are the only way to manipulate the global state, and create the next app state.
+Currently, a lot of modern development approaches leverage a single store, which acts as a central basis of your app. The idea is that it holds all data, that makes up your application. The content of your store is your application's state. If you will, the app state is a snapshot of data at a specific moment in time. You modify that by using Actions, which are the only way to manipulate the global state, and create the next app state.
 
-Contrast this to classic service oriented approaches, where data is split amongst several service entities. What turns out to be a simpler approach in the beginning, especially combined with a powerful IoC Container, can become a problem once the apps size grows. Not only do you start to get increased complexity and inter-dependency of your services, but keeping track of who modified what and how to notify every component about a change can become tricky.
+Contrast this to classic service-oriented approaches, where data is split amongst several service entities. What turns out to be a simpler approach, in the beginning, especially combined with a powerful IoC Container, can become a problem once the size of the app grows. Not only do you start to get increased complexity and inter-dependency of your services, but keeping track of who modified what and how to notify every component about a change can become tricky.
 
 Leveraging a single store approach, there is only one source of truth for your data and all modifications happen in a predictable way, potentially leading to a *more* side-effect-free overall application.
 
-### Why is RxJS utilized for this plugin?
+### Why is RxJS used for this plugin?
 
-* Chart of Store -> Subscription -> Action -> and back
-* Why RxJS is used (Reactive approach [cycles of states])
-* Benefits of a stream of states over time
+As mentioned in the intro this plugin uses RxJS as a foundation. The main idea is having a [BehaviorSubject](http://reactivex.io/rxjs/manual/overview.html#behaviorsubject) `store._state` which will store the current state, at the begin the initial state, and emit new states as they come. Since having access to the BehaviorSubject would allow consumers to directly emit the `next` value, instead of a front-facing `state` property, being an Observable which connects to the BehaviorSubject, is exposed. This way consumers only have access to streamed values but cannot directly manipulate the streaming queue.
+
+But besides these core features, RxJS itself can be described as [*Lodash/Underscore for events*](http://reactivex.io/rxjs/manual/overview.html#introduction). As such all of the operators and objects can be used to manipulate the state in whatever way necessary. As an example [pluck](http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#instance-method-pluck) can be used to pierce into a sub-section of the state, whereas methods like [skip]()http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#instance-method-skip and [take](http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#instance-method-take) are great ways to unit test the stream of states over time.
+
+The main reason for using RxJS though is that observables are delivered over time. This promotes a reactive approach to how you'd design your application. Instead of pursuing an imperative approach like **a click on button A** should **trigger a re-rendering on component B**, we follow an [Observer Pattern](https://en.wikipedia.org/wiki/Observer_pattern) where **component B observes a global state** and **acts on changes**, which are **triggered through actions by button A**.
+
+Broken down on the concepts of Aurelia, as depicted in the following chart, this means that a ViewModel subscribes to the single store and sets up a state subscription. The view directly binds to properties of the state. Actions can be dispatched and trigger the next state emit. Now the initial subscription receives the next state and changes the bound variable, Aurelia automatically figures out what changed and triggers a re-render. The next dispatch will then trigger the next cycle and so on. This way the system behaves in a cyclic, reactive way and sees state changes as requests for a re-rendering.
+
+![Chart workflow](./images/chart_store_workflow.png)
+
+A fundamental benefit of that approach is that you as a developer do not need to think of signaling individual components about changes, but rather they will all listen and react to changes by themselves if the respective part of the state gets modified. Think of it as an event dispatch, where multiple recipients can listen for and perform changes but with the benefit of a formalized global state. As such, all you need to focus on is the state and the rest will be handled automatically.
+
+Another benefit is the async nature of the subscription. No matter whether the action is a synchronous operation, like changing the title of your page, an Ajax request to fetch the latest products or a long-running web-socket for your next chat application. Whenever you dispatch the next action, listeners will react to these changes.
 
 ## Getting Started
 
@@ -205,14 +215,14 @@ With this done we're ready to consume our state and dive into the world of state
 * How to pass parameters
 * How to wait for the end of one dispatch cycle
 
-## Using the dispatchy higher order function
+## Using the dispatchify higher order function
 
 * Show how to create a dispatchified action
 * Demonstrate on example where an action is passed into a child as custom attribute
 * Presentational / Structural <--> Dumb / Smart components 
 
 
-## Recording a navigatable history of the stream of states
+## Recording a navigable history of the stream of states
 
 * Why History support
 * How does it work
@@ -242,7 +252,7 @@ With this done we're ready to consume our state and dive into the world of state
 
 ## Error propagation with middlewares
 
-* Middlwares silently swallow errors
+* Middlewares silently swallow errors
 * Explain how to turn on error propagation
 
 ## Default middlewares
@@ -264,7 +274,7 @@ With this done we're ready to consume our state and dive into the world of state
 * Example of using the Redux DevTools with Aurelia Store
 * Animated Gifs to highlight features
 
-## Comparision to other state management libraries
+## Comparison to other state management libraries
 
 ### Differences to Redux
 
