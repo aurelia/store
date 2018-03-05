@@ -40,7 +40,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 import { BehaviorSubject } from "rxjs/BehaviorSubject";
-import { autoinject, Container, LogManager } from "aurelia-framework";
+import { autoinject, Container, LogManager, PLATFORM } from "aurelia-framework";
 import { jump, applyLimits, isStateHistory } from "./history";
 import { MiddlewarePlacement } from "./middleware";
 import { LogLevel, getLogType } from "./logging";
@@ -242,10 +242,10 @@ var Store = /** @class */ (function () {
     };
     Store.prototype.setupDevTools = function () {
         var _this = this;
-        if (window.devToolsExtension) {
+        if (PLATFORM.global.devToolsExtension) {
             this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)]("DevTools are available");
             this.devToolsAvailable = true;
-            this.devTools = window.__REDUX_DEVTOOLS_EXTENSION__.connect();
+            this.devTools = PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__.connect();
             this.devTools.init(this.initialState);
             this.devTools.subscribe(function (message) {
                 _this.logger[getLogType(_this.options, "devToolsStatus", LogLevel.debug)]("DevTools sent change " + message.type);

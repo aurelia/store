@@ -1,4 +1,4 @@
-define(["require", "exports"], function (require, exports) {
+define(["require", "exports", "aurelia-pal"], function (require, exports, aurelia_pal_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var MiddlewarePlacement;
@@ -16,19 +16,19 @@ define(["require", "exports"], function (require, exports) {
     }
     exports.logMiddleware = logMiddleware;
     function localStorageMiddleware(state, _, settings) {
-        if (window.localStorage) {
+        if (aurelia_pal_1.PLATFORM.global.localStorage) {
             var key = settings && settings.key && typeof settings.key === "string"
                 ? settings.key
                 : "aurelia-store-state";
-            window.localStorage.setItem(key, JSON.stringify(state));
+            aurelia_pal_1.PLATFORM.global.localStorage.setItem(key, JSON.stringify(state));
         }
     }
     exports.localStorageMiddleware = localStorageMiddleware;
     function rehydrateFromLocalStorage(state, key) {
-        if (!window.localStorage) {
+        if (!aurelia_pal_1.PLATFORM.global.localStorage) {
             return state;
         }
-        var storedState = window.localStorage.getItem(key || "aurelia-store-state");
+        var storedState = aurelia_pal_1.PLATFORM.global.localStorage.getItem(key || "aurelia-store-state");
         if (!storedState) {
             return state;
         }

@@ -1,3 +1,4 @@
+import { PLATFORM } from "aurelia-pal";
 import "rxjs/add/operator/skip";
 import "rxjs/add/operator/take";
 
@@ -421,7 +422,7 @@ describe("middlewares", () => {
     it("should provide a localStorage middleware", done => {
       const store = createStoreWithState(initialState);
 
-      (window as any).localStorage = {
+      PLATFORM.global.localStorage = {
         store: { foo: "bar" },
         getItem(key: string) {
           return this.store[key] || null;
@@ -438,7 +439,7 @@ describe("middlewares", () => {
 
       store.state.skip(1).subscribe((state) => {
         expect(state.counter).toEqual(2);
-        expect(window.localStorage.getItem("aurelia-store-state")).toBe(JSON.stringify(state));
+        expect(PLATFORM.global.localStorage.getItem("aurelia-store-state")).toBe(JSON.stringify(state));
         done();
       });
     });
@@ -446,7 +447,7 @@ describe("middlewares", () => {
     it("should provide a localStorage middleware supporting a custom key", done => {
       const store = createStoreWithState(initialState);
       const key = "foobar";
-      (window as any).localStorage = {
+      PLATFORM.global.localStorage = {
         store: { foo: "bar" },
         getItem(key: string) {
           return this.store[key] || null;
@@ -463,7 +464,7 @@ describe("middlewares", () => {
 
       store.state.skip(1).subscribe((state) => {
         expect(state.counter).toEqual(2);
-        expect(window.localStorage.getItem(key)).toBe(JSON.stringify(state));
+        expect(PLATFORM.global.localStorage.getItem(key)).toBe(JSON.stringify(state));
         done();
       });
     });
@@ -471,7 +472,7 @@ describe("middlewares", () => {
     it("should rehydrate state from localStorage", done => {
       const store = createStoreWithState(initialState);
 
-      (window as any).localStorage = {
+      PLATFORM.global.localStorage = {
         getItem() {
           const storedState = Object.assign({}, initialState);
           storedState.counter = 1000;
@@ -494,7 +495,7 @@ describe("middlewares", () => {
       const store = createStoreWithState(initialState);
       const key = "foobar";
 
-      (window as any).localStorage = {
+      PLATFORM.global.localStorage = {
         getItem() {
           const storedState = Object.assign({}, initialState);
           storedState.counter = 1000;
@@ -516,7 +517,7 @@ describe("middlewares", () => {
     it("should rehydrate from previous state if localStorage is not available", done => {
       const store = createStoreWithState(initialState);
 
-      (window as any).localStorage = undefined;
+      PLATFORM.global.localStorage = undefined;
 
       store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
       store.registerAction("Rehydrate", rehydrateFromLocalStorage);
@@ -531,7 +532,7 @@ describe("middlewares", () => {
     it("should rehydrate from previous state if localStorage is empty", done => {
       const store = createStoreWithState(initialState);
 
-      (window as any).localStorage = {
+      PLATFORM.global.localStorage = {
         getItem() {
           return null;
         }
@@ -550,7 +551,7 @@ describe("middlewares", () => {
     it("should rehydrate from history state", done => {
       const store = createStoreWithState(initialHistoryState, true);
 
-      (window as any).localStorage = {
+      PLATFORM.global.localStorage = {
         getItem() {
           const storedState = Object.assign({}, initialState);
           storedState.counter = 1000;
@@ -572,7 +573,7 @@ describe("middlewares", () => {
     it("should return the previous state if localStorage state cannot be parsed", done => {
       const store = createStoreWithState(initialState);
 
-      (window as any).localStorage = {
+      PLATFORM.global.localStorage = {
         getItem() {
           return global;
         }

@@ -240,10 +240,10 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./hi
         };
         Store.prototype.setupDevTools = function () {
             var _this = this;
-            if (window.devToolsExtension) {
+            if (aurelia_framework_1.PLATFORM.global.devToolsExtension) {
                 this.logger[logging_1.getLogType(this.options, "devToolsStatus", logging_1.LogLevel.debug)]("DevTools are available");
                 this.devToolsAvailable = true;
-                this.devTools = window.__REDUX_DEVTOOLS_EXTENSION__.connect();
+                this.devTools = aurelia_framework_1.PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__.connect();
                 this.devTools.init(this.initialState);
                 this.devTools.subscribe(function (message) {
                     _this.logger[logging_1.getLogType(_this.options, "devToolsStatus", logging_1.LogLevel.debug)]("DevTools sent change " + message.type);

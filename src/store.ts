@@ -4,8 +4,10 @@ import { BehaviorSubject } from "rxjs/BehaviorSubject";
 import {
   autoinject,
   Container,
-  LogManager
+  LogManager,
+  PLATFORM
 } from "aurelia-framework";
+
 import { jump, applyLimits, HistoryOptions, isStateHistory } from "./history";
 import { Middleware, MiddlewarePlacement } from "./middleware";
 import { LogDefinitions, LogLevel, getLogType } from "./logging";
@@ -204,10 +206,10 @@ export class Store<T> {
   }
 
   private setupDevTools() {
-    if ((<any>window).devToolsExtension) {
+    if (PLATFORM.global.devToolsExtension) {
       this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)]("DevTools are available");
       this.devToolsAvailable = true;
-      this.devTools = (<any>window).__REDUX_DEVTOOLS_EXTENSION__.connect();
+      this.devTools = PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__.connect();
       this.devTools.init(this.initialState);
 
       this.devTools.subscribe((message: any) => {
