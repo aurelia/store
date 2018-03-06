@@ -86,14 +86,12 @@ export class Store<T> {
   }
 
   public dispatch(reducer: Reducer<T>, ...params: any[]) {
-    const result = new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       this.dispatchQueue.push({ reducer, params, resolve, reject });
       if (this.dispatchQueue.length === 1) {
         this.handleQueue();
       }
     });
-
-    return result;
   }
 
   private async handleQueue() {
