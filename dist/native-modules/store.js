@@ -91,13 +91,12 @@ var Store = /** @class */ (function () {
         for (var _i = 1; _i < arguments.length; _i++) {
             params[_i - 1] = arguments[_i];
         }
-        var result = new Promise(function (resolve, reject) {
+        return new Promise(function (resolve, reject) {
             _this.dispatchQueue.push({ reducer: reducer, params: params, resolve: resolve, reject: reject });
             if (_this.dispatchQueue.length === 1) {
                 _this.handleQueue();
             }
         });
-        return result;
     };
     Store.prototype.handleQueue = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -142,7 +141,7 @@ var Store = /** @class */ (function () {
                         if (!this.actions.has(reducer)) {
                             throw new Error("Tried to dispatch an unregistered action" + (reducer ? " " + reducer.name : ""));
                         }
-                        performance.mark("dispatch-start");
+                        PLATFORM.performance.mark("dispatch-start");
                         action = this.actions.get(reducer);
                         if (this.options.logDispatchedActions) {
                             this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)]("Dispatching: " + action.name);
@@ -151,7 +150,7 @@ var Store = /** @class */ (function () {
                     case 1:
                         beforeMiddleswaresResult = _b.sent();
                         result = reducer.apply(void 0, [beforeMiddleswaresResult].concat(params));
-                        performance.mark("dispatch-after-reducer-" + action.name);
+                        PLATFORM.performance.mark("dispatch-after-reducer-" + action.name);
                         if (!result && typeof result !== "object") {
                             throw new Error("The reducer has to return a new state");
                         }
@@ -168,19 +167,19 @@ var Store = /** @class */ (function () {
                                             resultingState = applyLimits(resultingState, this.options.history.limit);
                                         }
                                         this._state.next(resultingState);
-                                        performance.mark("dispatch-end");
+                                        PLATFORM.performance.mark("dispatch-end");
                                         if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
-                                            performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
-                                            measures = performance.getEntriesByName("startEndDispatchDuration");
+                                            PLATFORM.performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
+                                            measures = PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
                                             this.logger[getLogType(this.options, "performanceLog", LogLevel.info)]("Total duration " + measures[0].duration + " of dispatched action " + action.name + ":", measures);
                                         }
                                         else if (this.options.measurePerformance === PerformanceMeasurement.All) {
-                                            marks = performance.getEntriesByType("mark");
+                                            marks = PLATFORM.performance.getEntriesByType("mark");
                                             totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
                                             this.logger[getLogType(this.options, "performanceLog", LogLevel.info)]("Total duration " + totalDuration + " of dispatched action " + action.name + ":", marks);
                                         }
-                                        performance.clearMarks();
-                                        performance.clearMeasures();
+                                        PLATFORM.performance.clearMarks();
+                                        PLATFORM.performance.clearMeasures();
                                         this.updateDevToolsState(action.name, newState);
                                         return [2 /*return*/];
                                 }
@@ -233,7 +232,7 @@ var Store = /** @class */ (function () {
                         return [4 /*yield*/, prev];
                     case 6: return [2 /*return*/, _d.sent()];
                     case 7:
-                        performance.mark("dispatch-" + placement + "-" + curr[0].name);
+                        PLATFORM.performance.mark("dispatch-" + placement + "-" + curr[0].name);
                         return [7 /*endfinally*/];
                     case 8: return [2 /*return*/];
                 }

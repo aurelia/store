@@ -114,7 +114,7 @@ export class Store<T> {
     if (!this.actions.has(reducer)) {
       throw new Error(`Tried to dispatch an unregistered action${reducer ? " " + reducer.name : ""}`);
     }
-    performance.mark("dispatch-start");
+    PLATFORM.performance.mark("dispatch-start");
 
     const action = this.actions.get(reducer);
 
@@ -127,7 +127,7 @@ export class Store<T> {
       MiddlewarePlacement.Before
     );
     const result = reducer(beforeMiddleswaresResult, ...params);
-    performance.mark("dispatch-after-reducer-" + action!.name);
+    PLATFORM.performance.mark("dispatch-after-reducer-" + action!.name);
 
     if (!result && typeof result !== "object") {
       throw new Error("The reducer has to return a new state");
@@ -146,22 +146,22 @@ export class Store<T> {
       }
 
       this._state.next(resultingState);
-      performance.mark("dispatch-end");
+      PLATFORM.performance.mark("dispatch-end");
 
       if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
-        performance.measure(
+        PLATFORM.performance.measure(
           "startEndDispatchDuration",
           "dispatch-start",
           "dispatch-end"
         );
 
-        const measures = performance.getEntriesByName("startEndDispatchDuration");
+        const measures = PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
         this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
           `Total duration ${measures[0].duration} of dispatched action ${action!.name}:`,
           measures
         );
       } else if (this.options.measurePerformance === PerformanceMeasurement.All) {
-        const marks = performance.getEntriesByType("mark");
+        const marks = PLATFORM.performance.getEntriesByType("mark");
         const totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
         this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
           `Total duration ${totalDuration} of dispatched action ${action!.name}:`,
@@ -169,8 +169,8 @@ export class Store<T> {
         );
       }
 
-      performance.clearMarks();
-      performance.clearMeasures();
+      PLATFORM.performance.clearMarks();
+      PLATFORM.performance.clearMeasures();
 
       this.updateDevToolsState(action!.name, newState);
     }
@@ -198,7 +198,7 @@ export class Store<T> {
 
           return await prev;
         } finally {
-          performance.mark(`dispatch-${placement}-${curr[0].name}`);
+          PLATFORM.performance.mark(`dispatch-${placement}-${curr[0].name}`);
         }
       }, state);
   }
