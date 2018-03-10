@@ -186,10 +186,81 @@ With this done we're ready to consume our app state and dive into the world of s
 
 ## Subscribing to the stream of states
 
-* Dependency injection of the Store
-* Typesafety with the State
-* Creating a subscription
-* Unsubscribing on element detach
+As explained in the beginning, the Aurelia Store plugin provides a public observable called `state` which will stream the apps states over time. So in order to consume it we first need to inject the store via dependency injection into the constructor. Next inside the `bind` lifecycle method we are subscription to the stores state property. Inside the *next-handler* we'll have the actually streamed state and may assign it to the components local state property. Last but not least lets not forget to unsubscribe from ones the components gets unbound. This happens by calling the subscriptions `unsubscribe` method.
+
+<code-listing heading="Injecting the store and creating a subscription">
+  <source-code lang="TypeScript">
+
+  import { autoinject } from "aurelia-dependency-injection";
+  import { Store } from "aurelia-store";
+
+  import { State } from "./state";
+
+  @autoinject()
+  export class App {
+
+    public state: State;
+    private subscription: Subscription;
+
+    constructor(private store: Store<State>) {}
+
+    bind() {
+      this.subscription = this.store.state.subscribe(
+        (state) => this.state = state
+      );
+    }
+
+    unbind() {
+      this.subscription.unsubscribe();
+    }
+  }
+  </source-code>
+</code-listing>
+<code-listing heading="Injecting the store and creating a subscription">
+  <source-code lang="JavaScript">
+
+  import { inject } from "aurelia-dependency-injection";
+  import { Store } from "aurelia-store";
+
+  import { State } from "./state";
+
+  @inject(Store)
+  export class App {
+    constructor(store) {}
+
+    bind() {
+      this.subscription = this.store.state.subscribe(
+        (state) => this.state = state
+      );
+    }
+
+    unbind() {
+      this.subscription.unsubscribe();
+    }
+  }
+  </source-code>
+</code-listing>
+
+> Note that in the TypeScript version we didn't have to type-cast the state variable provided to the next handler, since the initial store was injected using the `State` entity as generic provider.
+
+With that in place the state can be consumed as usual directly from within your template:
+
+<code-listing heading="Subscribing to the state property">
+  <source-code lang="HTML">
+
+  <template>
+    <h1>Frameworks</h1>
+
+    <ul>
+      <li repeat.for="framework of state.frameworks">${framework}</li>
+    </ul>
+  </template>
+  </source-code>
+</code-listing>
+
+Since you've subscribed to the state, every new one that arrives will again be assigned to the components `state` property and the UI automatically re-rendered, based on the details that changed.
+
+Next let's find out how to create state changes.
 
 ## What are actions?
 
