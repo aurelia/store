@@ -52,7 +52,7 @@ If your app is based on the Aurelia CLI and the build is based on RequireJS or S
 au import aurelia-store
 ```
 
-alternatively you can manually add these dependencies to your vendor bundle:
+alternatively, you can manually add these dependencies to your vendor bundle:
 
 ```json
 ...
@@ -105,14 +105,14 @@ So try to avoid these and instead only import operators and observable features 
 
 ## What is the State?
 
-A typical application consists of multiple components, which render various data. Besides actual data though, your components also contain the various statuses, like a active state for a toggle button, but also high-level states like the selected theme or current page.
-Contained component state is a good thing and should stay with the component, as long as only that single instance cares about it. The moment you reference the internal state from another component though you're gonna need different means to handle that like service classes. Another related topic is inter-component communication where both services but also pub-sub mechanisms like the EventAggregator may be used.
+A typical application consists of multiple components, which render various data. Besides actual data though, your components also contain the various statuses, like an active state for a toggle button, but also high-level states like the selected theme or current page.
+The contained component state is a good thing and should stay with the component, as long as only that single instance cares about it. The moment you reference the internal state from another component though you're gonna need different means to handle that like service classes. Another related topic is the inter-component communication where both services but also pub-sub mechanisms like the EventAggregator may be used.
 
-In contrast to that the Store plugin operates on a single overall application state. Think of it as a large object containing all the sub-states reflecting your applications condition at a specific moment in time. This state objects needs to only contain serializable properties. With that you gain the benefit of having snapshots of your app, which allow all kinds of cool features like time-traveling, save/reload and so on.
+In contrast to that, the Store plugin operates on a single overall application state. Think of it as a large object containing all the sub-states reflecting your applications condition at a specific moment in time. This state object needs only to contain serializable properties. With that you gain the benefit of having snapshots of your app, which allow all kinds of cool features like time-traveling, save/reload and so on.
 
 How much you put into your state is up to you, but a good rule of thumb is that as soon as two different areas of your application consume the same data or affect component states you should store them.
 
-Your app will typically start with a beginning state, called initial state, which later on is manipulated throughout the apps lifecycle. As mentioned it can be pretty much anything like shown in below example. Whether you prefer TypeScript or pure JavaScript is up to you, but having a typed state, allows for easier refactoring and better intellisense support.
+Your app will typically start with a beginning state, called initial state, which later on is manipulated throughout the app's lifecycle. As mentioned it can be pretty much anything like shown in below example. Whether you prefer TypeScript or pure JavaScript is up to you, but having a typed state, allows for easier refactoring and better autocompletion support.
 
 <code-listing heading="Defining the State entity and initialState">
   <source-code lang="TypeScript">
@@ -186,62 +186,64 @@ With this done we're ready to consume our app state and dive into the world of s
 
 ## Subscribing to the stream of states
 
-As explained in the beginning, the Aurelia Store plugin provides a public observable called `state` which will stream the apps states over time. So in order to consume it we first need to inject the store via dependency injection into the constructor. Next inside the `bind` lifecycle method we are subscription to the stores state property. Inside the *next-handler* we'll have the actually streamed state and may assign it to the components local state property. Last but not least lets not forget to unsubscribe from ones the components gets unbound. This happens by calling the subscriptions `unsubscribe` method.
+As explained in the beginning, the Aurelia Store plugin provides a public observable called `state` which will stream the apps states over time. So in order to consume it, we first need to inject the store via dependency injection into the constructor. Next, inside the `bind` lifecycle method we are subscribing to the store's `state` property. Inside the *next-handler* we'll have the actually streamed state and may assign it to the components local state property. Last but not least let's not forget to dispose the subscription ones the components gets unbound. This happens by calling the subscriptions `unsubscribe` method.
 
 <code-listing heading="Injecting the store and creating a subscription">
   <source-code lang="TypeScript">
 
-  import { autoinject } from "aurelia-dependency-injection";
-  import { Store } from "aurelia-store";
+    // app.ts
+    import { autoinject } from "aurelia-dependency-injection";
+    import { Store } from "aurelia-store";
 
-  import { State } from "./state";
+    import { State } from "./state";
 
-  @autoinject()
-  export class App {
+    @autoinject()
+    export class App {
 
-    public state: State;
-    private subscription: Subscription;
+      public state: State;
+      private subscription: Subscription;
 
-    constructor(private store: Store<State>) {}
+      constructor(private store: Store<State>) {}
 
-    bind() {
-      this.subscription = this.store.state.subscribe(
-        (state) => this.state = state
-      );
+      bind() {
+        this.subscription = this.store.state.subscribe(
+          (state) => this.state = state
+        );
+      }
+
+      unbind() {
+        this.subscription.unsubscribe();
+      }
     }
-
-    unbind() {
-      this.subscription.unsubscribe();
-    }
-  }
   </source-code>
 </code-listing>
 <code-listing heading="Injecting the store and creating a subscription">
   <source-code lang="JavaScript">
 
-  import { inject } from "aurelia-dependency-injection";
-  import { Store } from "aurelia-store";
+    // app.js
+    import { inject } from "aurelia-dependency-injection";
+    import { Store } from "aurelia-store";
 
-  import { State } from "./state";
+    import { State } from "./state";
 
-  @inject(Store)
-  export class App {
-    constructor(store) {}
+    @inject(Store)
+    export class App {
+      constructor(store) {}
 
-    bind() {
-      this.subscription = this.store.state.subscribe(
-        (state) => this.state = state
-      );
+      bind() {
+        this.subscription = this.store.state.subscribe(
+          (state) => this.state = state
+        );
+      }
+
+      unbind() {
+        this.subscription.unsubscribe();
+      }
     }
-
-    unbind() {
-      this.subscription.unsubscribe();
-    }
-  }
   </source-code>
 </code-listing>
 
-> Note that in the TypeScript version we didn't have to type-cast the state variable provided to the next handler, since the initial store was injected using the `State` entity as generic provider.
+> Note that in the TypeScript version we didn't have to type-cast the state variable provided to the next handler since the initial store was injected using the `State` entity as a generic provider.
 
 With that in place the state can be consumed as usual directly from within your template:
 
@@ -260,7 +262,7 @@ With that in place the state can be consumed as usual directly from within your 
 
 Since you've subscribed to the state, every new one that arrives will again be assigned to the components `state` property and the UI automatically re-rendered, based on the details that changed.
 
-Next let's find out how to create state changes.
+Next, let's find out how to create state changes.
 
 ## What are actions?
 
