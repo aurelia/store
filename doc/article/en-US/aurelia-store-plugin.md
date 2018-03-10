@@ -105,10 +105,14 @@ So try to avoid these and instead only import operators and observable features 
 
 ## What is the State?
 
-* Explain what the state object is about
-* Reasons for an initial state
-* Best practices for structuring state (what does belong into global state)
-* Explain the benefits of having a typed store
+A typical application consists of multiple components, which render various data. Besides actual data though, your components also contain the various statuses, like a active state for a toggle button, but also high-level states like the selected theme or current page.
+Contained component state is a good thing and should stay with the component, as long as only that single instance cares about it. The moment you reference the internal state from another component though you're gonna need different means to handle that like service classes. Another related topic is inter-component communication where both services but also pub-sub mechanisms like the EventAggregator may be used.
+
+In contrast to that the Store plugin operates on a single overall application state. Think of it as a large object containing all the sub-states reflecting your applications condition at a specific moment in time. This state objects needs to only contain serializable properties. With that you gain the benefit of having snapshots of your app, which allow all kinds of cool features like time-traveling, save/reload and so on.
+
+How much you put into your state is up to you, but a good rule of thumb is that as soon as two different areas of your application consume the same data or affect component states you should store them.
+
+Your app will typically start with a beginning state, called initial state, which later on is manipulated throughout the apps lifecycle. As mentioned it can be pretty much anything like shown in below example. Whether you prefer TypeScript or pure JavaScript is up to you, but having a typed state, allows for easier refactoring and better intellisense support.
 
 <code-listing heading="Defining the State entity and initialState">
   <source-code lang="TypeScript">
@@ -178,7 +182,7 @@ In order to tell Aurelia how to use the plugin, we need to register it. This is 
   </source-code>
 </code-listing>
 
-With this done we're ready to consume our state and dive into the world of state management.
+With this done we're ready to consume our app state and dive into the world of state management.
 
 ## Subscribing to the stream of states
 
