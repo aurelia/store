@@ -5,9 +5,10 @@ import { Subscription } from "rxjs/Subscription";
 import { Store } from "./store";
 
 export interface ConnectToSettings<T> {
+  onChanged?: string;
   selector: (store: Store<T>) => Observable<T>;
-  target?: string;
   setup?: string;
+  target?: string;
   teardown?: string;
 }
 
@@ -48,6 +49,15 @@ export function connectTo<T>(settings?: ((store: Store<T>) => Observable<T>) | C
           this[settings.target] = state;
         } else {
           this.state = state;
+        }
+
+        if (typeof settings == "object" &&
+          typeof settings.onChanged === "string") {
+          if (!this.hasOwnProperty(settings.onChanged)) {
+            throw new Error("Provided onChanged handler does not exist on target VM")
+          } else {
+            this[settings.onChanged](state);
+          }
         }
       });
 
