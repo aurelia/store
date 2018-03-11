@@ -7,6 +7,8 @@ import { Store } from "./store";
 export interface ConnectToSettings<T> {
   selector: (store: Store<T>) => Observable<T>;
   target?: string;
+  setup?: string;
+  teardown?: string;
 }
 
 export function connectTo<T>(settings?: ((store: Store<T>) => Observable<T>) | ConnectToSettings<T>) {
@@ -31,10 +33,14 @@ export function connectTo<T>(settings?: ((store: Store<T>) => Observable<T>) | C
   }
 
   return function (target: any) {
-    const originalBind = target.prototype.bind;
-    const originalUnbind = target.prototype.unbind;
+    const originalSetup = typeof settings === "object" && settings.setup
+      ? target.prototype[settings.setup]
+      : target.prototype.bind
+    const originalTeardown = typeof settings === "object" && settings.teardown
+      ? target.prototype[settings.teardown]
+      : target.prototype.unbind;
 
-    target.prototype.bind = function () {
+    target.prototype[typeof settings === "object" && settings.setup ? settings.setup : "bind"] = function () {
       const source = getSource();
 
       this._stateSubscription = source.subscribe(state => {
@@ -45,20 +51,20 @@ export function connectTo<T>(settings?: ((store: Store<T>) => Observable<T>) | C
         }
       });
 
-      if (originalBind) {
-        originalBind.apply(this, arguments);
+      if (originalSetup) {
+        originalSetup.apply(this, arguments);
       }
     }
 
-    target.prototype.unbind = function () {
+    target.prototype[typeof settings === "object" && settings.teardown ? settings.teardown : "unbind"] = function () {
       if (this._stateSubscription &&
         this._stateSubscription instanceof Subscription &&
         (this._stateSubscription as Subscription).closed === false) {
         this._stateSubscription.unsubscribe();
       }
 
-      if (originalUnbind) {
-        originalUnbind.apply(this, arguments);
+      if (originalTeardown) {
+        originalTeardown.apply(this, arguments);
       }
     }
   }

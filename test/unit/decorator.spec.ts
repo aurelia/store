@@ -56,43 +56,43 @@ describe("using decorators", () => {
   describe("with a complex settings object", () => {
     it("should be possible to provide a selector", () => {
       const { store, initialState } = arrange();
-  
+
       @connectTo<DemoState>({
         selector: (store) => store.state.pluck("bar")
       })
       class DemoStoreConsumer {
         state: DemoState;
       }
-  
+
       const sut = new DemoStoreConsumer();
       expect(sut.state).toEqual(undefined);
-  
+
       (sut as any).bind();
-  
+
       expect(sut.state).toEqual(initialState.bar);
     });
 
     it("should use the default state observable if selector does not return an observable", () => {
       const { store, initialState } = arrange();
-  
+
       @connectTo<DemoState>({
         selector: () => "foobar" as any
       })
       class DemoStoreConsumer {
         state: DemoState;
       }
-  
+
       const sut = new DemoStoreConsumer();
       expect(sut.state).toEqual(undefined);
-  
+
       (sut as any).bind();
-  
+
       expect(sut.state).toEqual(initialState);
     });
 
     it("should be possible to override the target property", () => {
       const { store, initialState } = arrange();
-  
+
       @connectTo<DemoState>({
         selector: (store) => store.state.pluck("bar"),
         target: "foo"
@@ -100,12 +100,12 @@ describe("using decorators", () => {
       class DemoStoreConsumer {
         foo: DemoState;
       }
-  
+
       const sut = new DemoStoreConsumer();
       expect(sut.foo).toEqual(undefined);
-  
+
       (sut as any).bind();
-  
+
       expect(sut.foo).toEqual(initialState.bar);
     });
   })
@@ -220,6 +220,56 @@ describe("using decorators", () => {
 
       expect(subscription).toBeDefined();
       expect(subscription.unsubscribe).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("with custom setup and teardown settings", () => {
+    it("should allow to specify a lifecycle hook for the subscription", () => {
+      const { store, initialState } = arrange();
+
+      @connectTo<DemoState>({
+        selector: (store) => store.state,
+        setup: "created"
+      })
+      class DemoStoreConsumer {
+        state: DemoState;
+      }
+
+      const sut = new DemoStoreConsumer();
+
+      expect((sut as any).created).toBeDefined();
+      (sut as any).created();
+
+      expect(sut.state).toEqual(initialState);
+      expect((sut as any)._stateSubscription).toBeDefined();
+    });
+
+    it("should allow to specify a lifecycle hook for the unsubscription", () => {
+      const { store, initialState } = arrange();
+
+      @connectTo<DemoState>({
+        selector: (store) => store.state,
+        teardown: "detached"
+      })
+      class DemoStoreConsumer {
+        state: DemoState;
+      }
+
+      const sut = new DemoStoreConsumer();
+
+      (sut as any).bind();
+
+      const subscription = ((sut as any)._stateSubscription as Subscription);
+      spyOn(subscription, "unsubscribe").and.callThrough();
+
+      expect(sut.state).toEqual(initialState);
+      expect(subscription.closed).toBe(false);
+      expect((sut as any).detached).toBeDefined();
+      (sut as any).detached();
+
+      expect(subscription).toBeDefined();
+      expect(subscription.closed).toBe(true);
+      expect(subscription.unsubscribe).toHaveBeenCalled();
     });
   });
 });
