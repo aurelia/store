@@ -9,7 +9,7 @@ import {
 } from "aurelia-framework";
 
 import { jump, applyLimits, HistoryOptions, isStateHistory } from "./history";
-import { Middleware, MiddlewarePlacement } from "./middleware";
+import { Middleware, MiddlewarePlacement, CallingAction } from "./middleware";
 import { LogDefinitions, LogLevel, getLogType } from "./logging";
 
 export type Reducer<T> = (state: T, ...params: any[]) => T | Promise<T>;
@@ -124,7 +124,11 @@ export class Store<T> {
 
     const beforeMiddleswaresResult = await this.executeMiddlewares(
       this._state.getValue(),
-      MiddlewarePlacement.Before
+      MiddlewarePlacement.Before,
+      {
+        name: action!.name,
+        params
+      }
     );
     const result = reducer(beforeMiddleswaresResult, ...params);
     PLATFORM.performance.mark("dispatch-after-reducer-" + action!.name);
@@ -136,7 +140,11 @@ export class Store<T> {
     const apply = async (newState: T) => {
       let resultingState = await this.executeMiddlewares(
         newState,
-        MiddlewarePlacement.After
+        MiddlewarePlacement.After,
+        {
+          name: action!.name,
+          params
+        }
       );
 
       if (isStateHistory(resultingState) &&
@@ -183,12 +191,12 @@ export class Store<T> {
 
   }
 
-  private executeMiddlewares(state: T, placement: MiddlewarePlacement): T {
+  private executeMiddlewares(state: T, placement: MiddlewarePlacement, action: CallingAction): T {
     return Array.from(this.middlewares)
       .filter((middleware) => middleware[1].placement === placement)
       .reduce(async (prev: any, curr, _, _arr) => {
         try {
-          const result = await curr[0](await prev, this._state.getValue(), curr[1].settings);
+          const result = await curr[0](await prev, this._state.getValue(), curr[1].settings, action);
           return result || await prev;
         } catch (e) {
           if (this.options.propagateError) {

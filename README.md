@@ -345,8 +345,7 @@ You may also register actions which resolve the newly created state with a promi
 ## Middleware
 A middleware is similar to an action, with the difference that it may return void as well. Middlewares can be executed before the dispatched action, thus potentially manipulating the current state which will be passed to the action, or afterwards, thus modifying the returned value from the action. Either way the middleware reducer can be sync as well as async.
 
-You register a middleware by it as the first parameter to `store.registerMiddleware` and the placement `before` or `after` as second, followed by an optional third
-settings parameter. This will be passed into your middleware itself during execution.
+You register a middleware by it as the first parameter to `store.registerMiddleware` and the placement `before` or `after` as second, followed by an optional third settings parameter. This will be passed into your middleware itself during execution.
 
 ```typescript
 const customLogMiddleware = (currentState) => console.log(currentState);
@@ -364,7 +363,7 @@ In order to remove a registered middleware, simply call `store.unregisterMiddlew
 store.unregisterMiddleware(customLogMiddleware);
 ```
 
-Additionally a middleware might accept a second argument which reflects the current unmodified state, this means the one before any other middlewares or, in case of a after positioning, the result of the dispatched action. This can be useful to determine the state diff that happened in the middleware chain or to reset the next state at certain conditions.
+When executed, a middleware might accept a second argument which reflects the current unmodified state, this means the one before any other middlewares or, in case of a after positioning, the result of the dispatched action. This can be useful to determine the state diff that happened in the middleware chain or to reset the next state at certain conditions.
 
 ```typescript
 ...
@@ -376,12 +375,27 @@ const decreaseBefore = (currentState: TestState, originalState: TestState) => {
 }
 ```
 
-Last but not least a potential third argument can be any settings as mentioned during middleware registration.
+A potential third argument can be any settings as mentioned during middleware registration.
 
 ```typescript
 const customLogMiddleware = (currentState, originalState, settings) => console[settings.logType](currentState);
 store.registerMiddleware(customLogMiddleware, MiddlewarePlacement.After, { logType: "log" });
 ```
+
+And last but not least the optional forth argument is the calling action, meaning the action that is dispatched.
+In here you get an object containing the objects `name` and the provided `params`. This is useful when you for instance
+want certain actions only to pass or be canceled under certain states. 
+
+```typescript
+const gateKeeperMiddleware = (currentState, originalState, _, action) => {
+  // imagine a lockActive property on the state indicating that certain actions may not be executed
+  if (currentState.lockActive === true && action.name === "trespasser") {
+    return originalState;
+  }
+};
+store.registerMiddleware(gateKeeperMiddleware, MiddlewarePlacement.After);
+```
+
 
 ### Propagating errors
 By default errors thrown by middlewares will be thrown in order to guarantee continues states. If you would like to stop state propagation you need to pass in the `propagateError` option:
