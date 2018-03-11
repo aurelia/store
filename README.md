@@ -187,7 +187,7 @@ export class App {
   }
 }
 ```
-Note that there is no more need to use attached nor bind. We still declare the state property, in order to properly type-cast and use it in the TypeScript workflow. If you're using pure JavaScript, you may omit that definition.
+Note that there is no more need to define attached nor bind manually as in the initial example. Setting up the subscription and tearing it down happens automatically. We still declare the state property, in order to properly type-cast and use it in the TypeScript workflow. If you're using pure JavaScript, you may omit that definition.
 
 In case you want to provide a custom selector instead of subscribing to the whole state, you may pass a function, which will get the store passed and return an observable to be used instead of `store.state`. The decorator accepts a generic interface which matches your State, for a better TypeScript workflow.
 
@@ -205,6 +205,31 @@ If you also want to override the default target property `state`, you can pass i
   target: "foo" // link to foo instead of state property
 })
 ```
+
+Not only the target but also the default `setup` and `teardown` methods can be specified, either one or both. The hooks `bind` and `unbind` act as the default value.
+```typescript
+@connectTo<State>({
+  selector: (store) => store.state.pluck("bar"), // same as above
+  setup: "create" // create the subscription inside the create callback instead
+  teardown: "deactivate" // do the disposal in deactivate
+})
+```
+
+> The provided action names for setup and teardown don't necesserily have to be official [lifecycle methods](http://aurelia.io/docs/fundamentals/components#the-component-lifecycle) but should be used as a good practice.
+
+Last but not least you can also define a callback to be called with the next state once a state change happens
+```typescript
+@connectTo<State>({
+  selector: (store) => store.state.pluck("bar"), // same as above
+  onChanged: "stateChanged"
+})
+export class MyVM {
+  onChanged(state: State) {
+    console.log("The state has changed", state);
+  }
+}
+```
+
 
 ## Execution order
 If multiple actions are dispatched, they will get queued and executed one after another in order to make sure that each dispatch starts with an up to date state.
