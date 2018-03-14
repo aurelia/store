@@ -295,6 +295,26 @@ describe("using decorators", () => {
       expect(sut.stateChanged).toHaveBeenCalledWith(initialState);
     });
 
+    it("should be called before assigning the new state, so there is still access to the previous state", () => {
+      const { store, initialState } = arrange();
+
+      @connectTo<DemoState>({
+        onChanged: "stateChanged",
+        selector: (store) => store.state,
+      })
+      class DemoStoreConsumer {
+        state: DemoState;
+
+        stateChanged(state: DemoState) {
+          expect(sut.state).toEqual(undefined);
+          expect(state).toEqual(initialState);
+        }
+      }
+
+      const sut = new DemoStoreConsumer();
+      (sut as any).bind();
+    });
+
     it("should check whether the method exists before calling it and throw a meaningful error", () => {
       const { store, initialState } = arrange();
 
@@ -307,7 +327,7 @@ describe("using decorators", () => {
       }
 
       const sut = new DemoStoreConsumer();
-      
+
       expect(() => (sut as any).bind()).toThrowError("Provided onChanged handler does not exist on target VM");
     });
   });

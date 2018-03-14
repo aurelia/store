@@ -45,19 +45,20 @@ export function connectTo<T>(settings?: ((store: Store<T>) => Observable<T>) | C
       const source = getSource();
 
       this._stateSubscription = source.subscribe(state => {
-        if (typeof settings === "object" && settings.target) {
-          this[settings.target] = state;
-        } else {
-          this.state = state;
-        }
-
+        // call onChanged first so that the handler has also access to the previous state
         if (typeof settings == "object" &&
           typeof settings.onChanged === "string") {
-          if (!this.hasOwnProperty(settings.onChanged)) {
+          if (!(settings.onChanged in this)) {
             throw new Error("Provided onChanged handler does not exist on target VM")
           } else {
             this[settings.onChanged](state);
           }
+        }
+
+        if (typeof settings === "object" && settings.target) {
+          this[settings.target] = state;
+        } else {
+          this.state = state;
         }
       });
 
