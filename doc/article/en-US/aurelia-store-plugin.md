@@ -262,35 +262,199 @@ With that in place the state can be consumed as usual directly from within your 
 
 Since you've subscribed to the state, every new one that arrives will again be assigned to the components `state` property and the UI automatically re-rendered, based on the details that changed.
 
+## Subscribing with the connectTo decorator
+
+
 Next, let's find out how to create state changes.
 
 ## What are actions?
 
-* What is an action
-* Type of actions
-* Actions are registered in the store
-* Parametrized actions
+Actions are the primary way to create a new state. They are essentially functions which receives the current state and optionally one or more arguments.
+Their job is to create a next state and return it. By doing so they should not mutate the passed in current state but instead use immutable functions to create
+either a proper clone. The reason for that is that each state represents a unique snapshot of your app in time. By modifying it, you'd alter the state and wouldn't be able to properly compare the old and new state. Further implications by that would be that advanced features such as time-travelling through states wouldn't work anymore.
+So keep in mind ... don't mutate your state.
 
-## Creating your first action
+> In case you're not a fan of functional approaches take a look at libraries like [Immer.js](https://github.com/mweststrate/immer), and the [Aurelia store example](https://github.com/zewa666/aurelia-store-examples#immer) using it, to act like you'd mutate the object but secretly get a proper clone.
 
-* Explain how to define a simple action
-* Explain reasons for immutability
-* Sample with Object.assign
-* Mention deep cloning
-* Show immer.js as an alternative
+Continuing with above framework example, an action to add an additional framework would look like the following.
+You create a shallow clone of the state by using Object.assign. By saying shallow it means that the actual `frameworks` array in the new state will just reference the original one. So in order to fix that we can use the array spread syntax plus the new `frameworkName` to create a fresh new array.
+
+<code-listing heading="A simple action">
+  <source-code lang="TypeScript">
+
+    const demoAction = (state: State, frameworkName: string) => {
+      const newState = Object.assign({}, state);
+      newState.frameworks = [...newState.frameworks, frameworkName];
+
+      return newState;
+    }
+  </source-code>
+</code-listing>
+<code-listing heading="A simple action">
+  <source-code lang="JavaScript">
+
+    const demoAction = (state, frameworkName) => {
+      const newState = Object.assign({}, state);
+      newState.frameworks = [...newState.frameworks, frameworkName];
+
+      return newState;
+    }
+  </source-code>
+</code-listing>
+
+Next we need to register the created action with the store. That is done by calling the stores `registerAction` method. By doing so we can provide a name which will be used for all kinds of error-handlers, logs and even Redux DevTools. As a second argument we pass the action itself. 
+
+<code-listing heading="Registering an action">
+  <source-code lang="TypeScript">
+
+    // app.ts
+    import { autoinject } from "aurelia-dependency-injection";
+    import { Store } from "aurelia-store";
+
+    import { State } from "./state";
+
+    @autoinject()
+    export class App {
+
+      public state: State;
+      private subscription: Subscription;
+
+      constructor(private store: Store<State>) {
+        this.store.registerAction("DemoAction", demoAction);
+      }
+
+      ...
+    }
+  </source-code>
+</code-listing>
+<code-listing heading="Registering an action">
+  <source-code lang="JavaScript">
+
+    // app.js
+    import { inject } from "aurelia-dependency-injection";
+    import { Store } from "aurelia-store";
+
+    import { State } from "./state";
+
+    @inject(Store)
+    export class App {
+      constructor(store) {
+        this.store.registerAction("DemoAction", demoAction);
+      }
+
+      ...
+    }
+  </source-code>
+</code-listing>
+
+You can unregister actions whenever needed by using the stores `unregisterAction` method
+
+<code-listing heading="Unregistering an action">
+  <source-code lang="TypeScript">
+
+    // app.ts
+    ...
+
+    @autoinject()
+    export class App {
+
+      ...
+
+      constructor(private store: Store<State>) {
+        this.store.registerAction("DemoAction", demoAction);
+        this.store.unregisterAction(demoAction);
+      }
+
+      ...
+    }
+  </source-code>
+</code-listing>
+<code-listing heading="Unregistering an action">
+  <source-code lang="JavaScript">
+
+    // app.js
+    ...
+
+    @inject(Store)
+    export class App {
+      constructor(store) {
+        this.store.registerAction("DemoAction", demoAction);
+        this.store.unregisterAction(demoAction);
+      }
+
+      ...
+    }
+  </source-code>
+</code-listing>
 
 ## Async actions
 
-## Execution order
+Previously we mentioned that an action should return a state. What we didn't mention is that they are also able to return a promise which will eventually resolve with the new state.
 
-* Explain the ordered execution, even of async actions
-* The app can be seen as a loop of state changes
+From above example, imagine we'd have to validate the given name, which happens in a async manner.
+
+<code-listing heading="An async action">
+  <source-code lang="TypeScript">
+
+    function validateAsync(name: string) {
+      return Promise((resolve, reject) => {
+        setTimeout(() => {
+          if (name === "Angular") {
+            reject(new Error("Try using a different framework"))
+          } else {
+            resolve(name);
+          }
+        }, 1000);
+      })
+    }
+
+    const demoAction = async (state: State, frameworkName: string) => {
+      const newState = Object.assign({}, state);
+      const validatedName = await validateAsync(frameworkName);
+
+      newState.frameworks = [...newState.frameworks, validatedName];
+
+      return newState;
+    }
+  </source-code>
+</code-listing>
+<code-listing heading="An async action">
+  <source-code lang="JavaScript">
+
+    function validateAsync(name) {
+      return Promise((resolve, reject) => {
+        setTimeout(() => {
+          if (name === "Angular") {
+            reject(new Error("Try using a different framework"))
+          } else {
+            resolve(name);
+          }
+        }, 1000);
+      })
+    }
+
+    const demoAction = async (state, frameworkName) => {
+      const newState = Object.assign({}, state);
+      const validatedName = await validateAsync(frameworkName);
+
+      newState.frameworks = [...newState.frameworks, validatedName];
+
+      return newState;
+    }
+  </source-code>
+</code-listing>
+
+> You're not forced to use async/await but it's highly recommended to use it for better readability wherever you can
 
 ## Dispatching actions
 
 * How to dispatch simple actions
 * How to pass parameters
 * How to wait for the end of one dispatch cycle
+
+## Execution order
+
+If multiple actions are dispatched, they will get queued and executed one after another in order to make sure that each dispatch starts with an up to date state.
 
 ## Using the dispatchify higher order function
 
@@ -326,6 +490,7 @@ Next, let's find out how to create state changes.
 
 * How to configure them
 * How to consume them
+
 
 ## Error propagation with middlewares
 
