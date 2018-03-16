@@ -56,43 +56,43 @@ describe("using decorators", () => {
   describe("with a complex settings object", () => {
     it("should be possible to provide a selector", () => {
       const { store, initialState } = arrange();
-  
+
       @connectTo<DemoState>({
         selector: (store) => store.state.pluck("bar")
       })
       class DemoStoreConsumer {
         state: DemoState;
       }
-  
+
       const sut = new DemoStoreConsumer();
       expect(sut.state).toEqual(undefined);
-  
+
       (sut as any).bind();
-  
+
       expect(sut.state).toEqual(initialState.bar);
     });
 
     it("should use the default state observable if selector does not return an observable", () => {
       const { store, initialState } = arrange();
-  
+
       @connectTo<DemoState>({
         selector: () => "foobar" as any
       })
       class DemoStoreConsumer {
         state: DemoState;
       }
-  
+
       const sut = new DemoStoreConsumer();
       expect(sut.state).toEqual(undefined);
-  
+
       (sut as any).bind();
-  
+
       expect(sut.state).toEqual(initialState);
     });
 
     it("should be possible to override the target property", () => {
       const { store, initialState } = arrange();
-  
+
       @connectTo<DemoState>({
         selector: (store) => store.state.pluck("bar"),
         target: "foo"
@@ -100,12 +100,12 @@ describe("using decorators", () => {
       class DemoStoreConsumer {
         foo: DemoState;
       }
-  
+
       const sut = new DemoStoreConsumer();
       expect(sut.foo).toEqual(undefined);
-  
+
       (sut as any).bind();
-  
+
       expect(sut.foo).toEqual(initialState.bar);
     });
   })
@@ -220,6 +220,115 @@ describe("using decorators", () => {
 
       expect(subscription).toBeDefined();
       expect(subscription.unsubscribe).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("with custom setup and teardown settings", () => {
+    it("should allow to specify a lifecycle hook for the subscription", () => {
+      const { store, initialState } = arrange();
+
+      @connectTo<DemoState>({
+        selector: (store) => store.state,
+        setup: "created"
+      })
+      class DemoStoreConsumer {
+        state: DemoState;
+      }
+
+      const sut = new DemoStoreConsumer();
+
+      expect((sut as any).created).toBeDefined();
+      (sut as any).created();
+
+      expect(sut.state).toEqual(initialState);
+      expect((sut as any)._stateSubscription).toBeDefined();
+    });
+
+    it("should allow to specify a lifecycle hook for the unsubscription", () => {
+      const { store, initialState } = arrange();
+
+      @connectTo<DemoState>({
+        selector: (store) => store.state,
+        teardown: "detached"
+      })
+      class DemoStoreConsumer {
+        state: DemoState;
+      }
+
+      const sut = new DemoStoreConsumer();
+
+      (sut as any).bind();
+
+      const subscription = ((sut as any)._stateSubscription as Subscription);
+      spyOn(subscription, "unsubscribe").and.callThrough();
+
+      expect(sut.state).toEqual(initialState);
+      expect(subscription.closed).toBe(false);
+      expect((sut as any).detached).toBeDefined();
+      (sut as any).detached();
+
+      expect(subscription).toBeDefined();
+      expect(subscription.closed).toBe(true);
+      expect(subscription.unsubscribe).toHaveBeenCalled();
+    });
+  });
+
+  describe("with settings declaring onChanged", () => {
+    it("should accept a string and call the respective handler passing the new state", () => {
+      const { store, initialState } = arrange();
+
+      @connectTo<DemoState>({
+        onChanged: "stateChanged",
+        selector: (store) => store.state,
+      })
+      class DemoStoreConsumer {
+        state: DemoState;
+
+        stateChanged(state: DemoState) { /**/ }
+      }
+
+      const sut = new DemoStoreConsumer();
+      spyOn(sut, "stateChanged");
+      (sut as any).bind();
+
+      expect(sut.state).toEqual(initialState);
+      expect(sut.stateChanged).toHaveBeenCalledWith(initialState);
+    });
+
+    it("should be called before assigning the new state, so there is still access to the previous state", () => {
+      const { store, initialState } = arrange();
+
+      @connectTo<DemoState>({
+        onChanged: "stateChanged",
+        selector: (store) => store.state,
+      })
+      class DemoStoreConsumer {
+        state: DemoState;
+
+        stateChanged(state: DemoState) {
+          expect(sut.state).toEqual(undefined);
+          expect(state).toEqual(initialState);
+        }
+      }
+
+      const sut = new DemoStoreConsumer();
+      (sut as any).bind();
+    });
+
+    it("should check whether the method exists before calling it and throw a meaningful error", () => {
+      const { store, initialState } = arrange();
+
+      @connectTo<DemoState>({
+        onChanged: "stateChanged",
+        selector: (store) => store.state,
+      })
+      class DemoStoreConsumer {
+        state: DemoState;
+      }
+
+      const sut = new DemoStoreConsumer();
+
+      expect(() => (sut as any).bind()).toThrowError("Provided onChanged handler does not exist on target VM");
     });
   });
 });

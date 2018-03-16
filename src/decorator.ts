@@ -5,8 +5,11 @@ import { Subscription } from "rxjs/Subscription";
 import { Store } from "./store";
 
 export interface ConnectToSettings<T> {
+  onChanged?: string;
   selector: (store: Store<T>) => Observable<T>;
+  setup?: string;
   target?: string;
+  teardown?: string;
 }
 
 export function connectTo<T>(settings?: ((store: Store<T>) => Observable<T>) | ConnectToSettings<T>) {
@@ -31,13 +34,27 @@ export function connectTo<T>(settings?: ((store: Store<T>) => Observable<T>) | C
   }
 
   return function (target: any) {
-    const originalBind = target.prototype.bind;
-    const originalUnbind = target.prototype.unbind;
+    const originalSetup = typeof settings === "object" && settings.setup
+      ? target.prototype[settings.setup]
+      : target.prototype.bind
+    const originalTeardown = typeof settings === "object" && settings.teardown
+      ? target.prototype[settings.teardown]
+      : target.prototype.unbind;
 
-    target.prototype.bind = function () {
+    target.prototype[typeof settings === "object" && settings.setup ? settings.setup : "bind"] = function () {
       const source = getSource();
 
       this._stateSubscription = source.subscribe(state => {
+        // call onChanged first so that the handler has also access to the previous state
+        if (typeof settings == "object" &&
+          typeof settings.onChanged === "string") {
+          if (!(settings.onChanged in this)) {
+            throw new Error("Provided onChanged handler does not exist on target VM")
+          } else {
+            this[settings.onChanged](state);
+          }
+        }
+
         if (typeof settings === "object" && settings.target) {
           this[settings.target] = state;
         } else {
@@ -45,20 +62,20 @@ export function connectTo<T>(settings?: ((store: Store<T>) => Observable<T>) | C
         }
       });
 
-      if (originalBind) {
-        originalBind.apply(this, arguments);
+      if (originalSetup) {
+        originalSetup.apply(this, arguments);
       }
     }
 
-    target.prototype.unbind = function () {
+    target.prototype[typeof settings === "object" && settings.teardown ? settings.teardown : "unbind"] = function () {
       if (this._stateSubscription &&
         this._stateSubscription instanceof Subscription &&
         (this._stateSubscription as Subscription).closed === false) {
         this._stateSubscription.unsubscribe();
       }
 
-      if (originalUnbind) {
-        originalUnbind.apply(this, arguments);
+      if (originalTeardown) {
+        originalTeardown.apply(this, arguments);
       }
     }
   }
