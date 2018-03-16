@@ -29,7 +29,7 @@ Broken down on the concepts of Aurelia, as depicted in the following chart, this
 
 ![Chart workflow](./images/chart_store_workflow.png)
 
-A fundamental benefit of that approach is that you as a developer do not need to think of signaling individual components about changes, but rather they will all listen and react to changes by themselves if the respective part of the state gets modified. Think of it as an event dispatch, where multiple recipients can listen for and perform changes but with the benefit of a formalized global state. As such, all you need to focus on is the state and the rest will be handled automatically.
+A fundamental benefit of that approach is, that you as a developer do not need to think of signaling individual components about changes, but rather they will all listen and react to changes by themselves if the respective part of the state gets modified. Think of it as an event dispatch, where multiple recipients can listen for and perform changes but with the benefit of a formalized global state. As such, all you need to focus on is the state and the rest will be handled automatically.
 
 Another benefit is the async nature of the subscription. No matter whether the action is a synchronous operation, like changing the title of your page, an Ajax request to fetch the latest products or a long-running web-socket for your next chat application. Whenever you dispatch the next action, listeners will react to these changes.
 
@@ -106,7 +106,7 @@ So try to avoid these and instead only import operators and observable features 
 ## What is the State?
 
 A typical application consists of multiple components, which render various data. Besides actual data though, your components also contain the various statuses, like an active state for a toggle button, but also high-level states like the selected theme or current page.
-The contained component state is a good thing and should stay with the component, as long as only that single instance cares about it. The moment you reference the internal state from another component though you're gonna need different means to handle that like service classes. Another related topic is the inter-component communication where both services but also pub-sub mechanisms like the EventAggregator may be used.
+The contained component state is a good thing and should stay with the component, as long as only that single instance cares about it. The moment you reference the internal state from another component though, you're going to need a different approach like service classes. Another related topic is the inter-component communication where both services but also pub-sub mechanisms like the EventAggregator may be used.
 
 In contrast to that, the Store plugin operates on a single overall application state. Think of it as a large object containing all the sub-states reflecting your applications condition at a specific moment in time. This state object needs only to contain serializable properties. With that you gain the benefit of having snapshots of your app, which allow all kinds of cool features like time-traveling, save/reload and so on.
 
@@ -186,7 +186,7 @@ With this done we're ready to consume our app state and dive into the world of s
 
 ## Subscribing to the stream of states
 
-As explained in the beginning, the Aurelia Store plugin provides a public observable called `state` which will stream the apps states over time. So in order to consume it, we first need to inject the store via dependency injection into the constructor. Next, inside the `bind` lifecycle method we are subscribing to the store's `state` property. Inside the *next-handler* we'll have the actually streamed state and may assign it to the components local state property. Last but not least let's not forget to dispose the subscription ones the components gets unbound. This happens by calling the subscriptions `unsubscribe` method.
+As explained in the beginning, the Aurelia Store plugin provides a public observable called `state` which will stream the apps states over time. So in order to consume it, we first need to inject the store via dependency injection into the constructor. Next, inside the `bind` lifecycle method we are subscribing to the store's `state` property. Inside the *next-handler* we'll have the actually streamed state and may assign it to the components local state property. Last but not least let's not forget to dispose the subscription ones the component becomes unbound. This happens by calling the subscriptions `unsubscribe` method.
 
 <code-listing heading="Injecting the store and creating a subscription">
   <source-code lang="TypeScript">
@@ -264,9 +264,9 @@ Since you've subscribed to the state, every new one that arrives will again be a
 
 ## Subscribing with the connectTo decorator
 
-In the previous section you've seen how to manually bind to the state observable for full control.
+In the previous section, you've seen how to manually bind to the state observable for full control.
 But instead of handling subscriptions and disposal of those by yourself, you may prefer to use the `connectTo` decorator.
-What it does is to connect your stores state automatically to a class property called `state`. It does so by overriding by default the
+What it does is to connect your store's state automatically to a class property called `state`. It does so by overriding by default the
 `bind` and `unbind` life-cycle method for a proper setup and teardown of the state subscription, which will be stored in a property called `_stateSubscription`.
 
 Above ViewModel example could look the following using the connectTo decorator:
@@ -327,7 +327,7 @@ In case you want to provide a custom selector instead of subscribing to the whol
 <code-listing heading="Sub-state selection">
   <source-code lang="JavaScript">
 
-    // app.ts
+    // app.js
     ...
 
     @connectTo((store) => store.state.pluck("frameworks"))
@@ -337,7 +337,7 @@ In case you want to provide a custom selector instead of subscribing to the whol
   </source-code>
 </code-listing>
 
-If you need more control and for instance want to override the default target property `state`, you can pass in a settings object instead of a function, where the sub-state `selector` matches above function and `target` specifies the new target holding the received state.
+If you need more control and for instance want to override the default target property `state`, you can pass a settings object instead of a function, where the sub-state `selector` matches above function and `target` specifies the new target holding the received state.
 
 <code-listing heading="Defining the selector and target">
   <source-code lang="TypeScript">
@@ -357,7 +357,7 @@ If you need more control and for instance want to override the default target pr
 <code-listing heading="Defining the selector and target">
   <source-code lang="JavaScript">
 
-    // app.ts
+    // app.js
     ...
 
     @connectTo({
@@ -392,7 +392,7 @@ Not only the target but also the default `setup` and `teardown` methods can be s
 <code-listing heading="Overriding the default setup and teardown methods">
   <source-code lang="JavaScript">
 
-    // app.ts
+    // app.js
     ...
 
     @connectTo({
@@ -407,7 +407,7 @@ Not only the target but also the default `setup` and `teardown` methods can be s
 </code-listing>
 
 
-> The provided action names for setup and teardown don't necesserily have to be official [lifecycle methods](http://aurelia.io/docs/fundamentals/components#the-component-lifecycle) but should be used as these get called automatically by Aurelia at the proper time.
+> The provided action names for setup and teardown don't necessarily have to be one of the official [lifecycle methods](http://aurelia.io/docs/fundamentals/components#the-component-lifecycle) but should be used as these get called automatically by Aurelia at the proper time.
 
 
 Last but not least you can also define a callback to be called with the next state once a state change happens
@@ -433,7 +433,7 @@ Last but not least you can also define a callback to be called with the next sta
 <code-listing heading="Define an onChanged handler">
   <source-code lang="JavaScript">
 
-    // app.ts
+    // app.js
     ...
 
     @connectTo({
@@ -456,9 +456,9 @@ Next, let's find out how to produce state changes.
 
 ## What are actions?
 
-Actions are the primary way to create a new state. They are essentially functions which receives the current state and optionally one or more arguments.
-Their job is to create a next state and return it. By doing so they should not mutate the passed in current state but instead use immutable functions to create
-either a proper clone. The reason for that is that each state represents a unique snapshot of your app in time. By modifying it, you'd alter the state and wouldn't be able to properly compare the old and new state. Further implications by that would be that advanced features such as time-travelling through states wouldn't work anymore.
+Actions are the primary way to create a new state. They are essentially functions which take the current state and optionally one or more arguments.
+Their job is to create the next state and return it. By doing so they should not mutate the passed in current state but instead use immutable functions to create
+either a proper clone. The reason for that is that each state represents a unique snapshot of your app in time. By modifying it, you'd alter the state and wouldn't be able to properly compare the old and new state. Further implications by that would be that advanced features such as time-traveling through states wouldn't work anymore.
 So keep in mind ... don't mutate your state.
 
 > In case you're not a fan of functional approaches take a look at libraries like [Immer.js](https://github.com/mweststrate/immer), and the [Aurelia store example](https://github.com/zewa666/aurelia-store-examples#immer) using it, to act like you'd mutate the object but secretly get a proper clone.
@@ -489,7 +489,7 @@ You create a shallow clone of the state by using Object.assign. By saying shallo
   </source-code>
 </code-listing>
 
-Next we need to register the created action with the store. That is done by calling the stores `registerAction` method. By doing so we can provide a name which will be used for all kinds of error-handlers, logs and even Redux DevTools. As a second argument we pass the action itself. 
+Next, we need to register the created action with the store. That is done by calling the stores `registerAction` method. By doing so we can provide a name which will be used for all kinds of error-handlers, logs, and even Redux DevTools. As a second argument, we pass the action itself. 
 
 <code-listing heading="Registering an action">
   <source-code lang="TypeScript">
@@ -578,7 +578,7 @@ You can unregister actions whenever needed by using the stores `unregisterAction
 
 Previously we mentioned that an action should return a state. What we didn't mention is that they are also able to return a promise which will eventually resolve with the new state.
 
-From above example, imagine we'd have to validate the given name, which happens in a async manner.
+From above example, imagine we'd have to validate the given name, which happens in an async manner.
 
 <code-listing heading="An async action">
   <source-code lang="TypeScript">
@@ -688,7 +688,7 @@ If multiple actions are dispatched, they will get queued and executed one after 
 
 ### The Logging Middleware
 
-### The Local Storage middlware
+### The Local Storage middleware
 
 ## Defining custom LogLevels
 
