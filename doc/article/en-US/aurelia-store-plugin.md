@@ -264,8 +264,195 @@ Since you've subscribed to the state, every new one that arrives will again be a
 
 ## Subscribing with the connectTo decorator
 
+In the previous section you've seen how to manually bind to the state observable for full control.
+But instead of handling subscriptions and disposal of those by yourself, you may prefer to use the `connectTo` decorator.
+What it does is to connect your stores state automatically to a class property called `state`. It does so by overriding by default the
+`bind` and `unbind` life-cycle method for a proper setup and teardown of the state subscription, which will be stored in a property called `_stateSubscription`.
 
-Next, let's find out how to create state changes.
+Above ViewModel example could look the following using the connectTo decorator:
+
+<code-listing heading="Using the connectTo decorator">
+  <source-code lang="TypeScript">
+
+    // app.ts
+    import { autoinject } from "aurelia-dependency-injection";
+    import { Store, connectTo } from "aurelia-store";
+
+    import { State } from "./state";
+
+    @autoinject()
+    @connectTo()
+    export class App {
+
+      public state: State;
+      private subscription: Subscription;
+
+      constructor(private store: Store<State>) {}
+    }
+  </source-code>
+</code-listing>
+<code-listing heading="Using the connectTo decorator">
+  <source-code lang="JavaScript">
+
+    // app.js
+    import { inject } from "aurelia-dependency-injection";
+    import { Store, connectTo } from "aurelia-store";
+
+    import { State } from "./state";
+
+    @inject(Store)
+    @connectTo()
+    export class App {
+      constructor(store) {}
+    }
+  </source-code>
+</code-listing>
+
+> Notice how we've declared the public state property of type `State` in the TS version. The sole reason for that is to have proper type hinting during compile time.
+
+In case you want to provide a custom selector instead of subscribing to the whole state, you may provide a function, which will receive the store and should return an observable to be used instead of the default `store.state`. The decorator accepts a generic interface which matches your State, for a better TypeScript workflow.
+
+<code-listing heading="Sub-state selection">
+  <source-code lang="TypeScript">
+
+    // app.ts
+    ...
+
+    @connectTo<State>((store) => store.state.pluck("frameworks"))
+    export class App {
+      ...
+    }
+  </source-code>
+</code-listing>
+<code-listing heading="Sub-state selection">
+  <source-code lang="JavaScript">
+
+    // app.ts
+    ...
+
+    @connectTo((store) => store.state.pluck("frameworks"))
+    export class App {
+      ...
+    }
+  </source-code>
+</code-listing>
+
+If you need more control and for instance want to override the default target property `state`, you can pass in a settings object instead of a function, where the sub-state `selector` matches above function and `target` specifies the new target holding the received state.
+
+<code-listing heading="Defining the selector and target">
+  <source-code lang="TypeScript">
+
+    // app.ts
+    ...
+
+    @connectTo<State>({
+      selector: (store) => store.state.pluck("frameworks"), // same as above
+      target: "currentState" // link to currentState instead of state property
+    })
+    export class App {
+      ...
+    }
+  </source-code>
+</code-listing>
+<code-listing heading="Defining the selector and target">
+  <source-code lang="JavaScript">
+
+    // app.ts
+    ...
+
+    @connectTo({
+      selector: (store) => store.state.pluck("frameworks"), // same as above
+      target: "currentState" // link to currentState instead of state property
+    })
+    export class App {
+      ...
+    }
+  </source-code>
+</code-listing>
+
+
+Not only the target but also the default `setup` and `teardown` methods can be specified, either one or both. The hooks `bind` and `unbind` act as the default value.
+
+<code-listing heading="Overriding the default setup and teardown methods">
+  <source-code lang="TypeScript">
+
+    // app.ts
+    ...
+
+    @connectTo<State>({
+      selector: (store) => store.state.pluck("frameworks"), // same as above
+      setup: "create"        // create the subscription inside the create life-cycle hook
+      teardown: "deactivate" // do the disposal in deactivate
+    })
+    export class App {
+      ...
+    }
+  </source-code>
+</code-listing>
+<code-listing heading="Overriding the default setup and teardown methods">
+  <source-code lang="JavaScript">
+
+    // app.ts
+    ...
+
+    @connectTo({
+      selector: (store) => store.state.pluck("frameworks"), // same as above
+      setup: "create"        // create the subscription inside the create life-cycle hook
+      teardown: "deactivate" // do the disposal in deactivate
+    })
+    export class App {
+      ...
+    }
+  </source-code>
+</code-listing>
+
+
+> The provided action names for setup and teardown don't necesserily have to be official [lifecycle methods](http://aurelia.io/docs/fundamentals/components#the-component-lifecycle) but should be used as these get called automatically by Aurelia at the proper time.
+
+
+Last but not least you can also define a callback to be called with the next state once a state change happens
+<code-listing heading="Define an onChanged handler">
+  <source-code lang="TypeScript">
+
+    // app.ts
+    ...
+
+    @connectTo<State>({
+      selector: (store) => store.state.pluck("frameworks"), // same as above
+      onChanged: "stateChanged"
+    })
+    export class App {
+      ...
+
+      stateChanged(state: State) {
+        console.log("The state has changed", state);
+      }
+    }
+  </source-code>
+</code-listing>
+<code-listing heading="Define an onChanged handler">
+  <source-code lang="JavaScript">
+
+    // app.ts
+    ...
+
+    @connectTo({
+      selector: (store) => store.state.pluck("frameworks"), // same as above
+      onChanged: "stateChanged"
+    })
+    export class App {
+      ...
+
+      stateChanged(state) {
+        console.log("The state has changed", state);
+      }
+    }
+  </source-code>
+</code-listing>
+
+> Your onChanged handler will be called before the target property is changed. This way you have access to both the current and previous state.
+
+Next, let's find out how to produce state changes.
 
 ## What are actions?
 

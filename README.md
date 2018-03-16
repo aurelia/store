@@ -159,7 +159,7 @@ store.unregisterAction(demoAction);
 ## Using the connectTo decorator
 Instead of handling subscriptions and disposal of those by yourself you may prefer to use the `connectTo` decorator.
 What it does is to connect your stores state automatically to a class property called `state`. It does so by overriding the
-`bind` method and the `unbind` method for proper setup and teardown of a subscription. The actual description is stored in another property
+`bind` method and the `unbind` method for proper setup and teardown of a subscription. The subscription itself is stored in another property
 called `_stateSubscription`.
 
 Above ViewModel example thus could look the following:
@@ -224,7 +224,7 @@ Last but not least you can also define a callback to be called with the next sta
   onChanged: "stateChanged"
 })
 export class MyVM {
-  onChanged(state: State) {
+  stateChanged(state: State) {
     console.log("The state has changed", state);
   }
 }
