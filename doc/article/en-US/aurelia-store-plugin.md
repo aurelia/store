@@ -635,9 +635,61 @@ From above example, imagine we'd have to validate the given name, which happens 
 
 ## Dispatching actions
 
-* How to dispatch simple actions
-* How to pass parameters
-* How to wait for the end of one dispatch cycle
+So far we've just created an action and registered it by several means. Now let's look at how we can actually execute one of them to trigger the next state change.
+We can use the store method `dispatchAction` to exactly do that. In below example the function `dispatchDemo`, can be called with an argument `nextFramework`.
+Inside we call `store.dispatchAction`, passing it the action itself and all subsequent parameters required.
+
+<code-listing heading="Dispatching an action">
+  <source-code lang="TypeScript">
+
+    // app.ts
+    import { autoinject } from "aurelia-dependency-injection";
+    import { Store, connectTo } from "aurelia-store";
+
+    import { State } from "./state";
+
+    @autoinject()
+    @connectTo()
+    export class App {
+
+      public state: State;
+      private subscription: Subscription;
+
+      constructor(private store: Store<State>) {
+        this.store.registerAction("DemoAction", demoAction);
+      }
+
+      public dispatchDemo(nextFramework: string) {
+        this.store.dispatchAction(demoAction, nextFramework);
+      }
+    }
+  </source-code>
+</code-listing>
+<code-listing heading="Dispatching an action">
+  <source-code lang="JavaScript">
+
+    // app.js
+    import { inject } from "aurelia-dependency-injection";
+    import { Store, connectTo } from "aurelia-store";
+
+    import { State } from "./state";
+
+    @inject(Store)
+    @connectTo()
+    export class App {
+      constructor(store) {
+        this.store.registerAction("DemoAction", demoAction);
+      }
+
+      public dispatchDemo(nextFramework) {
+        this.store.dispatchAction(demoAction, nextFramework);
+      }
+    }
+  </source-code>
+</code-listing>
+
+Now keep in mind that an action might be async, or really any middleware is, you'll learn more about them later, as such if you're depending on the state being updated right after it, make sure to `await` the call to `dispatchAction`
+
 
 ## Execution order
 
