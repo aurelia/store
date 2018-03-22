@@ -151,6 +151,7 @@ var Store = /** @class */ (function () {
                         return [4 /*yield*/, this.executeMiddlewares(this._state.getValue(), middleware_1.MiddlewarePlacement.Before)];
                     case 1:
                         beforeMiddleswaresResult = _b.sent();
+                        console.log(beforeMiddleswaresResult);
                         result = reducer.apply(void 0, [beforeMiddleswaresResult].concat(params));
                         aurelia_framework_1.PLATFORM.performance.mark("dispatch-after-reducer-" + action.name);
                         if (!result && typeof result !== "object") {
@@ -208,7 +209,7 @@ var Store = /** @class */ (function () {
         return Array.from(this.middlewares)
             .filter(function (middleware) { return middleware[1].placement === placement; })
             .reduce(function (prev, curr, _, _arr) { return __awaiter(_this, void 0, void 0, function () {
-            var result, _a, _b, _c, e_2;
+            var result, _a, _b, returnValue, _c, e_2;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -224,7 +225,13 @@ var Store = /** @class */ (function () {
                     case 3:
                         _c = (_d.sent());
                         _d.label = 4;
-                    case 4: return [2 /*return*/, _c];
+                    case 4:
+                        returnValue = _c;
+                        console.log("Result", returnValue);
+                        if (returnValue === false) {
+                            _arr = [];
+                        }
+                        return [2 /*return*/, returnValue];
                     case 5:
                         e_2 = _d.sent();
                         if (this.options.propagateError) {

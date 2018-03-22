@@ -1,6 +1,6 @@
 import { PLATFORM } from "aurelia-pal";
 
-export type Middleware<T> = (state: T, originalState?: T, settings?: any) => T | Promise<T | undefined> | void;
+export type Middleware<T> = (state: T, originalState?: T, settings?: any) => T | Promise<T | undefined | false> | void | false;
 export enum MiddlewarePlacement {
   Before = "before",
   After = "after"
