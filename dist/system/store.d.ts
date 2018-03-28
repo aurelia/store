@@ -33,7 +33,7 @@ export declare class Store<T> {
     dispatch(reducer: Reducer<T>, ...params: any[]): Promise<void>;
     private handleQueue();
     private internalDispatch(reducer, ...params);
-    private executeMiddlewares(state, placement);
+    private executeMiddlewares(state, placement, action);
     private setupDevTools();
     private updateDevToolsState(action, state);
     private registerHistoryMethods();

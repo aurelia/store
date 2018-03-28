@@ -146,7 +146,10 @@ var Store = /** @class */ (function () {
                         if (this.options.logDispatchedActions) {
                             this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)]("Dispatching: " + action.name);
                         }
-                        return [4 /*yield*/, this.executeMiddlewares(this._state.getValue(), MiddlewarePlacement.Before)];
+                        return [4 /*yield*/, this.executeMiddlewares(this._state.getValue(), MiddlewarePlacement.Before, {
+                                name: action.name,
+                                params: params
+                            })];
                     case 1:
                         beforeMiddleswaresResult = _b.sent();
                         result = reducer.apply(void 0, [beforeMiddleswaresResult].concat(params));
@@ -158,7 +161,10 @@ var Store = /** @class */ (function () {
                             var resultingState, measures, marks, totalDuration;
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
-                                    case 0: return [4 /*yield*/, this.executeMiddlewares(newState, MiddlewarePlacement.After)];
+                                    case 0: return [4 /*yield*/, this.executeMiddlewares(newState, MiddlewarePlacement.After, {
+                                            name: action.name,
+                                            params: params
+                                        })];
                                     case 1:
                                         resultingState = _a.sent();
                                         if (isStateHistory(resultingState) &&
@@ -201,7 +207,7 @@ var Store = /** @class */ (function () {
             });
         });
     };
-    Store.prototype.executeMiddlewares = function (state, placement) {
+    Store.prototype.executeMiddlewares = function (state, placement, action) {
         var _this = this;
         return Array.from(this.middlewares)
             .filter(function (middleware) { return middleware[1].placement === placement; })
@@ -213,7 +219,7 @@ var Store = /** @class */ (function () {
                         _d.trys.push([0, 5, 7, 8]);
                         _b = (_a = curr)[0];
                         return [4 /*yield*/, prev];
-                    case 1: return [4 /*yield*/, _b.apply(_a, [_d.sent(), this._state.getValue(), curr[1].settings])];
+                    case 1: return [4 /*yield*/, _b.apply(_a, [_d.sent(), this._state.getValue(), curr[1].settings, action])];
                     case 2:
                         result = _d.sent();
                         _c = result;
