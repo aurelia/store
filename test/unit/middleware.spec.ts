@@ -108,6 +108,32 @@ describe("middlewares", () => {
     expect((store as any).middlewares.delete).not.toHaveBeenCalled();
   });
 
+  it("should have a reference to the calling action name and its parameters", async () => {
+    const store = createStoreWithStateAndOptions<TestState>(initialState, { propagateError: true });
+    const expectedActionName = "ActionObservedByMiddleware";
+
+    const actionObservedByMiddleware = (state, foo: string, bar: string) => {
+      return state;
+    }
+
+    const actionAwareMiddleware: Middleware<TestState> = (currentState, _, __, action) => {
+      expect(action).toBeDefined();
+      expect(action.name).toBe(expectedActionName);
+      expect(action.params).toBeDefined();
+      expect(action.params).toEqual(["A", "B"]);
+    }
+
+    store.registerAction(expectedActionName, actionObservedByMiddleware);
+    store.registerMiddleware(actionAwareMiddleware, MiddlewarePlacement.After);
+
+    await executeSteps(
+      store,
+      false,
+      () => store.dispatch(actionObservedByMiddleware, "A", "B"),
+      (res: TestState) => { expect(res.counter).toBe(1); }
+    );
+  });
+
   describe("which are applied before action dispatches", () => {
     it("should synchronously change the provided present state", done => {
       const store = createStoreWithState(initialState);
