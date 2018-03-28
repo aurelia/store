@@ -224,6 +224,32 @@ describe("using decorators", () => {
   });
 
   describe("with custom setup and teardown settings", () => {
+    it("should return the value from the original setup / teardown functions", () => {
+      const { store, initialState } = arrange();
+      const expectedBindResult = "foo";
+      const expectedUnbindResult = "bar";
+
+      @connectTo<DemoState>({
+        selector: (store) => store.state
+      })
+      class DemoStoreConsumer {
+        state: DemoState;
+
+        public bind() {
+          return expectedBindResult;
+        }
+
+        public unbind() {
+          return expectedUnbindResult;
+        }
+      }
+
+      const sut = new DemoStoreConsumer();
+
+      expect(sut.bind()).toBe(expectedBindResult);
+      expect(sut.unbind()).toBe(expectedUnbindResult);
+    });
+
     it("should allow to specify a lifecycle hook for the subscription", () => {
       const { store, initialState } = arrange();
 
