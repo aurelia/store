@@ -50,7 +50,7 @@ function connectTo(settings) {
                 }
             });
             if (originalSetup) {
-                originalSetup.apply(this, arguments);
+                return originalSetup.apply(this, arguments);
             }
         };
         target.prototype[typeof settings === "object" && settings.teardown ? settings.teardown : "unbind"] = function () {
@@ -60,7 +60,7 @@ function connectTo(settings) {
                 this._stateSubscription.unsubscribe();
             }
             if (originalTeardown) {
-                originalTeardown.apply(this, arguments);
+                return originalTeardown.apply(this, arguments);
             }
         };
     };

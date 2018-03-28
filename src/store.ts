@@ -9,7 +9,7 @@ import {
 } from "aurelia-framework";
 
 import { jump, applyLimits, HistoryOptions, isStateHistory } from "./history";
-import { Middleware, MiddlewarePlacement } from "./middleware";
+import { Middleware, MiddlewarePlacement, CallingAction } from "./middleware";
 import { LogDefinitions, LogLevel, getLogType } from "./logging";
 
 export type Reducer<T> = (state: T, ...params: any[]) => T | false | Promise<T | false>;
@@ -124,7 +124,11 @@ export class Store<T> {
 
     const beforeMiddleswaresResult = await this.executeMiddlewares(
       this._state.getValue(),
-      MiddlewarePlacement.Before
+      MiddlewarePlacement.Before,
+      {
+        name: action!.name,
+        params
+      }
     );
 
     if (beforeMiddleswaresResult === false) {
@@ -149,7 +153,11 @@ export class Store<T> {
     
     let resultingState = await this.executeMiddlewares(
       result,
-      MiddlewarePlacement.After
+      MiddlewarePlacement.After,
+      {
+        name: action!.name,
+        params
+      }
     );
 
     if (resultingState === false) {
@@ -195,12 +203,12 @@ export class Store<T> {
     this.updateDevToolsState(action!.name, resultingState);
   }
 
-  private executeMiddlewares(state: T, placement: MiddlewarePlacement): T | false {
+  private executeMiddlewares(state: T, placement: MiddlewarePlacement, action: CallingAction): T | false {
     return Array.from(this.middlewares)
       .filter((middleware) => middleware[1].placement === placement)
       .reduce(async (prev: any, curr, _, _arr) => {
         try {
-          const result = await curr[0](await prev, this._state.getValue(), curr[1].settings);
+          const result = await curr[0](await prev, this._state.getValue(), curr[1].settings, action);
 
           if (result === false) {
             _arr = [];

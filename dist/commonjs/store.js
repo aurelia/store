@@ -135,10 +135,9 @@ var Store = /** @class */ (function () {
             params[_i - 1] = arguments[_i];
         }
         return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
-            var action, beforeMiddleswaresResult, result, apply, _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var action, beforeMiddleswaresResult, result, resultingState, measures, marks, totalDuration;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
                         if (!this.actions.has(reducer)) {
                             throw new Error("Tried to dispatch an unregistered action" + (reducer ? " " + reducer.name : ""));
@@ -148,90 +147,91 @@ var Store = /** @class */ (function () {
                         if (this.options.logDispatchedActions) {
                             this.logger[logging_1.getLogType(this.options, "dispatchedActions", logging_1.LogLevel.info)]("Dispatching: " + action.name);
                         }
-                        return [4 /*yield*/, this.executeMiddlewares(this._state.getValue(), middleware_1.MiddlewarePlacement.Before)];
+                        return [4 /*yield*/, this.executeMiddlewares(this._state.getValue(), middleware_1.MiddlewarePlacement.Before, {
+                                name: action.name,
+                                params: params
+                            })];
                     case 1:
-                        beforeMiddleswaresResult = _b.sent();
-                        console.log(beforeMiddleswaresResult);
-                        result = reducer.apply(void 0, [beforeMiddleswaresResult].concat(params));
+                        beforeMiddleswaresResult = _a.sent();
+                        if (beforeMiddleswaresResult === false) {
+                            aurelia_framework_1.PLATFORM.performance.clearMarks();
+                            aurelia_framework_1.PLATFORM.performance.clearMeasures();
+                            return [2 /*return*/];
+                        }
+                        return [4 /*yield*/, reducer.apply(void 0, [beforeMiddleswaresResult].concat(params))];
+                    case 2:
+                        result = _a.sent();
+                        if (result === false) {
+                            aurelia_framework_1.PLATFORM.performance.clearMarks();
+                            aurelia_framework_1.PLATFORM.performance.clearMeasures();
+                            return [2 /*return*/];
+                        }
                         aurelia_framework_1.PLATFORM.performance.mark("dispatch-after-reducer-" + action.name);
                         if (!result && typeof result !== "object") {
                             throw new Error("The reducer has to return a new state");
                         }
-                        apply = function (newState) { return __awaiter(_this, void 0, void 0, function () {
-                            var resultingState, measures, marks, totalDuration;
-                            return __generator(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0: return [4 /*yield*/, this.executeMiddlewares(newState, middleware_1.MiddlewarePlacement.After)];
-                                    case 1:
-                                        resultingState = _a.sent();
-                                        if (history_1.isStateHistory(resultingState) &&
-                                            this.options.history &&
-                                            this.options.history.limit) {
-                                            resultingState = history_1.applyLimits(resultingState, this.options.history.limit);
-                                        }
-                                        this._state.next(resultingState);
-                                        aurelia_framework_1.PLATFORM.performance.mark("dispatch-end");
-                                        if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
-                                            aurelia_framework_1.PLATFORM.performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
-                                            measures = aurelia_framework_1.PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
-                                            this.logger[logging_1.getLogType(this.options, "performanceLog", logging_1.LogLevel.info)]("Total duration " + measures[0].duration + " of dispatched action " + action.name + ":", measures);
-                                        }
-                                        else if (this.options.measurePerformance === PerformanceMeasurement.All) {
-                                            marks = aurelia_framework_1.PLATFORM.performance.getEntriesByType("mark");
-                                            totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
-                                            this.logger[logging_1.getLogType(this.options, "performanceLog", logging_1.LogLevel.info)]("Total duration " + totalDuration + " of dispatched action " + action.name + ":", marks);
-                                        }
-                                        aurelia_framework_1.PLATFORM.performance.clearMarks();
-                                        aurelia_framework_1.PLATFORM.performance.clearMeasures();
-                                        this.updateDevToolsState(action.name, newState);
-                                        return [2 /*return*/];
-                                }
-                            });
-                        }); };
-                        if (!(typeof result.then === "function")) return [3 /*break*/, 4];
-                        _a = apply;
-                        return [4 /*yield*/, result];
-                    case 2: return [4 /*yield*/, _a.apply(void 0, [_b.sent()])];
+                        return [4 /*yield*/, this.executeMiddlewares(result, middleware_1.MiddlewarePlacement.After, {
+                                name: action.name,
+                                params: params
+                            })];
                     case 3:
-                        _b.sent();
-                        return [3 /*break*/, 6];
-                    case 4: return [4 /*yield*/, apply(result)];
-                    case 5:
-                        _b.sent();
-                        _b.label = 6;
-                    case 6: return [2 /*return*/];
+                        resultingState = _a.sent();
+                        if (resultingState === false) {
+                            aurelia_framework_1.PLATFORM.performance.clearMarks();
+                            aurelia_framework_1.PLATFORM.performance.clearMeasures();
+                            return [2 /*return*/];
+                        }
+                        if (history_1.isStateHistory(resultingState) &&
+                            this.options.history &&
+                            this.options.history.limit) {
+                            resultingState = history_1.applyLimits(resultingState, this.options.history.limit);
+                        }
+                        this._state.next(resultingState);
+                        aurelia_framework_1.PLATFORM.performance.mark("dispatch-end");
+                        if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
+                            aurelia_framework_1.PLATFORM.performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
+                            measures = aurelia_framework_1.PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
+                            this.logger[logging_1.getLogType(this.options, "performanceLog", logging_1.LogLevel.info)]("Total duration " + measures[0].duration + " of dispatched action " + action.name + ":", measures);
+                        }
+                        else if (this.options.measurePerformance === PerformanceMeasurement.All) {
+                            marks = aurelia_framework_1.PLATFORM.performance.getEntriesByType("mark");
+                            totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
+                            this.logger[logging_1.getLogType(this.options, "performanceLog", logging_1.LogLevel.info)]("Total duration " + totalDuration + " of dispatched action " + action.name + ":", marks);
+                        }
+                        aurelia_framework_1.PLATFORM.performance.clearMarks();
+                        aurelia_framework_1.PLATFORM.performance.clearMeasures();
+                        this.updateDevToolsState(action.name, resultingState);
+                        return [2 /*return*/];
                 }
             });
         });
     };
-    Store.prototype.executeMiddlewares = function (state, placement) {
+    Store.prototype.executeMiddlewares = function (state, placement, action) {
         var _this = this;
         return Array.from(this.middlewares)
             .filter(function (middleware) { return middleware[1].placement === placement; })
             .reduce(function (prev, curr, _, _arr) { return __awaiter(_this, void 0, void 0, function () {
-            var result, _a, _b, returnValue, _c, e_2;
+            var result, _a, _b, _c, e_2;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
                         _d.trys.push([0, 5, 7, 8]);
                         _b = (_a = curr)[0];
                         return [4 /*yield*/, prev];
-                    case 1: return [4 /*yield*/, _b.apply(_a, [_d.sent(), this._state.getValue(), curr[1].settings])];
+                    case 1: return [4 /*yield*/, _b.apply(_a, [_d.sent(), this._state.getValue(), curr[1].settings, action])];
                     case 2:
                         result = _d.sent();
+                        if (result === false) {
+                            _arr = [];
+                            return [2 /*return*/, false];
+                        }
                         _c = result;
                         if (_c) return [3 /*break*/, 4];
                         return [4 /*yield*/, prev];
                     case 3:
                         _c = (_d.sent());
                         _d.label = 4;
-                    case 4:
-                        returnValue = _c;
-                        console.log("Result", returnValue);
-                        if (returnValue === false) {
-                            _arr = [];
-                        }
-                        return [2 /*return*/, returnValue];
+                    case 4: return [2 /*return*/, _c];
                     case 5:
                         e_2 = _d.sent();
                         if (this.options.propagateError) {

@@ -63,7 +63,7 @@ export function connectTo<T>(settings?: ((store: Store<T>) => Observable<T>) | C
       });
 
       if (originalSetup) {
-        originalSetup.apply(this, arguments);
+        return originalSetup.apply(this, arguments);
       }
     }
 
@@ -75,7 +75,7 @@ export function connectTo<T>(settings?: ((store: Store<T>) => Observable<T>) | C
       }
 
       if (originalTeardown) {
-        originalTeardown.apply(this, arguments);
+        return originalTeardown.apply(this, arguments);
       }
     }
   }

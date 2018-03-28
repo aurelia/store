@@ -19,12 +19,26 @@ define(["require", "exports", "aurelia-dependency-injection", "rxjs/Observable",
             return store.state;
         }
         return function (target) {
-            var originalBind = target.prototype.bind;
-            var originalUnbind = target.prototype.unbind;
-            target.prototype.bind = function () {
+            var originalSetup = typeof settings === "object" && settings.setup
+                ? target.prototype[settings.setup]
+                : target.prototype.bind;
+            var originalTeardown = typeof settings === "object" && settings.teardown
+                ? target.prototype[settings.teardown]
+                : target.prototype.unbind;
+            target.prototype[typeof settings === "object" && settings.setup ? settings.setup : "bind"] = function () {
                 var _this = this;
                 var source = getSource();
                 this._stateSubscription = source.subscribe(function (state) {
+                    // call onChanged first so that the handler has also access to the previous state
+                    if (typeof settings == "object" &&
+                        typeof settings.onChanged === "string") {
+                        if (!(settings.onChanged in _this)) {
+                            throw new Error("Provided onChanged handler does not exist on target VM");
+                        }
+                        else {
+                            _this[settings.onChanged](state);
+                        }
+                    }
                     if (typeof settings === "object" && settings.target) {
                         _this[settings.target] = state;
                     }
@@ -32,18 +46,18 @@ define(["require", "exports", "aurelia-dependency-injection", "rxjs/Observable",
                         _this.state = state;
                     }
                 });
-                if (originalBind) {
-                    originalBind.apply(this, arguments);
+                if (originalSetup) {
+                    return originalSetup.apply(this, arguments);
                 }
             };
-            target.prototype.unbind = function () {
+            target.prototype[typeof settings === "object" && settings.teardown ? settings.teardown : "unbind"] = function () {
                 if (this._stateSubscription &&
                     this._stateSubscription instanceof Subscription_1.Subscription &&
                     this._stateSubscription.closed === false) {
                     this._stateSubscription.unsubscribe();
                 }
-                if (originalUnbind) {
-                    originalUnbind.apply(this, arguments);
+                if (originalTeardown) {
+                    return originalTeardown.apply(this, arguments);
                 }
             };
         };
