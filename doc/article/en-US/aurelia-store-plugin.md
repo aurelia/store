@@ -697,9 +697,92 @@ If multiple actions are dispatched, they will get queued and executed one after 
 
 ## Using the dispatchify higher order function
 
-* Show how to create a dispatchified action
-* Demonstrate on example where an action is passed into a child as custom attribute
-* Presentational / Structural <--> Dumb / Smart components 
+Perhaps you don't want or can't obtain a reference to the store but still would like to dispatch your actions.
+This is especially useful if you don't want your child-elements to have any knowledge about the actual logic and just receive actions via attributes. Childs then can call this method directly via the template.
+In order to do so you can leverage the higher order function `dispatchify`. What it does is returning a wrapped new function which will obtain the store by itself and forward the provided arguments directly to `store.dispatch`.
+
+<code-listing heading="Forwarding a dispatchable function as argument to child-elements">
+  <source-code lang="TypeScript">
+
+    // framework-list.ts
+    import { useView } from "aurelia-framework";
+    import { dispatchify } from "aurelia-store";
+
+    const addFramework = (state: State, frameworkName: string) => {
+      const newState = Object.assign({}, state);
+      newState.frameworks = [...newState.frameworks, frameworkName];
+
+      return newState;
+    }
+
+    @useView(`
+      <template>
+        <require from="./framework-item"></require>
+        <framework-item add.bind="addFramework"></framework-item>
+      </template>
+    `)
+    export class FrameworkList {
+      public addFramework = dispatchify(addFramework);
+    }
+
+    // framework-item.ts
+    import { bindable, useView } from "aurelia-framework";
+    
+    @useView(`
+      <template>
+        New framework name:
+        <input value.bind="newFrameworkName" />
+        <button click.trigger="add(newFrameworkName)" >Add</button>
+      </template>
+    `)
+    export class FrameworkItem {
+      @bindable add;
+    }
+  </source-code>
+</code-listing>
+<code-listing heading="Forwarding a dispatchable function as argument to child-elements">
+  <source-code lang="JavaScript">
+
+    // framework-list.js
+    import { useView } from "aurelia-framework";
+    import { dispatchify } from "aurelia-store";
+
+    const addFramework = (state, frameworkName) => {
+      const newState = Object.assign({}, state);
+      newState.frameworks = [...newState.frameworks, frameworkName];
+
+      return newState;
+    }
+
+    @useView(`
+      <template>
+        <require from="./framework-item"></require>
+        <framework-item add.bind="addFramework"></framework-item>
+      </template>
+    `)
+    export class FrameworkList {
+      constructor() {
+        this.addFramework = dispatchify(addFramework);
+      }
+    }
+
+    // framework-item.js
+    import { bindable, useView } from "aurelia-framework";
+    
+    @useView(`
+      <template>
+        New framework name:
+        <input value.bind="newFrameworkName" />
+        <button click.trigger="add(newFrameworkName)" >Add</button>
+      </template>
+    `)
+    export class FrameworkItem {
+      @bindable add;
+    }
+  </source-code>
+</code-listing>
+
+With this approach you can design your custom elements to act either as presentational or container components. For further information take a look at [this article](http://pragmatic-coder.net/using-a-state-container-with-aurelia/).
 
 
 ## Recording a navigable history of the stream of states
