@@ -690,6 +690,8 @@ Inside we call `store.dispatchAction`, passing it the action itself and all subs
 
 Now keep in mind that an action might be async, or really any middleware is, you'll learn more about them later, as such if you're depending on the state being updated right after it, make sure to `await` the call to `dispatchAction`
 
+> Dispatching non-registered actions will result in an error
+
 
 ## Execution order
 
@@ -787,15 +789,313 @@ With this approach you can design your custom elements to act either as presenta
 
 ## Recording a navigable history of the stream of states
 
-* Why History support
-* How does it work
-* Use cases
+Since the whole concept of this plugin is to stream states over time, it makes sense to also keep track of the historical changes. Aurelia Store supports this feature by turning on the history support during the plugin registration.
+
+<code-listing heading="Registering the plugin with history support">
+  <source-code lang="TypeScript">
+    
+    // main.ts
+    import {Aurelia} from 'aurelia-framework'
+    import {initialState} from './state';
+
+    export function configure(aurelia: Aurelia) {
+      aurelia.use
+        .standardConfiguration()
+        .feature('resources');
+
+      ...
+
+      aurelia.use.plugin("aurelia-store", {
+        initialState,
+        history: {
+          undoable: true <----- REGISTER THE PLUGIN WITH THE HISTORY FEATURE
+        }
+      });
+
+      aurelia.start().then(() => aurelia.setRoot());
+    }
+  </source-code>
+</code-listing>
+<code-listing heading="Registering the plugin with history support">
+  <source-code lang="JavaScript">
+    
+    // main.js
+    import {Aurelia} from 'aurelia-framework'
+    import {initialState} from './state';
+
+    export function configure(aurelia) {
+      aurelia.use
+        .standardConfiguration()
+        .feature('resources');
+
+      ...
+
+      aurelia.use.plugin("aurelia-store", {
+        initialState,
+        history: {
+          undoable: true <----- REGISTER THE PLUGIN WITH THE HISTORY FEATURE
+        }
+      });
+
+      aurelia.start().then(() => aurelia.setRoot());
+    }
+  </source-code>
+</code-listing>
+
+Now when you subscribe to new state changes, instead of a simple State you'll get a StateHistory<State> object returned, which looks like the following:
+
+```typescript
+// aurelia-store -> history.ts
+export interface StateHistory<T> {
+  past: T[];
+  present: T;
+  future: T[];
+}
+```
+
+<code-listing heading="Subscribing to the state history">
+  <source-code lang="TypeScript">
+    
+    // app.ts
+    import { autoinject } from "aurelia-framework";
+    import { Store, StateHistory } from "aurelia-store";
+    import { State } from "./state";
+    
+    @autoinject()
+    export class App {
+      constructor(private store: Store<StateHistory<State>>) {
+        this.store.registerAction("DemoAction", demoAction);
+      }
+
+      attached() {
+        this.store.state.subscribe(
+          (state: StateHistory<State>) => this.state = state
+        );
+      }
+    }
+  </source-code>
+</code-listing>
+<code-listing heading="Subscribing to the state history">
+  <source-code lang="JavaScript">
+    
+    // app.js
+    import { inject } from "aurelia-framework";
+    import { Store } from "aurelia-store";
+    
+    @inject(Store)
+    export class App {
+      constructor(store) {
+        this.store = store;
+        this.store.registerAction("DemoAction", demoAction);
+      }
+
+      attached() {
+        this.store.state.subscribe(
+          (state) => this.state = state
+        );
+      }
+    }
+  </source-code>
+</code-listing>
+
 
 ## Making our app history aware
 
-* Show how to transform the current state entity into a history enhanced once
+Now keep in mind that every action will receive a `StateHistory<T>` as input and should return a new `StateHistory<T>`.
+You can use the `nextStateHistory` helper function to easily push your new state and create a proper StateHistory representation, which will simply move the currently present state to the past, place your provided one as present and remove the future states.
+
+<code-listing heading="A StateHistory aware action">
+  <source-code lang="TypeScript">
+    
+    // app.ts
+    import { nextStateHistory, StateHistory } from "aurelia-store";
+    import { State } from "./state";
+
+    const demoAction = (currentState: StateHistory<State>, frameworkName: string) => {
+      const newState = Object.assign({}, state);
+      newState.frameworks = [...newState.frameworks, frameworkName];
+
+      return nextStateHistory(currentState, {
+        frameworks: [...frameworks, frameworkName]
+      });
+    }
+
+    // The same as returing a handcrafted object like
+
+    const demoAction = (currentState: StateHistory<State>, frameworkName: string) => {
+      return Object.assign(
+        {},
+        currentState,
+        { 
+          past: [...currentState.past, currentState.present],
+          present: { frameworks: [...frameworks, frameworkName] },
+          future: [] 
+        }
+      );
+    }
+  </source-code>
+</code-listing>
+<code-listing heading="A StateHistory aware action">
+  <source-code lang="JavaScript">
+    
+    // app.js
+    import { nextStateHistory, StateHistory } from "aurelia-store";
+
+    const demoAction = (currentState, frameworkName) => {
+      const newState = Object.assign({}, state);
+      newState.frameworks = [...newState.frameworks, frameworkName];
+
+      return nextStateHistory(currentState, {
+        frameworks: [...frameworks, frameworkName]
+      });
+    }
+
+    // The same as returing a handcrafted object like
+
+    const demoAction = (currentState, frameworkName) => {
+      return Object.assign(
+        {},
+        currentState,
+        { 
+          past: [...currentState.past, currentState.present],
+          present: { frameworks: [...frameworks, frameworkName] },
+          future: [] 
+        }
+      );
+    }
+  </source-code>
+</code-listing>
+
+
+### Navigating through history
+Having a history of states is great to do state time-travelling. That means defining either a past or future state as the new present. You can do it manually as described in the full-fledged example above and switching states between the properties `past`, `present` and `future`, or you can import the pre-registered action `jump` and pass it either a positive number for traveling into the future or a negative for travelling to past states.
+
+<code-listing heading="Time-travelling states">
+  <source-code lang="TypeScript">
+    
+    // app.ts
+    import { autoinject } from "aurelia-framework";
+    import { Store, StateHistory, jump } from "aurelia-store";
+    import { State } from "./state";
+    
+    @autoinject()
+    export class App {
+      constructor(private store: Store<StateHistory<State>>) {
+        this.store.registerAction("DemoAction", demoAction);
+      }
+
+      attached() {
+        this.store.state.subscribe(
+          (state: StateHistory<State>) => this.state = state
+        );
+      }
+
+      backToDinosaurs() {
+        // Go back one step in time
+        this.store.dispatch(jump, -1);
+      }
+
+      backToTheFuture() {
+        // Go forward one step to the future
+        this.store.dispatch(jump, 1);
+      }
+    }
+  </source-code>
+</code-listing>
+<code-listing heading="A StateHistory aware action">
+  <source-code lang="JavaScript">
+    
+    // app.js
+    import { inject } from "aurelia-framework";
+    import { Store, jump } from "aurelia-store";
+    
+    @inject(Store)
+    export class App {
+      constructor(store) {
+        this.store = store;
+        this.store.registerAction("DemoAction", demoAction);
+      }
+
+      attached() {
+        this.store.state.subscribe(
+          (state) => this.state = state
+        );
+      }
+
+      backToDinosaurs() {
+        // Go back one step in time
+        this.store.dispatch(jump, -1);
+      }
+
+      backToTheFuture() {
+        // Go forward one step to the future
+        this.store.dispatch(jump, 1);
+      }
+    }
+  </source-code>
+</code-listing>
+
+The `jump` action will take care of any potential overflows and return the current history object.
+
 
 ## Limiting the number of history items
+
+Having too many items could result in a memory hit. Thus you can specify the `limit` for when the histories past and future start to overflow.
+That means your past and future arrays can hold only a maximum of the provided `limit` and new entries start to drop out, respectively the first or last item of the history stack.
+
+<code-listing heading="Registering the plugin with history support">
+  <source-code lang="TypeScript">
+    
+    // main.ts
+    import {Aurelia} from 'aurelia-framework'
+    import {initialState} from './state';
+
+    export function configure(aurelia: Aurelia) {
+      aurelia.use
+        .standardConfiguration()
+        .feature('resources');
+
+      ...
+
+      aurelia.use.plugin("aurelia-store", {
+        initialState,
+        history: {
+          undoable: true,
+          limit: 10       <----- LIMIT THE HISTORY TO 10 ENTRIES
+        }
+      });
+
+      aurelia.start().then(() => aurelia.setRoot());
+    }
+  </source-code>
+</code-listing>
+<code-listing heading="Registering the plugin with history support">
+  <source-code lang="JavaScript">
+    
+    // main.js
+    import {Aurelia} from 'aurelia-framework'
+    import {initialState} from './state';
+
+    export function configure(aurelia) {
+      aurelia.use
+        .standardConfiguration()
+        .feature('resources');
+
+      ...
+
+      aurelia.use.plugin("aurelia-store", {
+        initialState,
+        history: {
+          undoable: true,
+          limit: 10       <----- LIMIT THE HISTORY TO 10 ENTRIES
+        }
+      });
+
+      aurelia.start().then(() => aurelia.setRoot());
+    }
+  </source-code>
+</code-listing>
+
 
 ## Handling side effects with middlewares
 
