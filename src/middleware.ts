@@ -5,7 +5,7 @@ export interface CallingAction {
   params?: any[];
 }
 
-export type Middleware<T> = (state: T, originalState?: T, settings?: any, action?: CallingAction) => T | Promise<T | undefined> | void;
+export type Middleware<T> = (state: T, originalState?: T, settings?: any, action?: CallingAction) => T | Promise<T | undefined | false> | void | false;
 export enum MiddlewarePlacement {
   Before = "before",
   After = "after"

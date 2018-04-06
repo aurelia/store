@@ -57,6 +57,28 @@ describe("store", () => {
     expect(store.dispatch(fakeAction as any)).rejects.toBeDefined();
   });
 
+  it("should also accept false and stop queue", async () => {
+    const { store } = createTestStore();
+    const nextSpy = spyOn((store as any)._state, "next").and.callThrough();
+    const fakeAction = (currentState: testState): false => false;
+
+    store.registerAction("FakeAction", fakeAction);
+    store.dispatch(fakeAction);
+
+    expect(nextSpy).toHaveBeenCalledTimes(0);
+  });
+
+  it("should also accept async false and stop queue", async () => {
+    const { store } = createTestStore();
+    const nextSpy = spyOn((store as any)._state, "next").and.callThrough();
+    const fakeAction = (currentState: testState): Promise<false> => Promise.resolve<false>(false);
+
+    store.registerAction("FakeAction", fakeAction);
+    store.dispatch(fakeAction);
+
+    expect(nextSpy).toHaveBeenCalledTimes(0);
+  });
+
   it("should unregister previously registered actions", async () => {
     const { store } = createTestStore();
     const fakeAction = (currentState: testState) => currentState;

@@ -162,10 +162,9 @@ System.register(["rxjs/BehaviorSubject", "aurelia-framework", "./history", "./mi
                         params[_i - 1] = arguments[_i];
                     }
                     return __awaiter(this, void 0, void 0, function () {
-                        var _this = this;
-                        var action, beforeMiddleswaresResult, result, apply, _a;
-                        return __generator(this, function (_b) {
-                            switch (_b.label) {
+                        var action, beforeMiddleswaresResult, result, resultingState, measures, marks, totalDuration;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
                                 case 0:
                                     if (!this.actions.has(reducer)) {
                                         throw new Error("Tried to dispatch an unregistered action" + (reducer ? " " + reducer.name : ""));
@@ -180,58 +179,56 @@ System.register(["rxjs/BehaviorSubject", "aurelia-framework", "./history", "./mi
                                             params: params
                                         })];
                                 case 1:
-                                    beforeMiddleswaresResult = _b.sent();
-                                    result = reducer.apply(void 0, [beforeMiddleswaresResult].concat(params));
+                                    beforeMiddleswaresResult = _a.sent();
+                                    if (beforeMiddleswaresResult === false) {
+                                        aurelia_framework_1.PLATFORM.performance.clearMarks();
+                                        aurelia_framework_1.PLATFORM.performance.clearMeasures();
+                                        return [2 /*return*/];
+                                    }
+                                    return [4 /*yield*/, reducer.apply(void 0, [beforeMiddleswaresResult].concat(params))];
+                                case 2:
+                                    result = _a.sent();
+                                    if (result === false) {
+                                        aurelia_framework_1.PLATFORM.performance.clearMarks();
+                                        aurelia_framework_1.PLATFORM.performance.clearMeasures();
+                                        return [2 /*return*/];
+                                    }
                                     aurelia_framework_1.PLATFORM.performance.mark("dispatch-after-reducer-" + action.name);
                                     if (!result && typeof result !== "object") {
                                         throw new Error("The reducer has to return a new state");
                                     }
-                                    apply = function (newState) { return __awaiter(_this, void 0, void 0, function () {
-                                        var resultingState, measures, marks, totalDuration;
-                                        return __generator(this, function (_a) {
-                                            switch (_a.label) {
-                                                case 0: return [4 /*yield*/, this.executeMiddlewares(newState, middleware_1.MiddlewarePlacement.After, {
-                                                        name: action.name,
-                                                        params: params
-                                                    })];
-                                                case 1:
-                                                    resultingState = _a.sent();
-                                                    if (history_1.isStateHistory(resultingState) &&
-                                                        this.options.history &&
-                                                        this.options.history.limit) {
-                                                        resultingState = history_1.applyLimits(resultingState, this.options.history.limit);
-                                                    }
-                                                    this._state.next(resultingState);
-                                                    aurelia_framework_1.PLATFORM.performance.mark("dispatch-end");
-                                                    if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
-                                                        aurelia_framework_1.PLATFORM.performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
-                                                        measures = aurelia_framework_1.PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
-                                                        this.logger[logging_1.getLogType(this.options, "performanceLog", logging_1.LogLevel.info)]("Total duration " + measures[0].duration + " of dispatched action " + action.name + ":", measures);
-                                                    }
-                                                    else if (this.options.measurePerformance === PerformanceMeasurement.All) {
-                                                        marks = aurelia_framework_1.PLATFORM.performance.getEntriesByType("mark");
-                                                        totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
-                                                        this.logger[logging_1.getLogType(this.options, "performanceLog", logging_1.LogLevel.info)]("Total duration " + totalDuration + " of dispatched action " + action.name + ":", marks);
-                                                    }
-                                                    aurelia_framework_1.PLATFORM.performance.clearMarks();
-                                                    aurelia_framework_1.PLATFORM.performance.clearMeasures();
-                                                    this.updateDevToolsState(action.name, newState);
-                                                    return [2 /*return*/];
-                                            }
-                                        });
-                                    }); };
-                                    if (!(typeof result.then === "function")) return [3 /*break*/, 4];
-                                    _a = apply;
-                                    return [4 /*yield*/, result];
-                                case 2: return [4 /*yield*/, _a.apply(void 0, [_b.sent()])];
+                                    return [4 /*yield*/, this.executeMiddlewares(result, middleware_1.MiddlewarePlacement.After, {
+                                            name: action.name,
+                                            params: params
+                                        })];
                                 case 3:
-                                    _b.sent();
-                                    return [3 /*break*/, 6];
-                                case 4: return [4 /*yield*/, apply(result)];
-                                case 5:
-                                    _b.sent();
-                                    _b.label = 6;
-                                case 6: return [2 /*return*/];
+                                    resultingState = _a.sent();
+                                    if (resultingState === false) {
+                                        aurelia_framework_1.PLATFORM.performance.clearMarks();
+                                        aurelia_framework_1.PLATFORM.performance.clearMeasures();
+                                        return [2 /*return*/];
+                                    }
+                                    if (history_1.isStateHistory(resultingState) &&
+                                        this.options.history &&
+                                        this.options.history.limit) {
+                                        resultingState = history_1.applyLimits(resultingState, this.options.history.limit);
+                                    }
+                                    this._state.next(resultingState);
+                                    aurelia_framework_1.PLATFORM.performance.mark("dispatch-end");
+                                    if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
+                                        aurelia_framework_1.PLATFORM.performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
+                                        measures = aurelia_framework_1.PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
+                                        this.logger[logging_1.getLogType(this.options, "performanceLog", logging_1.LogLevel.info)]("Total duration " + measures[0].duration + " of dispatched action " + action.name + ":", measures);
+                                    }
+                                    else if (this.options.measurePerformance === PerformanceMeasurement.All) {
+                                        marks = aurelia_framework_1.PLATFORM.performance.getEntriesByType("mark");
+                                        totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
+                                        this.logger[logging_1.getLogType(this.options, "performanceLog", logging_1.LogLevel.info)]("Total duration " + totalDuration + " of dispatched action " + action.name + ":", marks);
+                                    }
+                                    aurelia_framework_1.PLATFORM.performance.clearMarks();
+                                    aurelia_framework_1.PLATFORM.performance.clearMeasures();
+                                    this.updateDevToolsState(action.name, resultingState);
+                                    return [2 /*return*/];
                             }
                         });
                     });
@@ -251,6 +248,10 @@ System.register(["rxjs/BehaviorSubject", "aurelia-framework", "./history", "./mi
                                 case 1: return [4 /*yield*/, _b.apply(_a, [_d.sent(), this._state.getValue(), curr[1].settings, action])];
                                 case 2:
                                     result = _d.sent();
+                                    if (result === false) {
+                                        _arr = [];
+                                        return [2 /*return*/, false];
+                                    }
                                     _c = result;
                                     if (_c) return [3 /*break*/, 4];
                                     return [4 /*yield*/, prev];

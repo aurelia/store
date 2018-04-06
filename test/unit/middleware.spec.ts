@@ -297,6 +297,36 @@ describe("middlewares", () => {
     }
   });
 
+  it("should interrupt queue action if middleware returns sync false", async () => {
+    const errorMsg = "Failed on purpose";
+    const store = createStoreWithStateAndOptions(initialState, {});
+    const nextSpy = spyOn((store as any)._state, "next").and.callThrough();
+    const syncFalseMiddleware = (currentState: TestState): false => {
+      return false;
+    }
+    store.registerMiddleware(syncFalseMiddleware, MiddlewarePlacement.Before);
+    store.registerAction("IncrementAction", incrementAction);
+
+    await store.dispatch(incrementAction);
+
+    expect(nextSpy).toHaveBeenCalledTimes(0);
+  });
+
+  it("should interrupt queue action if middleware returns async false", async () => {
+    const errorMsg = "Failed on purpose";
+    const store = createStoreWithStateAndOptions(initialState, {});
+    const nextSpy = spyOn((store as any)._state, "next").and.callThrough();
+    const syncFalseMiddleware = (currentState: TestState): Promise<false> => {
+      return Promise.resolve<false>(false);
+    }
+    store.registerMiddleware(syncFalseMiddleware, MiddlewarePlacement.Before);
+    store.registerAction("IncrementAction", incrementAction);
+
+    await store.dispatch(incrementAction);
+
+    expect(nextSpy).toHaveBeenCalledTimes(0);
+  });
+
   it("should not continue with next middleware if error propagation is turned on", async () => {
     const errorMsg = "Failed on purpose";
     const store = createStoreWithStateAndOptions(initialState, { propagateError: true });

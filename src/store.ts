@@ -12,7 +12,7 @@ import { jump, applyLimits, HistoryOptions, isStateHistory } from "./history";
 import { Middleware, MiddlewarePlacement, CallingAction } from "./middleware";
 import { LogDefinitions, LogLevel, getLogType } from "./logging";
 
-export type Reducer<T> = (state: T, ...params: any[]) => T | Promise<T>;
+export type Reducer<T> = (state: T, ...params: any[]) => T | false | Promise<T | false>;
 
 export enum PerformanceMeasurement {
   StartEnd = "startEnd",
@@ -130,73 +130,92 @@ export class Store<T> {
         params
       }
     );
-    const result = reducer(beforeMiddleswaresResult, ...params);
+
+    if (beforeMiddleswaresResult === false) {
+      PLATFORM.performance.clearMarks();
+      PLATFORM.performance.clearMeasures();
+
+      return;
+    }
+
+    const result = await reducer(beforeMiddleswaresResult, ...params);
+    if (result === false) {
+      PLATFORM.performance.clearMarks();
+      PLATFORM.performance.clearMeasures();
+
+      return;
+    }
     PLATFORM.performance.mark("dispatch-after-reducer-" + action!.name);
 
     if (!result && typeof result !== "object") {
       throw new Error("The reducer has to return a new state");
     }
-
-    const apply = async (newState: T) => {
-      let resultingState = await this.executeMiddlewares(
-        newState,
-        MiddlewarePlacement.After,
-        {
-          name: action!.name,
-          params
-        }
-      );
-
-      if (isStateHistory(resultingState) &&
-        this.options.history &&
-        this.options.history.limit) {
-        resultingState = applyLimits(resultingState, this.options.history.limit);
+    
+    let resultingState = await this.executeMiddlewares(
+      result,
+      MiddlewarePlacement.After,
+      {
+        name: action!.name,
+        params
       }
+    );
 
-      this._state.next(resultingState);
-      PLATFORM.performance.mark("dispatch-end");
-
-      if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
-        PLATFORM.performance.measure(
-          "startEndDispatchDuration",
-          "dispatch-start",
-          "dispatch-end"
-        );
-
-        const measures = PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
-        this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
-          `Total duration ${measures[0].duration} of dispatched action ${action!.name}:`,
-          measures
-        );
-      } else if (this.options.measurePerformance === PerformanceMeasurement.All) {
-        const marks = PLATFORM.performance.getEntriesByType("mark");
-        const totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
-        this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
-          `Total duration ${totalDuration} of dispatched action ${action!.name}:`,
-          marks
-        );
-      }
-
+    if (resultingState === false) {
       PLATFORM.performance.clearMarks();
       PLATFORM.performance.clearMeasures();
 
-      this.updateDevToolsState(action!.name, newState);
+      return;
     }
 
-    if (typeof (result as Promise<T>).then === "function") {
-      await apply(await result);
-    } else {
-      await apply(result as T);
+    if (isStateHistory(resultingState) &&
+      this.options.history &&
+      this.options.history.limit) {
+      resultingState = applyLimits(resultingState, this.options.history.limit);
     }
 
+    this._state.next(resultingState);
+    PLATFORM.performance.mark("dispatch-end");
+
+    if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
+      PLATFORM.performance.measure(
+        "startEndDispatchDuration",
+        "dispatch-start",
+        "dispatch-end"
+      );
+
+      const measures = PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
+      this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
+        `Total duration ${measures[0].duration} of dispatched action ${action!.name}:`,
+        measures
+      );
+    } else if (this.options.measurePerformance === PerformanceMeasurement.All) {
+      const marks = PLATFORM.performance.getEntriesByType("mark");
+      const totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
+      this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
+        `Total duration ${totalDuration} of dispatched action ${action!.name}:`,
+        marks
+      );
+    }
+
+    PLATFORM.performance.clearMarks();
+    PLATFORM.performance.clearMeasures();
+
+    this.updateDevToolsState(action!.name, resultingState);
   }
 
-  private executeMiddlewares(state: T, placement: MiddlewarePlacement, action: CallingAction): T {
+  private executeMiddlewares(state: T, placement: MiddlewarePlacement, action: CallingAction): T | false {
     return Array.from(this.middlewares)
       .filter((middleware) => middleware[1].placement === placement)
       .reduce(async (prev: any, curr, _, _arr) => {
         try {
           const result = await curr[0](await prev, this._state.getValue(), curr[1].settings, action);
+
+          if (result === false) {
+            _arr = [];
+
+            return false;
+          }
+
           return result || await prev;
         } catch (e) {
           if (this.options.propagateError) {

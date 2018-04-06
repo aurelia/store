@@ -2,7 +2,7 @@ import { Observable } from "rxjs/Observable";
 import { HistoryOptions } from "./history";
 import { Middleware, MiddlewarePlacement } from "./middleware";
 import { LogDefinitions } from "./logging";
-export declare type Reducer<T> = (state: T, ...params: any[]) => T | Promise<T>;
+export declare type Reducer<T> = (state: T, ...params: any[]) => T | false | Promise<T | false>;
 export declare enum PerformanceMeasurement {
     StartEnd = "startEnd",
     All = "all",
