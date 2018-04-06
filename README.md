@@ -233,6 +233,10 @@ export class MyVM {
 
 ## Execution order
 If multiple actions are dispatched, they will get queued and executed one after another in order to make sure that each dispatch starts with an up to date state.
+
+If your actions or middlewares return either a sync or async value of `false` it will cause the Aurelia Store plugin to interrupt the execution and not emit the next state. Use this behavior in order to avoid unnecessary states. 
+
+
 ## Passing parameters to actions
 You can provide parameters to your actions by adding them after the state parameter. When dispatching provide your values which will be spread to the actual reducer.
 

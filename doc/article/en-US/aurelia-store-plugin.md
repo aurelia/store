@@ -693,10 +693,6 @@ Now keep in mind that an action might be async, or really any middleware is, you
 > Dispatching non-registered actions will result in an error
 
 
-## Execution order
-
-If multiple actions are dispatched, they will get queued and executed one after another in order to make sure that each dispatch starts with an up to date state.
-
 ## Using the dispatchify higher order function
 
 Perhaps you don't want or can't obtain a reference to the store but still would like to dispatch your actions.
@@ -1124,6 +1120,12 @@ That means your past and future arrays can hold only a maximum of the provided `
 ### The Logging Middleware
 
 ### The Local Storage middleware
+
+## Execution order
+
+If multiple actions are dispatched, they will get queued and executed one after another in order to make sure that each dispatch starts with an up to date state.
+
+If either your actions or middlewares return a sync or async value of `false` it will cause the Aurelia Store plugin to interrupt the execution and not emit the next state. Use this behavior in order to avoid unnecessary states. 
 
 ## Defining custom LogLevels
 
