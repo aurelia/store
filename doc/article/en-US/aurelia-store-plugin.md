@@ -1039,7 +1039,7 @@ The `jump` action will take care of any potential overflows and return the curre
 Having too many items could result in a memory hit. Thus you can specify the `limit` for when the histories past and future start to overflow.
 That means your past and future arrays can hold only a maximum of the provided `limit` and new entries start to drop out, respectively the first or last item of the history stack.
 
-<code-listing heading="Registering the plugin with history support">
+<code-listing heading="Registering the plugin with history overflow limits">
   <source-code lang="TypeScript">
     
     // main.ts
@@ -1065,7 +1065,7 @@ That means your past and future arrays can hold only a maximum of the provided `
     }
   </source-code>
 </code-listing>
-<code-listing heading="Registering the plugin with history support">
+<code-listing heading="Registering the plugin with history overflow limits">
   <source-code lang="JavaScript">
     
     // main.js
@@ -1095,14 +1095,70 @@ That means your past and future arrays can hold only a maximum of the provided `
 
 ## Handling side effects with middlewares
 
-* What is a middleware
-* Middleware positions
-* Diagram depicting the execution flow
-* Explain why they don't need to return anything
+Aurelia Store uses a concept of middlewares to handle side-effects. Concept-wise they are similar to Express.js middlewares in that they allow to perform side-effects or manipulate request data. As such they are registered functions, which execute before or after each dispatched action.
+
+A middleware is similar to an action, with the difference that it may return void as well. Middlewares can be executed before the dispatched action, thus potentially manipulating the current state which will be passed to the action, or afterwards, modifying the returned value from the action. If they don't return the previous value will be passed as input. Either way the middleware reducer can be sync as well as async.
+
+> As soon as you have one async middleware registered, essentially all action dispatches will be async as well.
+
+![Chart workflow](./images/middlewares.png)
+
+Middleware are registered using `store.registerMiddleware` with the middlewares function and the placement `before` or `after`. Unregisteration can be done using `store.unregisterMiddleware`
+
+<code-listing heading="Registering a middleware">
+  <source-code lang="TypeScript">
+    
+    // app.ts
+
+    const customLogMiddleware = (currentState: State) => console.log(currentState);
+    
+    // In TypeScript you can use the exported MiddlewarePlacement string enum
+    store.registerMiddleware(customLogMiddleware, MiddlewarePlacement.After);
+
+    
+  </source-code>
+</code-listing>
+<code-listing heading="Registering a middleware">
+  <source-code lang="JavaScript">
+    
+    // app.js
+
+    const customLogMiddleware = (currentState) => console.log(currentState);
+    
+    // in JavaScript just provide the string "before" or "after"
+    store.registerMiddleware(customLogMiddleware, "after");
+  </source-code>
+</code-listing>
+
 
 ## Accessing the original (unmodified) state in a middleware
 
-* Use cases and example for having the unmodified original state
+When executed, a middleware might accept a second argument which reflects the current unmodified state, the one before any other middlewares or, in case of a after positioning, the result of the dispatched action. This can be useful to determine the state diff that happened in the middleware chain or to reset the next state at certain conditions.
+
+<code-listing heading="Accessing the original state">
+  <source-code lang="TypeScript">
+    
+    // app.ts
+
+    const blacklister = (currentState: TestState, originalState: TestState) => {
+      if ( currentState.newValue.indexOf("f**k") > -1 ) {
+        return originalState;
+      }
+    }
+  </source-code>
+</code-listing>
+<code-listing heading="Accessing the original state">
+  <source-code lang="JavaScript">
+    
+    // app.js
+
+    const blacklister = (currentState, originalState) => {
+      if ( currentState.newValue.indexOf("f**k") > -1 ) {
+        return originalState;
+      }
+    }
+  </source-code>
+</code-listing>
 
 ## Defining settings for middlewares
 
