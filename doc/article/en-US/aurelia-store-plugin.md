@@ -1376,18 +1376,74 @@ If multiple actions are dispatched, they will get queued and executed one after 
 
 If either your actions or middlewares return a sync or async value of `false` it will cause the Aurelia Store plugin to interrupt the execution and not emit the next state. Use this behavior in order to avoid unnecessary states. 
 
-## Defining custom LogLevels
 
 ## Tracking overall performance
 
-* How performance measurement is done
-* At which positions markers are set (diagram)
-* Example
+In order to get insights in total run durations to effectively calculate how long it takes to dispatch the next state you can pass in the `measurePerformance` option in the plugin configuration section.
+
+<code-listing heading="Tracking performance data">
+  <source-code lang="TypeScript">
+    
+    // main.ts
+
+    import { PerformanceMeasurement } from "aurelia-store";
+    ...
+    aurelia.use.plugin("aurelia-store", { initialState, measurePerformance: PerformanceMeasurement.All });
+  </source-code>
+</code-listing>
+<code-listing heading="Tracking performance data">
+  <source-code lang="JavaScript">
+    
+    // main.js
+
+    aurelia.use.plugin("aurelia-store", { initialState, measurePerformance: "all" });
+  </source-code>
+</code-listing>
+
+You can choose between `startEnd` - which gets you a single measure with the duration of the whole dispatch queue - or `all`, which will log, besides the total duration, all single marks after every middleware and the actual dispatching.
+
+Measure will be only logged for successful next states, so if an action or middleware aborts due to returning `false` or throws an error nothing gets logged.
 
 ## Debugging with the Redux DevTools extension
 
 * Example of using the Redux DevTools with Aurelia Store
 * Animated Gifs to highlight features
+
+
+## Defining custom LogLevels
+
+For various features, Aurelia store does create log statements if turned on. E.g the dispatch info of the currently dispatched action will log on info level by default. Combining multiple of those features, might be very distracting in your console window. As such you can define the log level to be used per feature in the plugins setup options. In the following example we'd like to have the logLevel for the dispatchAction info set to `debug` instead of the default `info` level.
+
+<code-listing heading="Dispatch logs to console.debug">
+  <source-code lang="TypeScript">
+    
+    // main.ts
+
+    import { LogLevel } from "aurelia-store";
+    ...
+    aurelia.use.plugin("aurelia-store", { initialState, {
+      logDispatchedActions: true,
+      logDefinitions: {
+        dispatchedActions: LogLevel.debug
+      }
+    }});
+  </source-code>
+</code-listing>
+<code-listing heading="Dispatch logs to console.debug">
+  <source-code lang="JavaScript">
+    
+    // main.js
+
+    aurelia.use.plugin("aurelia-store", { initialState, history: {
+      logDispatchedActions: true,
+      logDefinitions: {
+        dispatchedActions: "debug"
+      }
+    }});
+  </source-code>
+</code-listing>
+
+Besides the control for `dispatchedActions` you can also set the logType for the `performanceLog` and `devToolsStatus` notifications.
 
 ## Comparison to other state management libraries
 
