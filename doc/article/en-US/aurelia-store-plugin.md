@@ -1162,20 +1162,213 @@ When executed, a middleware might accept a second argument which reflects the cu
 
 ## Defining settings for middlewares
 
-* How to configure them
-* How to consume them
+Some middlewares require additional configurations in order to work as expected. Above we've looked at a `customLogMiddleware` middleware, which console logs the newly created state. Now if we wanted to control the log type to let's say output to `console.debug` we can make use of middleware settings.
+These are passed in as third argument to the middleware function and are registered with `registerMiddlware`.
 
+<code-listing heading="Passing settings to middlewares">
+  <source-code lang="TypeScript">
+    
+    // app.ts
+
+    const customLogMiddleware = (currentState, originalState, settings) => console[settings.logType](currentState);
+    
+    store.registerMiddleware(customLogMiddleware, MiddlewarePlacement.After, { logType: "debug" });
+
+    
+  </source-code>
+</code-listing>
+<code-listing heading="Passing settings to middlewares">
+  <source-code lang="JavaScript">
+    
+    // app.js
+
+    const customLogMiddleware = (currentState, originalState, settings) => console[settings.logType](currentState);
+    
+    store.registerMiddleware(customLogMiddleware, "after", { logType: "debug" });
+  </source-code>
+</code-listing>
+
+## Calling action reference for middlewares
+
+Last but not least the optional forth argument passed into a middleware is the calling action, meaning the action that is dispatched.
+In here you get an object containing the actions `name` and the provided `params`. This is useful when you for instance want only certain actions to pass or be canceled under certain circumstances. 
+
+<code-listing heading="Reference to the calling action in middlewares">
+  <source-code lang="TypeScript">
+    
+    // app.ts
+
+    const gateKeeperMiddleware = (currentState, originalState, _, action) => {
+      // imagine a lockActive property on the state indicating that certain actions may not be executed
+      if (currentState.lockActive === true && action.name === "trespasser") {
+        return originalState;
+      }
+    };
+    
+    store.registerMiddleware(gateKeeperMiddleware, MiddlewarePlacement.After);
+  </source-code>
+</code-listing>
+<code-listing heading="Reference to the calling action in middlewares">
+  <source-code lang="JavaScript">
+    
+    // app.js
+
+    const gateKeeperMiddleware = (currentState, originalState, _, action) => {
+      // imagine a lockActive property on the state indicating that certain actions may not be executed
+      if (currentState.lockActive === true && action.name === "trespasser") {
+        return originalState;
+      }
+    };
+    
+    store.registerMiddleware(gateKeeperMiddleware, "after");
+  </source-code>
+</code-listing>
 
 ## Error propagation with middlewares
 
-* Middlewares silently swallow errors
-* Explain how to turn on error propagation
+By default errors thrown by middlewares will be swallowed in order to guarantee continues states. If you would like to stop state propagation you need to pass in the `propagateError` option set to `true`:
+
+<code-listing heading="Registering the plugin with active error propagation">
+  <source-code lang="TypeScript">
+    
+    // main.ts
+    import {Aurelia} from 'aurelia-framework'
+    import {initialState} from './state';
+
+    export function configure(aurelia: Aurelia) {
+      aurelia.use
+        .standardConfiguration()
+        .feature('resources');
+
+      ...
+
+      aurelia.use.plugin("aurelia-store", {
+        initialState,
+        propagateError: true
+      });
+
+      aurelia.start().then(() => aurelia.setRoot());
+    }
+  </source-code>
+</code-listing>
+<code-listing heading="Registering the plugin with active error propagation">
+  <source-code lang="JavaScript">
+    
+    // main.js
+    import {Aurelia} from 'aurelia-framework'
+    import {initialState} from './state';
+
+    export function configure(aurelia) {
+      aurelia.use
+        .standardConfiguration()
+        .feature('resources');
+
+      ...
+
+      aurelia.use.plugin("aurelia-store", {
+        initialState,
+        propagateError: true
+      });
+
+      aurelia.start().then(() => aurelia.setRoot());
+    }
+  </source-code>
+</code-listing>
+
 
 ## Default middlewares
 
+Aurelia Store comes with a few home-baked middlewares. Others should be added as custom dependencies instead of polluting the overall package size.
+
 ### The Logging Middleware
 
+From the previous explanations of the inner workings of middlewares, you've come to learn about the loggingMiddlware. Instead of rebuilding it you can simply import it from Aurelia Store and register it. Remember that you can pass in a settings object to define the logType, which is also defined as string enum in typescript.
+
+<code-listing heading="Registering the Logging middleware">
+  <source-code lang="TypeScript">
+    
+    // app.ts
+
+    import { logMiddleware, LogLevel } from "aurelia-store";
+
+    ...
+
+    store.registerMiddleware(logMiddleware, MiddlewarePlacement.After, { logType: LogLevel.log });
+  </source-code>
+</code-listing>
+<code-listing heading="Registering the Logging middleware">
+  <source-code lang="JavaScript">
+    
+    // app.js
+
+    import { logMiddleware } from "aurelia-store";
+
+    ...
+
+    store.registerMiddleware(logMiddleware, "after", { logType: "log" });
+  </source-code>
+</code-listing>
+
+
 ### The Local Storage middleware
+
+The `localStorageMiddleware` stores your most recent emitted state in the [window.localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage). This is useful when creating apps which should survive a full page refresh. Generally it makes most sense to place the middleware at the end of the queue to get the latest available value stored into localStorage.
+
+In order to make use of it all you need to do is to register it as usual. By default the storage key will be `aurelia-store-state`. You can additionally provide a storage-key via the settings to be used instead.
+
+<code-listing heading="Registering the LocalStorage middleware">
+  <source-code lang="TypeScript">
+    
+    // app.ts
+
+    import { localStorageMiddleware } from "aurelia-store";
+
+    ...
+
+    store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After, { key: "my-storage-key" });
+  </source-code>
+</code-listing>
+<code-listing heading="Registering the LocalStorage middleware">
+  <source-code lang="JavaScript">
+    
+    // app.js
+
+    import { localStorageMiddleware } from "aurelia-store";
+
+    ...
+
+    store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After, { key: "my-storage-key" });
+  </source-code>
+</code-listing>
+
+Now in order to rehydrate the stored state, all you need to do is to dispatch the provided `rehydrateFromLocalStorage` action which you can import and register as usual. If you used a different key then the default one, just pass it as second argument to the dispatch call.
+
+<code-listing heading="Dispatching the localStorage rehydration action">
+  <source-code lang="TypeScript">
+    
+    // app.ts
+
+    import { rehydrateFromLocalStorage } from "aurelia-store";
+
+    ...
+
+    store.registerAction("Rehydrate", rehydrateFromLocalStorage);
+    store.dispatch(rehydrateFromLocalStorage, "my-storage-key");
+  </source-code>
+</code-listing>
+<code-listing heading="Dispatching the localStorage rehydration action">
+  <source-code lang="JavaScript">
+    
+    // app.js
+
+    import { rehydrateFromLocalStorage } from "aurelia-store";
+
+    ...
+
+    store.registerAction("Rehydrate", rehydrateFromLocalStorage);
+    store.dispatch(rehydrateFromLocalStorage, "my-storage-key");
+  </source-code>
+</code-listing>
 
 ## Execution order
 

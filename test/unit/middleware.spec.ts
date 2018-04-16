@@ -16,6 +16,7 @@ import {
 } from "./helpers";
 import { executeSteps } from "../../src/test-helpers";
 import { StateHistory } from "../../src/history";
+import { LogLevel } from "../../src/logging";
 
 describe("middlewares", () => {
   interface TestState {
@@ -459,7 +460,7 @@ describe("middlewares", () => {
       const store = createStoreWithState(initialState);
 
       global.console.warn = jest.fn();
-      store.registerMiddleware(logMiddleware, MiddlewarePlacement.After, { logType: "warn" });
+      store.registerMiddleware(logMiddleware, MiddlewarePlacement.After, { logType: LogLevel.warn });
 
       store.registerAction("IncrementAction", incrementAction);
       store.dispatch(incrementAction);
