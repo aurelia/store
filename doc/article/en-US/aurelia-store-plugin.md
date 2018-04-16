@@ -1406,8 +1406,9 @@ Measure will be only logged for successful next states, so if an action or middl
 
 ## Debugging with the Redux DevTools extension
 
-* Example of using the Redux DevTools with Aurelia Store
-* Animated Gifs to highlight features
+If you've ever worked with Redux then you know for sure about the [Redux Devtools browser extension](https://github.com/zalmoxisus/redux-devtools-extension). It's a fantastic way to record and replay the states of your applications walkthrough. For each step you get detailed information about your state at that time. This can tremendously help to debug states and replicate issues more easily.
+
+There are tons of [great articles](https://codeburst.io/redux-devtools-for-dummies-74566c597d7) to get you started. Head over to [DevTools browser extension page](https://github.com/zalmoxisus/redux-devtools-extension) for instructions on how to install the extension, start your Aurelia Store plugin project and see how it works.
 
 
 ## Defining custom LogLevels
