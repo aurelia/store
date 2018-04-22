@@ -636,7 +636,7 @@ From above example, imagine we'd have to validate the given name, which happens 
 ## Dispatching actions
 
 So far we've just created an action and registered it by several means. Now let's look at how we can actually execute one of them to trigger the next state change.
-We can use the store method `dispatchAction` to exactly do that. In below example the function `dispatchDemo`, can be called with an argument `nextFramework`.
+We can use the store method `dispatchAction` to exactly do that. In below example, the function `dispatchDemo`, can be called with an argument `nextFramework`.
 Inside we call `store.dispatchAction`, passing it the action itself and all subsequent parameters required.
 
 <code-listing heading="Dispatching an action">
@@ -696,8 +696,8 @@ Now keep in mind that an action might be async, or really any middleware is, you
 ## Using the dispatchify higher order function
 
 Perhaps you don't want or can't obtain a reference to the store but still would like to dispatch your actions.
-This is especially useful if you don't want your child-elements to have any knowledge about the actual logic and just receive actions via attributes. Childs then can call this method directly via the template.
-In order to do so you can leverage the higher order function `dispatchify`. What it does is returning a wrapped new function which will obtain the store by itself and forward the provided arguments directly to `store.dispatch`.
+This is especially useful if you don't want your child-elements to have any knowledge of the actual logic and just receive actions via attributes. Childs then can call this method directly via the template.
+In order to do so, you can leverage the higher order function `dispatchify`. What it does is returning a wrapped new function which will obtain the store by itself and forward the provided arguments directly to `store.dispatch`.
 
 <code-listing heading="Forwarding a dispatchable function as argument to child-elements">
   <source-code lang="TypeScript">
@@ -780,7 +780,7 @@ In order to do so you can leverage the higher order function `dispatchify`. What
   </source-code>
 </code-listing>
 
-With this approach you can design your custom elements to act either as presentational or container components. For further information take a look at [this article](http://pragmatic-coder.net/using-a-state-container-with-aurelia/).
+With this approach, you can design your custom elements to act either as presentational or container components. For further information take a look at [this article](http://pragmatic-coder.net/using-a-state-container-with-aurelia/).
 
 
 ## Recording a navigable history of the stream of states
@@ -898,7 +898,7 @@ export interface StateHistory<T> {
 ## Making our app history aware
 
 Now keep in mind that every action will receive a `StateHistory<T>` as input and should return a new `StateHistory<T>`.
-You can use the `nextStateHistory` helper function to easily push your new state and create a proper StateHistory representation, which will simply move the currently present state to the past, place your provided one as present and remove the future states.
+You can use the `nextStateHistory` helper function to easily push your new state and create a proper StateHistory representation, which will simply move the currently present state to the past, place your provided one as the present and remove the future states.
 
 <code-listing heading="A StateHistory aware action">
   <source-code lang="TypeScript">
@@ -1097,13 +1097,13 @@ That means your past and future arrays can hold only a maximum of the provided `
 
 Aurelia Store uses a concept of middlewares to handle side-effects. Concept-wise they are similar to Express.js middlewares in that they allow to perform side-effects or manipulate request data. As such they are registered functions, which execute before or after each dispatched action.
 
-A middleware is similar to an action, with the difference that it may return void as well. Middlewares can be executed before the dispatched action, thus potentially manipulating the current state which will be passed to the action, or afterwards, modifying the returned value from the action. If they don't return the previous value will be passed as input. Either way the middleware reducer can be sync as well as async.
+A middleware is similar to an action, with the difference that it may return void as well. Middlewares can be executed before the dispatched action, thus potentially manipulating the current state which will be passed to the action, or afterward, modifying the returned value from the action. If they don't return the previous value will be passed as input. Either way, the middleware reducer can be sync as well as async.
 
 > As soon as you have one async middleware registered, essentially all action dispatches will be async as well.
 
 ![Chart workflow](./images/middlewares.png)
 
-Middleware are registered using `store.registerMiddleware` with the middlewares function and the placement `before` or `after`. Unregisteration can be done using `store.unregisterMiddleware`
+Middlewares are registered using `store.registerMiddleware` with the middlewares function and the placement `before` or `after`. Unregisteration can be done using `store.unregisterMiddleware`
 
 <code-listing heading="Registering a middleware">
   <source-code lang="TypeScript">
@@ -1133,7 +1133,7 @@ Middleware are registered using `store.registerMiddleware` with the middlewares 
 
 ## Accessing the original (unmodified) state in a middleware
 
-When executed, a middleware might accept a second argument which reflects the current unmodified state, the one before any other middlewares or, in case of a after positioning, the result of the dispatched action. This can be useful to determine the state diff that happened in the middleware chain or to reset the next state at certain conditions.
+When executed, a middleware might accept a second argument which reflects the current unmodified state, the one before any other middlewares or, in case of an after positioning, the result of the dispatched action. This can be useful to determine the state diff that happened in the middleware chain or to reset the next state at certain conditions.
 
 <code-listing heading="Accessing the original state">
   <source-code lang="TypeScript">
@@ -1163,7 +1163,7 @@ When executed, a middleware might accept a second argument which reflects the cu
 ## Defining settings for middlewares
 
 Some middlewares require additional configurations in order to work as expected. Above we've looked at a `customLogMiddleware` middleware, which console logs the newly created state. Now if we wanted to control the log type to let's say output to `console.debug` we can make use of middleware settings.
-These are passed in as third argument to the middleware function and are registered with `registerMiddlware`.
+These are passed in as the third argument to the middleware function and are registered with `registerMiddlware`.
 
 <code-listing heading="Passing settings to middlewares">
   <source-code lang="TypeScript">
@@ -1191,7 +1191,7 @@ These are passed in as third argument to the middleware function and are registe
 ## Calling action reference for middlewares
 
 Last but not least the optional forth argument passed into a middleware is the calling action, meaning the action that is dispatched.
-In here you get an object containing the actions `name` and the provided `params`. This is useful when you for instance want only certain actions to pass or be canceled under certain circumstances. 
+In here you get an object containing the actions `name` and the provided `params`. This is useful when you, for instance, want only certain actions to pass or be canceled under certain circumstances. 
 
 <code-listing heading="Reference to the calling action in middlewares">
   <source-code lang="TypeScript">
@@ -1312,9 +1312,9 @@ From the previous explanations of the inner workings of middlewares, you've come
 
 ### The Local Storage middleware
 
-The `localStorageMiddleware` stores your most recent emitted state in the [window.localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage). This is useful when creating apps which should survive a full page refresh. Generally it makes most sense to place the middleware at the end of the queue to get the latest available value stored into localStorage.
+The `localStorageMiddleware` stores your most recent emitted state in the [window.localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage). This is useful when creating apps which should survive a full page refresh. Generally, it makes the most sense to place the middleware at the end of the queue to get the latest available value stored in localStorage.
 
-In order to make use of it all you need to do is to register it as usual. By default the storage key will be `aurelia-store-state`. You can additionally provide a storage-key via the settings to be used instead.
+In order to make use of it all, you need to do is to register it as usual. By default, the storage key will be `aurelia-store-state`. You can additionally provide a storage-key via the settings to be used instead.
 
 <code-listing heading="Registering the LocalStorage middleware">
   <source-code lang="TypeScript">
@@ -1341,7 +1341,7 @@ In order to make use of it all you need to do is to register it as usual. By def
   </source-code>
 </code-listing>
 
-Now in order to rehydrate the stored state, all you need to do is to dispatch the provided `rehydrateFromLocalStorage` action which you can import and register as usual. If you used a different key then the default one, just pass it as second argument to the dispatch call.
+Now in order to rehydrate the stored state, all you need to do is to dispatch the provided `rehydrateFromLocalStorage` action which you can import and register as usual. If you used a different key then the default one, just pass it as the second argument to the dispatch call.
 
 <code-listing heading="Dispatching the localStorage rehydration action">
   <source-code lang="TypeScript">
@@ -1379,7 +1379,7 @@ If either your actions or middlewares return a sync or async value of `false` it
 
 ## Tracking overall performance
 
-In order to get insights in total run durations to effectively calculate how long it takes to dispatch the next state you can pass in the `measurePerformance` option in the plugin configuration section.
+In order to get insights into total run durations to effectively calculate how long it takes to dispatch the next state, you can pass in the `measurePerformance` option in the plugin configuration section.
 
 <code-listing heading="Tracking performance data">
   <source-code lang="TypeScript">
@@ -1402,18 +1402,18 @@ In order to get insights in total run durations to effectively calculate how lon
 
 You can choose between `startEnd` - which gets you a single measure with the duration of the whole dispatch queue - or `all`, which will log, besides the total duration, all single marks after every middleware and the actual dispatching.
 
-Measure will be only logged for successful next states, so if an action or middleware aborts due to returning `false` or throws an error nothing gets logged.
+Measures will only be logged for successful next states, so if an action or middleware aborts due to returning `false` or throwing an error, nothing gets logged.
 
 ## Debugging with the Redux DevTools extension
 
-If you've ever worked with Redux then you know for sure about the [Redux Devtools browser extension](https://github.com/zalmoxisus/redux-devtools-extension). It's a fantastic way to record and replay the states of your applications walkthrough. For each step you get detailed information about your state at that time. This can tremendously help to debug states and replicate issues more easily.
+If you've ever worked with Redux then you know for sure about the [Redux Devtools browser extension](https://github.com/zalmoxisus/redux-devtools-extension). It's a fantastic way to record and replay the states of your applications walkthrough. For each step, you get detailed information about your state at that time. This can tremendously help to debug states and replicate issues more easily.
 
 There are tons of [great articles](https://codeburst.io/redux-devtools-for-dummies-74566c597d7) to get you started. Head over to [DevTools browser extension page](https://github.com/zalmoxisus/redux-devtools-extension) for instructions on how to install the extension, start your Aurelia Store plugin project and see how it works.
 
 
 ## Defining custom LogLevels
 
-For various features, Aurelia store does create log statements if turned on. E.g the dispatch info of the currently dispatched action will log on info level by default. Combining multiple of those features, might be very distracting in your console window. As such you can define the log level to be used per feature in the plugins setup options. In the following example we'd like to have the logLevel for the dispatchAction info set to `debug` instead of the default `info` level.
+For various features, Aurelia store does create log statements if turned on. E.g the dispatch info of the currently dispatched action will log on info level by default. Combining multiple of those features might be very distracting in your console window. As such you can define the log level to be used per feature in the plugins setup options. In the following example, we'd like to have the `logLevel` for the dispatchAction info set to `debug` instead of the default `info` level.
 
 <code-listing heading="Dispatch logs to console.debug">
   <source-code lang="TypeScript">
@@ -1449,12 +1449,12 @@ Besides the control for `dispatchedActions` you can also set the logType for the
 ## Comparison to other state management libraries
 
 There are a lot of other state management libraries out there, so you might ask yourself why you should favor Aurelia Store instead. As always Aurelia doesn't want to force you into a certain direction. There are good reasons to stick with something you're already familiar or using in another project.
-Let's look at the differences with few of the well known alternatives. 
+Let's look at the differences with few of the well-known alternatives. 
 
 ### Differences to Redux
-Doubtlessly [Redux](https://redux.js.org/) is one of the most favorite state management libraries out there in the eco system. With it's solid principles of being a predictable state container and thus working towards consistently behaving apps it's a common choice amongst React developers. A lot of that is given by the focus of immutable states and the predictability that brings with itself. Yet Redux is not solely bound to a framework and can be used with everything else, [including Aurelia](https://www.sitepoint.com/managing-state-aurelia-with-redux/) as well. There are even plugins to help you [get started](https://github.com/steelsojka/aurelia-redux-plugin).
+Doubtlessly [Redux](https://redux.js.org/) is one of the most favorite state management libraries out there in the eco system. With its solid principles of being a predictable state container and thus working towards consistently behaving apps, it's a common choice amongst React developers. A lot of that is given by the focus of immutable states and the predictability that brings with itself. Yet Redux is not solely bound to a framework and can be used with everything else, [including Aurelia](https://www.sitepoint.com/managing-state-aurelia-with-redux/) as well. There are even plugins to help you [get started](https://github.com/steelsojka/aurelia-redux-plugin).
 
-Aurelia Store shares a lot of fundamental design choices from Redux yet drastically differentiates in two points. For one it's the reduction of boilerplate code. There is no necessity to split Actions and Reducers, along separate action constants. Plain functions are all that is needed. Secondly, handling async state calculations is simplified by treating the apps state as stream of states. RxJS as such is a major differentiator, which slowly is also finding it's place in the [Redux eco-system](https://github.com/redux-observable/redux-observable).
+Aurelia Store shares a lot of fundamental design choices from Redux yet drastically differentiates in two points. For one it's the reduction of boilerplate code. There is no necessity to split Actions and Reducers, along with separate action constants. Plain functions are all that is needed. Secondly, handling async state calculations is simplified by treating the apps state as a stream of states. RxJS as such is a major differentiator, which slowly is also finding it's place in the [Redux eco-system](https://github.com/redux-observable/redux-observable).
 
 ### Differences to MobX
 [MobX](https://github.com/mobxjs/mobx) came up as a more lightweight alternative to Redux. With it's focus on observing properties for changes and that way manipulating the apps state, it addresses the issue of reducing boilerplate and not forcing the user into a strict functional programming style. MobX, same as Redux is not tied specifically to a framework - although they offer React bindings out of the box - yet it is not really a great fit for Aurelia. The primary reason for that is that observing property changes is actually one of the main selling points of Aurelia.
@@ -1463,6 +1463,6 @@ Same applies to computed values resembling Aurelia's `computedFrom` and reaction
 Essentially all that MobX brings to the table, might be implemented with vanilla Aurelia plus a global state service.
 
 ### Differences to VueX
-The last well known alternative is [Vuex](https://github.com/vuejs/vuex), state management library designed specifically for use with the [Vue framework](https://vuejs.org/v2/guide/). On the surface VueX is relatively similar to MobX with some specific twists to how it handles internal changes, being `mutations`, although developers [seem to disagree](https://twitter.com/youyuxi/status/736939734900047874?lang=de) about that. Muatations very much translate function wise to Redux reducers, with the difference that they make use of Vue's change tracking and thus nicely fit into the framwork itself. Modules on the other hand are another way to group your actions.
+The last well-known alternative is [VueX](https://github.com/vuejs/vuex), state management library designed specifically for use with the [Vue framework](https://vuejs.org/v2/guide/). On the surface, VueX is relatively similar to MobX with some specific twists to how it handles internal changes, being `mutations`, although developers [seem to disagree](https://twitter.com/youyuxi/status/736939734900047874?lang=de) about that. Mutations very much translate function wise to Redux reducers, with the difference that they make use of Vue's change tracking and thus nicely fit into the framework itself. Modules, on the other hand, are another way to group your actions.
 
-Aurelia Store in that regards is pretty similar to Vuex. It makes use of Aurelia's dependency injection, logging and platform abstractions, but aside from that is still a plain simple TypeScript class and could be re-used for any other purpose. One of the biggest differentiatiors is that Aurelia Store does not force any specfic style. Whether you prefer a class based approach, using the `connectTo` decorator, or heavy function based composition, the underlying architecture of a private BehaviorSubject and a public Observable is flexible enough to adapt to your needs.
+Aurelia Store in that regards is pretty similar to VueX. It makes use of Aurelia's dependency injection, logging and platform abstractions, but aside from that is still a plain simple TypeScript class and could be re-used for any other purpose. One of the biggest differentiators is that Aurelia Store does not force any specific style. Whether you prefer a class-based approach, using the `connectTo` decorator, or heavy function based composition, the underlying architecture of a private BehaviorSubject and a public Observable is flexible enough to adapt to your needs.
