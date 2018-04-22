@@ -1448,8 +1448,21 @@ Besides the control for `dispatchedActions` you can also set the logType for the
 
 ## Comparison to other state management libraries
 
+There are a lot of other state management libraries out there, so you might ask yourself why you should favor Aurelia Store instead. As always Aurelia doesn't want to force you into a certain direction. There are good reasons to stick with something you're already familiar or using in another project.
+Let's look at the differences with few of the well known alternatives. 
+
 ### Differences to Redux
+Doubtlessly [Redux](https://redux.js.org/) is one of the most favorite state management libraries out there in the eco system. With it's solid principles of being a predictable state container and thus working towards consistently behaving apps it's a common choice amongst React developers. A lot of that is given by the focus of immutable states and the predictability that brings with itself. Yet Redux is not solely bound to a framework and can be used with everything else, [including Aurelia](https://www.sitepoint.com/managing-state-aurelia-with-redux/) as well. There are even plugins to help you [get started](https://github.com/steelsojka/aurelia-redux-plugin).
+
+Aurelia Store shares a lot of fundamental design choices from Redux yet drastically differentiates in two points. For one it's the reduction of boilerplate code. There is no necessity to split Actions and Reducers, along separate action constants. Plain functions are all that is needed. Secondly, handling async state calculations is simplified by treating the apps state as stream of states. RxJS as such is a major differentiator, which slowly is also finding it's place in the [Redux eco-system](https://github.com/redux-observable/redux-observable).
 
 ### Differences to MobX
+[MobX](https://github.com/mobxjs/mobx) came up as a more lightweight alternative to Redux. With it's focus on observing properties for changes and that way manipulating the apps state, it addresses the issue of reducing boilerplate and not forcing the user into a strict functional programming style. MobX, same as Redux is not tied specifically to a framework - although they offer React bindings out of the box - yet it is not really a great fit for Aurelia. The primary reason for that is that observing property changes is actually one of the main selling points of Aurelia.
+Same applies to computed values resembling Aurelia's `computedFrom` and reactions, being pretty much the same as `propertyChanged` handlers.
+
+Essentially all that MobX brings to the table, might be implemented with vanilla Aurelia plus a global state service.
 
 ### Differences to VueX
+The last well known alternative is [Vuex](https://github.com/vuejs/vuex), state management library designed specifically for use with the [Vue framework](https://vuejs.org/v2/guide/). On the surface VueX is relatively similar to MobX with some specific twists to how it handles internal changes, being `mutations`, although developers [seem to disagree](https://twitter.com/youyuxi/status/736939734900047874?lang=de) about that. Muatations very much translate function wise to Redux reducers, with the difference that they make use of Vue's change tracking and thus nicely fit into the framwork itself. Modules on the other hand are another way to group your actions.
+
+Aurelia Store in that regards is pretty similar to Vuex. It makes use of Aurelia's dependency injection, logging and platform abstractions, but aside from that is still a plain simple TypeScript class and could be re-used for any other purpose. One of the biggest differentiatiors is that Aurelia Store does not force any specfic style. Whether you prefer a class based approach, using the `connectTo` decorator, or heavy function based composition, the underlying architecture of a private BehaviorSubject and a public Observable is flexible enough to adapt to your needs.
