@@ -49,7 +49,7 @@ System.register(["rxjs/BehaviorSubject", "aurelia-framework", "./history", "./mi
             for (var _i = 0; _i < arguments.length; _i++) {
                 params[_i] = arguments[_i];
             }
-            store.dispatch.apply(store, [action].concat(params));
+            return store.dispatch.apply(store, [action].concat(params));
         };
     }
     exports_1("dispatchify", dispatchify);

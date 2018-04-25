@@ -262,6 +262,6 @@ export function dispatchify<T>(action: Reducer<T>) {
   const store = Container.instance.get(Store);
 
   return function (...params: any[]) {
-    store.dispatch(action, ...params);
+    return store.dispatch(action, ...params) as Promise<void>;
   }
 }

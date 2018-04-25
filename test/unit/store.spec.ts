@@ -115,6 +115,22 @@ describe("store", () => {
     });
   });
 
+  it("should return the promise from dispatchified calls", async () => {
+    const cont = new Container().makeGlobal();
+    const { store } = createTestStore();
+    const fakeAction = (currentState: testState, param1: number, param2: number) => {
+      return Object.assign({}, currentState, { foo: param1 + param2 })
+    };
+
+    store.registerAction("FakeAction", fakeAction as any);
+    cont.registerInstance(Store, store);
+
+    const result = dispatchify(fakeAction)("A", "B");
+    expect(result.then).toBeDefined();
+
+    await result;
+  });
+
   it("should accept reducers taking multiple parameters", done => {
     const { store } = createTestStore();
     const fakeAction = (currentState: testState, param1: string, param2: string) => {

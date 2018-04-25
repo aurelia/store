@@ -38,4 +38,4 @@ export declare class Store<T> {
     private updateDevToolsState(action, state);
     private registerHistoryMethods();
 }
-export declare function dispatchify<T>(action: Reducer<T>): (...params: any[]) => void;
+export declare function dispatchify<T>(action: Reducer<T>): (...params: any[]) => Promise<void>;

@@ -280,7 +280,7 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./hi
             for (var _i = 0; _i < arguments.length; _i++) {
                 params[_i] = arguments[_i];
             }
-            store.dispatch.apply(store, [action].concat(params));
+            return store.dispatch.apply(store, [action].concat(params));
         };
     }
     exports.dispatchify = dispatchify;
