@@ -636,8 +636,9 @@ From above example, imagine we'd have to validate the given name, which happens 
 ## Dispatching actions
 
 So far we've just created an action and registered it by several means. Now let's look at how we can actually execute one of them to trigger the next state change.
-We can use the store method `dispatchAction` to exactly do that. In below example, the function `dispatchDemo`, can be called with an argument `nextFramework`.
-Inside we call `store.dispatchAction`, passing it the action itself and all subsequent parameters required.
+We can use the store method `dispatch` to exactly do that. In below example, the function `dispatchDemo`, can be called with an argument `nextFramework`.
+Inside we call `store.dispatch`, passing it the action itself and all subsequent parameters required.
+Alternatively we can also provide the previously registered name instead.
 
 <code-listing heading="Dispatching an action">
   <source-code lang="TypeScript">
@@ -660,7 +661,10 @@ Inside we call `store.dispatchAction`, passing it the action itself and all subs
       }
 
       public dispatchDemo(nextFramework: string) {
-        this.store.dispatchAction(demoAction, nextFramework);
+        this.store.dispatch(demoAction, nextFramework);
+
+        // or
+        // this.store.dispatch("DemoAction", nextFramework);
       }
     }
   </source-code>
@@ -682,16 +686,23 @@ Inside we call `store.dispatchAction`, passing it the action itself and all subs
       }
 
       public dispatchDemo(nextFramework) {
-        this.store.dispatchAction(demoAction, nextFramework);
+        this.store.dispatch(demoAction, nextFramework);
+
+        // or
+        // this.store.dispatch("DemoAction", nextFramework);
       }
     }
   </source-code>
 </code-listing>
 
-Now keep in mind that an action might be async, or really any middleware is, you'll learn more about them later, as such if you're depending on the state being updated right after it, make sure to `await` the call to `dispatchAction`
+Now keep in mind that an action might be async, or really any middleware is, you'll learn more about them later, as such if you're depending on the state being updated right after it, make sure to `await` the call to `dispatch`.
+
+The choice whether you call by the actual actions function or it's previously registered name is up to you. It might
+be less work just forwarding a string. That way you don't need to import the action from wherever you want to dispatch
+it. On the other hand exactly this is a helpful mechanism to make sure your app survives a refactoring session. Imagine
+you'd rename the registration name and not all the places you're dispatching. A long debugging night might be just around the corner ;)
 
 > Dispatching non-registered actions will result in an error
-
 
 ## Using the dispatchify higher order function
 

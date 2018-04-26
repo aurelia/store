@@ -2,7 +2,6 @@ import { Container } from "aurelia-framework";
 import "rxjs/add/operator/skip";
 
 import {
-  dispatchify,
   Store,
   PerformanceMeasurement
 } from "../../src/store";
@@ -97,40 +96,6 @@ describe("store", () => {
     expect( () => store.unregisterAction(fakeAction)).not.toThrow();
   });
 
-  it("should help create dispatchifyable functions", done => {
-    const cont = new Container().makeGlobal();
-    const { store } = createTestStore();
-    const fakeAction = (currentState: testState, param1: number, param2: number) => {
-      return Object.assign({}, currentState, { foo: param1 + param2 })
-    };
-
-    store.registerAction("FakeAction", fakeAction as any);
-    cont.registerInstance(Store, store);
-
-    dispatchify(fakeAction)("A", "B");
-
-    store.state.skip(1).subscribe((state) => {
-      expect(state.foo).toEqual("AB");
-      done();
-    });
-  });
-
-  it("should return the promise from dispatchified calls", async () => {
-    const cont = new Container().makeGlobal();
-    const { store } = createTestStore();
-    const fakeAction = (currentState: testState, param1: number, param2: number) => {
-      return Object.assign({}, currentState, { foo: param1 + param2 })
-    };
-
-    store.registerAction("FakeAction", fakeAction as any);
-    cont.registerInstance(Store, store);
-
-    const result = dispatchify(fakeAction)("A", "B");
-    expect(result.then).toBeDefined();
-
-    await result;
-  });
-
   it("should accept reducers taking multiple parameters", done => {
     const { store } = createTestStore();
     const fakeAction = (currentState: testState, param1: string, param2: string) => {
@@ -156,6 +121,22 @@ describe("store", () => {
     store.registerAction("FakeAction", fakeAction);
     store.dispatch(fakeAction);
 
+    store.state.skip(1).subscribe((state) => {
+      expect(state).toEqual(modifiedState);
+      done();
+    });
+  });
+
+  it("should the previously registered action name as dispatch argument", done => {
+    const { store } = createTestStore();
+    const modifiedState = { foo: "bert" };
+    const fakeAction = (currentState: testState) => Promise.resolve(modifiedState);
+    const fakeActionRegisteredName = "FakeAction";
+
+    store.registerAction(fakeActionRegisteredName, fakeAction);
+    store.dispatch(fakeActionRegisteredName);
+
+    // since the async action is coming at a later time we need to skip the initial state
     store.state.skip(1).subscribe((state) => {
       expect(state).toEqual(modifiedState);
       done();

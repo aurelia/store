@@ -30,7 +30,7 @@ export declare class Store<T> {
     unregisterMiddleware(reducer: Middleware<T>): void;
     registerAction(name: string, reducer: Reducer<T>): void;
     unregisterAction(reducer: Reducer<T>): void;
-    dispatch(reducer: Reducer<T>, ...params: any[]): Promise<void>;
+    dispatch(reducer: Reducer<T> | string, ...params: any[]): Promise<void>;
     private handleQueue();
     private internalDispatch(reducer, ...params);
     private executeMiddlewares(state, placement, action);
@@ -38,4 +38,4 @@ export declare class Store<T> {
     private updateDevToolsState(action, state);
     private registerHistoryMethods();
 }
-export declare function dispatchify<T>(action: Reducer<T>): (...params: any[]) => Promise<void>;
+export declare function dispatchify<T>(action: Reducer<T> | string): (...params: any[]) => Promise<void>;

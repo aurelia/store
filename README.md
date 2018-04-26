@@ -128,6 +128,8 @@ export class App {
   addAnotherFramework() {
     // you create a new state by dispatching your action using the stores method
     this.store.dispatch(demoAction);
+    // or by dispatching via the registered action name
+    this.store.dispatch("DemoAction");
   }
 }
 ```

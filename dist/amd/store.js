@@ -89,8 +89,19 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./hi
             for (var _i = 1; _i < arguments.length; _i++) {
                 params[_i - 1] = arguments[_i];
             }
+            var action;
+            if (typeof reducer === "string") {
+                var result = Array.from(this.actions)
+                    .find(function (val) { return val[1].name === reducer; });
+                if (result) {
+                    action = result[0];
+                }
+            }
+            else {
+                action = reducer;
+            }
             return new Promise(function (resolve, reject) {
-                _this.dispatchQueue.push({ reducer: reducer, params: params, resolve: resolve, reject: reject });
+                _this.dispatchQueue.push({ reducer: action, params: params, resolve: resolve, reject: reject });
                 if (_this.dispatchQueue.length === 1) {
                     _this.handleQueue();
                 }

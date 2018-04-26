@@ -85,9 +85,22 @@ export class Store<T> {
     }
   }
 
-  public dispatch(reducer: Reducer<T>, ...params: any[]) {
+  public dispatch(reducer: Reducer<T> | string, ...params: any[]) {
+    let action: Reducer<T>;
+
+    if (typeof reducer === "string") {
+      const result = Array.from(this.actions)
+        .find((val) => val[1].name === reducer);
+
+      if (result) {
+        action = result[0];
+      }
+    } else {
+      action = reducer;
+    }
+
     return new Promise<void>((resolve, reject) => {
-      this.dispatchQueue.push({ reducer, params, resolve, reject });
+      this.dispatchQueue.push({ reducer: action, params, resolve, reject });
       if (this.dispatchQueue.length === 1) {
         this.handleQueue();
       }
@@ -150,7 +163,7 @@ export class Store<T> {
     if (!result && typeof result !== "object") {
       throw new Error("The reducer has to return a new state");
     }
-    
+
     let resultingState = await this.executeMiddlewares(
       result,
       MiddlewarePlacement.After,
@@ -258,7 +271,7 @@ export class Store<T> {
   }
 }
 
-export function dispatchify<T>(action: Reducer<T>) {
+export function dispatchify<T>(action: Reducer<T> | string) {
   const store = Container.instance.get(Store);
 
   return function (...params: any[]) {
