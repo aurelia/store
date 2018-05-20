@@ -10,7 +10,7 @@ import {
 
 import { jump, applyLimits, HistoryOptions, isStateHistory } from "./history";
 import { Middleware, MiddlewarePlacement, CallingAction } from "./middleware";
-import { LogDefinitions, LogLevel, getLogType } from "./logging";
+import { LogDefinitions, LogLevel, getLogType, LoggerIndexed } from "./logging";
 
 export type Reducer<T> = (state: T, ...params: any[]) => T | false | Promise<T | false>;
 
@@ -38,7 +38,7 @@ interface DispatchQueueItem<T> {
 export class Store<T> {
   public readonly state: Observable<T>;
 
-  private logger = LogManager.getLogger("aurelia-store");
+  private logger = LogManager.getLogger("aurelia-store") as LoggerIndexed;
   private devToolsAvailable: boolean = false;
   private devTools: any;
   private actions: Map<Reducer<T>, { name: string }> = new Map();
