@@ -4,18 +4,18 @@ import { Subscription } from "rxjs/Subscription";
 
 import { Store } from "./store";
 
-export interface ConnectToSettings<T> {
+export interface ConnectToSettings<T, R = T | any> {
   onChanged?: string;
-  selector: (store: Store<T>) => Observable<T>;
+  selector: ((store: Store<T>) => Observable<R>);
   setup?: string;
   target?: string;
   teardown?: string;
 }
 
-export function connectTo<T>(settings?: ((store: Store<T>) => Observable<T>) | ConnectToSettings<T>) {
+export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observable<R>) | ConnectToSettings<T, R>) {
   const store = Container.instance.get(Store) as Store<T>;
 
-  function getSource() {
+  function getSource(): Observable<any> {
     if (typeof settings === "function") {
       const selector = settings(store);
 
