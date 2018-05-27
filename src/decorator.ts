@@ -1,6 +1,5 @@
 import { Container } from "aurelia-dependency-injection";
-import { Observable } from "rxjs/Observable";
-import { Subscription } from "rxjs/Subscription";
+import { Observable, Subscription } from "rxjs";
 
 import { Store } from "./store";
 
@@ -44,15 +43,17 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
     target.prototype[typeof settings === "object" && settings.setup ? settings.setup : "bind"] = function () {
       const source = getSource();
 
+      if (typeof settings == "object" &&
+        typeof settings.onChanged === "string" &&
+        !(settings.onChanged in this)) {
+        throw new Error("Provided onChanged handler does not exist on target VM");
+      }
+
       this._stateSubscription = source.subscribe(state => {
         // call onChanged first so that the handler has also access to the previous state
         if (typeof settings == "object" &&
           typeof settings.onChanged === "string") {
-          if (!(settings.onChanged in this)) {
-            throw new Error("Provided onChanged handler does not exist on target VM")
-          } else {
-            this[settings.onChanged](state);
-          }
+          this[settings.onChanged](state);
         }
 
         if (typeof settings === "object" && settings.target) {

@@ -1,5 +1,5 @@
 import { Container } from "aurelia-framework";
-import "rxjs/add/operator/skip";
+import { skip } from "rxjs/operators";
 
 import {
   Store,
@@ -105,7 +105,9 @@ describe("store", () => {
     store.registerAction("FakeAction", fakeAction as any);
     store.dispatch(fakeAction, "A", "B");
 
-    store.state.skip(1).subscribe((state) => {
+    store.state.pipe(
+      skip(1)
+    ).subscribe((state) => {
       expect(state.foo).toEqual("AB");
       done();
     });
@@ -121,7 +123,9 @@ describe("store", () => {
     store.registerAction("FakeAction", fakeAction);
     store.dispatch(fakeAction);
 
-    store.state.skip(1).subscribe((state) => {
+    store.state.pipe(
+      skip(1)
+    ).subscribe((state) => {
       expect(state).toEqual(modifiedState);
       done();
     });
@@ -137,7 +141,9 @@ describe("store", () => {
     store.dispatch(fakeActionRegisteredName);
 
     // since the async action is coming at a later time we need to skip the initial state
-    store.state.skip(1).subscribe((state) => {
+    store.state.pipe(
+      skip(1)
+    ).subscribe((state) => {
       expect(state).toEqual(modifiedState);
       done();
     });
@@ -152,7 +158,9 @@ describe("store", () => {
     store.dispatch(fakeAction);
 
     // since the async action is coming at a later time we need to skip the initial state
-    store.state.skip(1).subscribe((state) => {
+    store.state.pipe(
+      skip(1)
+    ).subscribe((state) => {
       expect(state).toEqual(modifiedState);
       done();
     });
@@ -169,7 +177,9 @@ describe("store", () => {
     store.dispatch(actionA);
     store.dispatch(actionB);
 
-    store.state.skip(2).subscribe((state) => {
+    store.state.pipe(
+      skip(2)
+    ).subscribe((state) => {
       expect(state.foo).toEqual("barAB");
       done();
     });

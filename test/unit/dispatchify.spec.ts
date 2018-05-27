@@ -1,5 +1,5 @@
 import { Container } from "aurelia-dependency-injection";
-import "rxjs/add/operator/skip";
+import { skip } from "rxjs/operators";
 
 import { dispatchify, Store } from "../../src/store";
 import { createTestStore, testState } from "./helpers";
@@ -17,7 +17,9 @@ describe("dispatchify", () => {
 
     dispatchify(fakeAction)("A", "B");
 
-    store.state.skip(1).subscribe((state) => {
+    store.state.pipe(
+      skip(1)
+    ).subscribe((state) => {
       expect(state.foo).toEqual("AB");
       done();
     });
@@ -52,7 +54,9 @@ describe("dispatchify", () => {
 
     dispatchify(fakeActionRegisteredName)("A", "B");
 
-    store.state.skip(1).subscribe((state) => {
+    store.state.pipe(
+      skip(1)
+    ).subscribe((state) => {
       expect(state.foo).toEqual("AB");
       done();
     });
