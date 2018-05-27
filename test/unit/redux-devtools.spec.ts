@@ -1,5 +1,4 @@
-import "rxjs/add/operator/skip";
-import "rxjs/add/operator/delay";
+import { skip, delay } from "rxjs/operators";
 
 import {
   createTestStore,
@@ -20,10 +19,10 @@ describe("redux devtools", () => {
     store.registerAction("FakeAction", fakeAction);
     store.dispatch(fakeAction);
 
-    store.state
-      .skip(1)
-      .delay(1)
-      .subscribe(() => {
+    store.state.pipe(
+      skip(1),
+      delay(1)
+    ).subscribe(() => {
       expect(spy).toHaveBeenCalled();
 
       spy.mockReset();

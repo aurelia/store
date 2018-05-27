@@ -71,6 +71,11 @@ alternatively, you can manually add these dependencies to your vendor bundle:
 ```
 
 ## Granular (patched) RxJS imports
+
+> With the recent release of RxJS v.6 quite a lot has changed. There are new ways to import dependencies and ways to keep compatibility with previous API versions. Take a look at the [following upgrade instructions](https://github.com/ReactiveX/rxjs/blob/master/MIGRATION.md) for further details. In case you're using a classic Require.js based Aurelia CLI project setup, make sure to [configure rxjs-compat](https://www.npmjs.com/package/rxjs-compat) in aurelia.json as a dependency and use it as the main include file.
+
+**This section is only valid for RxJS versions <= 5.x.x**
+
 Looking at the above dependency configuration for Aurelia CLI you'll note the use of `"main": false`, which tells the loader not to use any default file and not start importing things right away. The reason for this is that importing the whole RxJS library would net result in additional ~250kb for your app, where you'd most of the time need only a minimum subset. Patched imports enable to bundle only things directly referenced.
 
 What you need to make sure of when requesting features from RxJS though is that you do not import the full library itself anywhere. This applies to other bundlers such as Webpack as well. That can happen through one of the following statements:
@@ -89,7 +94,14 @@ So try to avoid these and instead only import operators and observable features 
 
 <code-listing heading="Imports triggering a full RxJS bundle">
   <source-code lang="TypeScript">
-    
+    // RxJS v >= 6.x.x
+    // Imports the Observable constructor, creation methods, types and schedulers
+    import { Observable, pipe, of, from, fromEvent, ... } from 'rxjs';
+
+    // Imports of pipeable operators
+    import { map, filter, scan } from 'rxjs/operators';
+
+    // RxJS v <= 5.x.x
     // Imports the Observable constructor
     import { Observable } from 'rxjs/Observable'; 
 

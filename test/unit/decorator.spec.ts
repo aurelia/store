@@ -1,9 +1,9 @@
 import { Container } from "aurelia-framework";
-import "rxjs/add/operator/pluck";
+import { Subscription } from "rxjs";
+import { pluck } from "rxjs/operators";
 
 import { Store } from "../../src/store";
 import { connectTo } from "../../src/decorator";
-import { Subscription } from "rxjs/Subscription";
 
 interface DemoState {
   foo: string;
@@ -40,7 +40,7 @@ describe("using decorators", () => {
   it("should be possible to provide a state selector", () => {
     const { store, initialState } = arrange();
 
-    @connectTo<DemoState>((store) => store.state.pluck("bar"))
+    @connectTo<DemoState>((store) => store.state.pipe(pluck("bar")))
     class DemoStoreConsumer {
       state: DemoState;
     }
@@ -58,7 +58,7 @@ describe("using decorators", () => {
       const { store, initialState } = arrange();
 
       @connectTo<DemoState>({
-        selector: (store) => store.state.pluck("bar")
+        selector: (store) => store.state.pipe(pluck("bar"))
       })
       class DemoStoreConsumer {
         state: DemoState;
@@ -94,7 +94,7 @@ describe("using decorators", () => {
       const { store, initialState } = arrange();
 
       @connectTo<DemoState>({
-        selector: (store) => store.state.pluck("bar"),
+        selector: (store) => store.state.pipe(pluck("bar")),
         target: "foo"
       })
       class DemoStoreConsumer {

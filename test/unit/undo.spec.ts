@@ -1,5 +1,3 @@
-import "rxjs/add/operator/skip";
-
 import {
   createStoreWithStateAndOptions,
   createUndoableTestStore,

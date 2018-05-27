@@ -1,6 +1,5 @@
 import { PLATFORM } from "aurelia-pal";
-import "rxjs/add/operator/skip";
-import "rxjs/add/operator/take";
+import { skip, take } from "rxjs/operators";
 
 import {
   MiddlewarePlacement,
@@ -196,7 +195,10 @@ describe("middlewares", () => {
       store.registerAction("IncrementAction", incrementAction);
       store.dispatch(incrementAction);
 
-      store.state.skip(1).take(1).subscribe((state) => {
+      store.state.pipe(
+        skip(1),
+        take(1)
+      ).subscribe((state) => {
         expect(state.counter).toEqual(2);
         done();
       });
@@ -218,7 +220,10 @@ describe("middlewares", () => {
       store.registerAction("IncrementAction", incrementAction);
       store.dispatch(incrementAction);
 
-      store.state.skip(1).take(1).subscribe((state) => {
+      store.state.pipe(
+        skip(1),
+        take(1)
+      ).subscribe((state) => {
         expect(state.counter).toEqual(1000);
         done();
       });
@@ -238,7 +243,10 @@ describe("middlewares", () => {
       store.registerAction("IncrementAction", incrementAction);
       store.dispatch(incrementAction);
 
-      store.state.skip(1).take(1).subscribe((state) => {
+      store.state.pipe(
+        skip(1),
+        take(1)
+      ).subscribe((state) => {
         expect(state.counter).toEqual(1000);
         done();
       });
@@ -258,7 +266,10 @@ describe("middlewares", () => {
       store.registerAction("IncrementAction", incrementAction);
       store.dispatch(incrementAction);
 
-      store.state.skip(1).take(1).subscribe((state) => {
+      store.state.pipe(
+        skip(1),
+        take(1)
+      ).subscribe((state) => {
         expect(state.counter).toEqual(1);
         done();
       });
@@ -275,7 +286,9 @@ describe("middlewares", () => {
     store.registerAction("IncrementAction", incrementAction);
     store.dispatch(incrementAction);
 
-    store.state.skip(1).subscribe((state: TestState) => {
+    store.state.pipe(
+      skip(1)
+    ).subscribe((state: TestState) => {
       expect(state.counter).toEqual(2);
       done();
     });
@@ -371,7 +384,10 @@ describe("middlewares", () => {
     store.registerAction("IncrementAction", incrementAction);
     store.dispatch(incrementAction);
 
-    store.state.skip(1).take(1).subscribe((state) => {
+    store.state.pipe(
+      skip(1),
+      take(1)
+    ).subscribe((state) => {
       expect(state.counter).toEqual(14);
       done();
     });
@@ -409,7 +425,10 @@ describe("middlewares", () => {
     store.registerAction("Demo", demoAction);
     store.dispatch(demoAction);
 
-    store.state.skip(1).take(1).subscribe((state) => {
+    store.state.pipe(
+      skip(1),
+      take(1)
+    ).subscribe((state) => {
       expect(state.values).toEqual(["Demo", ...new Array(26).fill("").map((_, idx) => String.fromCharCode(65 + idx))]);
       done();
     });
@@ -426,7 +445,9 @@ describe("middlewares", () => {
     store.registerAction("IncrementAction", incrementAction);
     store.dispatch(incrementAction);
 
-    store.state.skip(1).subscribe(() => {
+    store.state.pipe(
+      skip(1)
+    ).subscribe(() => {
       expect(global.console.log).toHaveBeenCalled();
       (global.console.log as any).mockReset();
       (global.console.log as any).mockRestore();
@@ -445,7 +466,9 @@ describe("middlewares", () => {
       store.registerAction("IncrementAction", incrementAction);
       store.dispatch(incrementAction);
 
-      store.state.skip(1).subscribe((state) => {
+      store.state.pipe(
+        skip(1)
+      ).subscribe((state) => {
         expect(state.counter).toEqual(2);
         expect(global.console.log).toHaveBeenCalled();
 
@@ -465,7 +488,9 @@ describe("middlewares", () => {
       store.registerAction("IncrementAction", incrementAction);
       store.dispatch(incrementAction);
 
-      store.state.skip(1).subscribe((state) => {
+      store.state.pipe(
+        skip(1)
+      ).subscribe((state) => {
         expect(state.counter).toEqual(2);
         expect(global.console.warn).toHaveBeenCalled();
 
@@ -494,7 +519,9 @@ describe("middlewares", () => {
       store.registerAction("IncrementAction", incrementAction);
       store.dispatch(incrementAction);
 
-      store.state.skip(1).subscribe((state) => {
+      store.state.pipe(
+        skip(1)
+      ).subscribe((state) => {
         expect(state.counter).toEqual(2);
         expect(PLATFORM.global.localStorage.getItem("aurelia-store-state")).toBe(JSON.stringify(state));
         done();
@@ -519,7 +546,9 @@ describe("middlewares", () => {
       store.registerAction("IncrementAction", incrementAction);
       store.dispatch(incrementAction);
 
-      store.state.skip(1).subscribe((state) => {
+      store.state.pipe(
+        skip(1)
+      ).subscribe((state) => {
         expect(state.counter).toEqual(2);
         expect(PLATFORM.global.localStorage.getItem(key)).toBe(JSON.stringify(state));
         done();
@@ -542,7 +571,9 @@ describe("middlewares", () => {
       store.registerAction("Rehydrate", rehydrateFromLocalStorage);
       store.dispatch(rehydrateFromLocalStorage);
 
-      store.state.skip(1).subscribe((state) => {
+      store.state.pipe(
+        skip(1)
+      ).subscribe((state) => {
         expect(state.counter).toEqual(1000);
         done();
       });
@@ -565,7 +596,9 @@ describe("middlewares", () => {
       store.registerAction("Rehydrate", rehydrateFromLocalStorage);
       store.dispatch(rehydrateFromLocalStorage);
 
-      store.state.skip(1).subscribe((state) => {
+      store.state.pipe(
+        skip(1)
+      ).subscribe((state) => {
         expect(state.counter).toEqual(1000);
         done();
       });
@@ -580,7 +613,9 @@ describe("middlewares", () => {
       store.registerAction("Rehydrate", rehydrateFromLocalStorage);
       store.dispatch(rehydrateFromLocalStorage);
 
-      store.state.skip(1).subscribe((state) => {
+      store.state.pipe(
+        skip(1)
+      ).subscribe((state) => {
         expect(state.counter).toEqual(1);
         done();
       });
@@ -599,7 +634,9 @@ describe("middlewares", () => {
       store.registerAction("Rehydrate", rehydrateFromLocalStorage);
       store.dispatch(rehydrateFromLocalStorage);
 
-      store.state.skip(1).subscribe((state) => {
+      store.state.pipe(
+        skip(1)
+      ).subscribe((state) => {
         expect(state.counter).toEqual(1);
         done();
       });
@@ -621,7 +658,9 @@ describe("middlewares", () => {
       store.registerAction("Rehydrate", rehydrateFromLocalStorage);
       store.dispatch(rehydrateFromLocalStorage);
 
-      store.state.skip(1).subscribe((state) => {
+      store.state.pipe(
+        skip(1)
+      ).subscribe((state) => {
         expect(state.present.counter).toEqual(1000);
         done();
       });
@@ -640,7 +679,9 @@ describe("middlewares", () => {
       store.registerAction("Rehydrate", rehydrateFromLocalStorage);
       store.dispatch(rehydrateFromLocalStorage);
 
-      store.state.skip(1).subscribe((state) => {
+      store.state.pipe(
+        skip(1)
+      ).subscribe((state) => {
         expect(state.counter).toEqual(1);
         done();
       });
