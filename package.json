@@ -3,10 +3,10 @@
   "version": "0.23.3",
   "description": "Aurelia single state store based on RxJS",
   "keywords": [
+    "aurelia",
     "rxjs",
     "store",
-    "behaviorsubject",
-    "aurelia"
+    "behaviorsubject"
   ],
   "main": "dist/commonjs/aurelia-store.js",
   "typings": "dist/commonjs/aurelia-store.d.ts",
@@ -75,13 +75,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zewa666/aurelia-store.git"
+    "url": "git+https://github.com/aurelia/store.git"
   },
-  "author": "Vildan Softic <zewa666@gmail.com>",
+  "author": "Vildan Softic <zewa666@gmail.com> (http://pragmatic-coder.net)",
   "license": "MIT",
-  "homepage": "https://github.com/zewa666/aurelia-store#readme",
+  "homepage": "http://aurelia.io",
   "bugs": {
-    "url": "https://github.com/zewa666/aurelia-store/issues"
+    "url": "https://github.com/aurelia/store/issues"
   },
   "jspm": {
     "registry": "npm",
