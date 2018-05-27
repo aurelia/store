@@ -132,8 +132,15 @@
         },
         {
           "name": "rxjs",
-          "main": false,
-          "path": "../node_modules/rxjs"
+          "main": "./index.js",
+          "path": "../node_modules/rxjs",
+          "resources": []
+        },
+        {
+          "name": "rxjs/operators",
+          "main": "./index.js",
+          "path": "../node_modules/rxjs/operators",
+          "resources": []
         }
       ],
       "tutorial": [
