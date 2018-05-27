@@ -39,7 +39,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-import { BehaviorSubject } from "rxjs/BehaviorSubject";
+import { BehaviorSubject } from "rxjs";
 import { autoinject, Container, LogManager, PLATFORM } from "aurelia-framework";
 import { jump, applyLimits, isStateHistory } from "./history";
 import { MiddlewarePlacement } from "./middleware";

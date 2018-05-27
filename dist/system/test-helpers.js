@@ -1,4 +1,4 @@
-System.register(["rxjs/add/operator/skip", "rxjs/add/operator/take", "rxjs/add/operator/delay"], function (exports_1, context_1) {
+System.register(["rxjs/operators"], function (exports_1, context_1) {
     "use strict";
     var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
         return new (P || (P = Promise))(function (resolve, reject) {
@@ -71,22 +71,20 @@ System.register(["rxjs/add/operator/skip", "rxjs/add/operator/take", "rxjs/add/o
                 return [2 /*return*/, new Promise(function (resolve, reject) {
                         var currentStep = 0;
                         steps.slice(0, -1).forEach(function (step) {
-                            store.state.skip(currentStep).take(1).delay(0).subscribe(tryStep(logStep(step, currentStep), reject));
+                            store.state.pipe(operators_1.skip(currentStep), operators_1.take(1), operators_1.delay(0)).subscribe(tryStep(logStep(step, currentStep), reject));
                             currentStep++;
                         });
-                        store.state.skip(currentStep).take(1).subscribe(lastStep(tryStep(logStep(steps[steps.length - 1], currentStep), reject), resolve));
+                        store.state.pipe(operators_1.skip(currentStep), operators_1.take(1)).subscribe(lastStep(tryStep(logStep(steps[steps.length - 1], currentStep), reject), resolve));
                     })];
             });
         });
     }
     exports_1("executeSteps", executeSteps);
+    var operators_1;
     return {
         setters: [
-            function (_1) {
-            },
-            function (_2) {
-            },
-            function (_3) {
+            function (operators_1_1) {
+                operators_1 = operators_1_1;
             }
         ],
         execute: function () {

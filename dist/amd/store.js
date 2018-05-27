@@ -39,7 +39,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./history", "./middleware", "./logging"], function (require, exports, BehaviorSubject_1, aurelia_framework_1, history_1, middleware_1, logging_1) {
+define(["require", "exports", "rxjs", "aurelia-framework", "./history", "./middleware", "./logging"], function (require, exports, rxjs_1, aurelia_framework_1, history_1, middleware_1, logging_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var PerformanceMeasurement;
@@ -57,7 +57,7 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./hi
             this.dispatchQueue = [];
             this.options = options || {};
             var isUndoable = this.options.history && this.options.history.undoable === true;
-            this._state = new BehaviorSubject_1.BehaviorSubject(initialState);
+            this._state = new rxjs_1.BehaviorSubject(initialState);
             this.state = this._state.asObservable();
             this.setupDevTools();
             if (isUndoable) {

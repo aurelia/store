@@ -1,4 +1,4 @@
-import { Observable } from "rxjs/Observable";
+import { Observable } from "rxjs";
 import { HistoryOptions } from "./history";
 import { Middleware, MiddlewarePlacement } from "./middleware";
 import { LogDefinitions } from "./logging";

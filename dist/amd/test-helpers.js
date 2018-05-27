@@ -33,7 +33,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "rxjs/add/operator/skip", "rxjs/add/operator/take", "rxjs/add/operator/delay"], function (require, exports) {
+define(["require", "exports", "rxjs/operators"], function (require, exports, operators_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function executeSteps(store, shouldLogResults) {
@@ -71,10 +71,10 @@ define(["require", "exports", "rxjs/add/operator/skip", "rxjs/add/operator/take"
                 return [2 /*return*/, new Promise(function (resolve, reject) {
                         var currentStep = 0;
                         steps.slice(0, -1).forEach(function (step) {
-                            store.state.skip(currentStep).take(1).delay(0).subscribe(tryStep(logStep(step, currentStep), reject));
+                            store.state.pipe(operators_1.skip(currentStep), operators_1.take(1), operators_1.delay(0)).subscribe(tryStep(logStep(step, currentStep), reject));
                             currentStep++;
                         });
-                        store.state.skip(currentStep).take(1).subscribe(lastStep(tryStep(logStep(steps[steps.length - 1], currentStep), reject), resolve));
+                        store.state.pipe(operators_1.skip(currentStep), operators_1.take(1)).subscribe(lastStep(tryStep(logStep(steps[steps.length - 1], currentStep), reject), resolve));
                     })];
             });
         });

@@ -41,7 +41,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var BehaviorSubject_1 = require("rxjs/BehaviorSubject");
+var rxjs_1 = require("rxjs");
 var aurelia_framework_1 = require("aurelia-framework");
 var history_1 = require("./history");
 var middleware_1 = require("./middleware");
@@ -61,7 +61,7 @@ var Store = /** @class */ (function () {
         this.dispatchQueue = [];
         this.options = options || {};
         var isUndoable = this.options.history && this.options.history.undoable === true;
-        this._state = new BehaviorSubject_1.BehaviorSubject(initialState);
+        this._state = new rxjs_1.BehaviorSubject(initialState);
         this.state = this._state.asObservable();
         this.setupDevTools();
         if (isUndoable) {

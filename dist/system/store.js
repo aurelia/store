@@ -1,4 +1,4 @@
-System.register(["rxjs/BehaviorSubject", "aurelia-framework", "./history", "./middleware", "./logging"], function (exports_1, context_1) {
+System.register(["rxjs", "aurelia-framework", "./history", "./middleware", "./logging"], function (exports_1, context_1) {
     "use strict";
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -53,11 +53,11 @@ System.register(["rxjs/BehaviorSubject", "aurelia-framework", "./history", "./mi
         };
     }
     exports_1("dispatchify", dispatchify);
-    var BehaviorSubject_1, aurelia_framework_1, history_1, middleware_1, logging_1, PerformanceMeasurement, Store;
+    var rxjs_1, aurelia_framework_1, history_1, middleware_1, logging_1, PerformanceMeasurement, Store;
     return {
         setters: [
-            function (BehaviorSubject_1_1) {
-                BehaviorSubject_1 = BehaviorSubject_1_1;
+            function (rxjs_1_1) {
+                rxjs_1 = rxjs_1_1;
             },
             function (aurelia_framework_1_1) {
                 aurelia_framework_1 = aurelia_framework_1_1;
@@ -88,7 +88,7 @@ System.register(["rxjs/BehaviorSubject", "aurelia-framework", "./history", "./mi
                     this.dispatchQueue = [];
                     this.options = options || {};
                     var isUndoable = this.options.history && this.options.history.undoable === true;
-                    this._state = new BehaviorSubject_1.BehaviorSubject(initialState);
+                    this._state = new rxjs_1.BehaviorSubject(initialState);
                     this.state = this._state.asObservable();
                     this.setupDevTools();
                     if (isUndoable) {

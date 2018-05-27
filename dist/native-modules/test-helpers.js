@@ -33,9 +33,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-import "rxjs/add/operator/skip";
-import "rxjs/add/operator/take";
-import "rxjs/add/operator/delay";
+import { delay, skip, take } from "rxjs/operators";
 export function executeSteps(store, shouldLogResults) {
     var steps = [];
     for (var _i = 2; _i < arguments.length; _i++) {
@@ -71,10 +69,10 @@ export function executeSteps(store, shouldLogResults) {
             return [2 /*return*/, new Promise(function (resolve, reject) {
                     var currentStep = 0;
                     steps.slice(0, -1).forEach(function (step) {
-                        store.state.skip(currentStep).take(1).delay(0).subscribe(tryStep(logStep(step, currentStep), reject));
+                        store.state.pipe(skip(currentStep), take(1), delay(0)).subscribe(tryStep(logStep(step, currentStep), reject));
                         currentStep++;
                     });
-                    store.state.skip(currentStep).take(1).subscribe(lastStep(tryStep(logStep(steps[steps.length - 1], currentStep), reject), resolve));
+                    store.state.pipe(skip(currentStep), take(1)).subscribe(lastStep(tryStep(logStep(steps[steps.length - 1], currentStep), reject), resolve));
                 })];
         });
     });
