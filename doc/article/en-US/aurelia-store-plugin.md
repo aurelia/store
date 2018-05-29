@@ -27,7 +27,7 @@ The main reason for using RxJS though is that observables are delivered over tim
 
 Broken down on the concepts of Aurelia, as depicted in the following chart, this means that a ViewModel subscribes to the single store and sets up a state subscription. The view directly binds to properties of the state. Actions can be dispatched and trigger the next state emit. Now the initial subscription receives the next state and changes the bound variable, Aurelia automatically figures out what changed and triggers a re-render. The next dispatch will then trigger the next cycle and so on. This way the system behaves in a cyclic, reactive way and sees state changes as requests for a re-rendering.
 
-![Chart workflow](./images/chart_store_workflow.png)
+![Chart workflow](images/chart_store_workflow.png)
 
 A fundamental benefit of that approach is, that you as a developer do not need to think of signaling individual components about changes, but rather they will all listen and react to changes by themselves if the respective part of the state gets modified. Think of it as an event dispatch, where multiple recipients can listen for and perform changes but with the benefit of a formalized global state. As such, all you need to focus on is the state and the rest will be handled automatically.
 
@@ -72,9 +72,8 @@ alternatively, you can manually add these dependencies to your vendor bundle:
 
 ## Granular (patched) RxJS imports
 
+> Info
 > With the recent release of RxJS v.6 quite a lot has changed. There are new ways to import dependencies and ways to keep compatibility with previous API versions. Take a look at the [following upgrade instructions](https://github.com/ReactiveX/rxjs/blob/master/MIGRATION.md) for further details. In case you're using a classic Require.js based Aurelia CLI project setup, make sure to [configure rxjs-compat](https://www.npmjs.com/package/rxjs-compat) in aurelia.json as a dependency and use it as the main include file. If you do on the other already use the newest APIs you'll have to adjust your `aurelia.json` or do a fresh new `au import aurelia-store` to get the rxjs dependencies properly auto-setup.
-
-
 
 **This section is only valid for RxJS versions <= 5.x.x**
 
@@ -115,6 +114,7 @@ So try to avoid these and instead only import operators and observable features 
   </source-code>
 </code-listing>
 
+> Info
 > Additional information and tips & tricks about size-sensitive bundling with Aurelia CLI can be found [here](http://pragmatic-coder.net/aurelia-cli-and-rxjs-size-sensitive-bundles/)
 
 ## What is the State?
@@ -257,6 +257,7 @@ As explained in the beginning, the Aurelia Store plugin provides a public observ
   </source-code>
 </code-listing>
 
+> Info
 > Note that in the TypeScript version we didn't have to type-cast the state variable provided to the next handler since the initial store was injected using the `State` entity as a generic provider.
 
 With that in place the state can be consumed as usual directly from within your template:
@@ -322,6 +323,7 @@ Above ViewModel example could look the following using the connectTo decorator:
   </source-code>
 </code-listing>
 
+> Info
 > Notice how we've declared the public state property of type `State` in the TS version. The sole reason for that is to have proper type hinting during compile time.
 
 In case you want to provide a custom selector instead of subscribing to the whole state, you may provide a function, which will receive the store and should return an observable to be used instead of the default `store.state`. The decorator accepts a generic interface which matches your State, for a better TypeScript workflow.
@@ -421,6 +423,7 @@ Not only the target but also the default `setup` and `teardown` methods can be s
 </code-listing>
 
 
+> Info
 > The provided action names for setup and teardown don't necessarily have to be one of the official [lifecycle methods](http://aurelia.io/docs/fundamentals/components#the-component-lifecycle) but should be used as these get called automatically by Aurelia at the proper time.
 
 
@@ -464,7 +467,8 @@ Last but not least you can also define a callback to be called with the next sta
   </source-code>
 </code-listing>
 
-> Your onChanged handler will be called before the target property is changed. This way you have access to both the current and previous state.
+> Info
+> Your `onChanged` handler will be called before the target property is changed. This way you have access to both the current and previous state.
 
 Next, let's find out how to produce state changes.
 
@@ -645,6 +649,7 @@ From above example, imagine we'd have to validate the given name, which happens 
   </source-code>
 </code-listing>
 
+> Info
 > You're not forced to use async/await but it's highly recommended to use it for better readability wherever you can
 
 ## Dispatching actions
@@ -716,6 +721,7 @@ be less work just forwarding a string. That way you don't need to import the act
 it. On the other hand exactly this is a helpful mechanism to make sure your app survives a refactoring session. Imagine
 you'd rename the registration name and not all the places you're dispatching. A long debugging night might be just around the corner ;)
 
+> Info
 > Dispatching non-registered actions will result in an error
 
 ## Using the dispatchify higher order function
@@ -989,6 +995,7 @@ You can use the `nextStateHistory` helper function to easily push your new state
 
 
 ### Navigating through history
+
 Having a history of states is great to do state time-travelling. That means defining either a past or future state as the new present. You can do it manually as described in the full-fledged example above and switching states between the properties `past`, `present` and `future`, or you can import the pre-registered action `jump` and pass it either a positive number for traveling into the future or a negative for travelling to past states.
 
 <code-listing heading="Time-travelling states">
@@ -1124,11 +1131,12 @@ Aurelia Store uses a concept of middlewares to handle side-effects. Concept-wise
 
 A middleware is similar to an action, with the difference that it may return void as well. Middlewares can be executed before the dispatched action, thus potentially manipulating the current state which will be passed to the action, or afterward, modifying the returned value from the action. If they don't return the previous value will be passed as input. Either way, the middleware reducer can be sync as well as async.
 
+> Warning
 > As soon as you have one async middleware registered, essentially all action dispatches will be async as well.
 
-![Chart workflow](./images/middlewares.png)
+![Chart workflow](images/middlewares.png)
 
-Middlewares are registered using `store.registerMiddleware` with the middlewares function and the placement `before` or `after`. Unregisteration can be done using `store.unregisterMiddleware`
+Middlewares are registered using `store.registerMiddleware` with the middlewares function and the placement `before` or `after`. Unregistration can be done using `store.unregisterMiddleware`
 
 <code-listing heading="Registering a middleware">
   <source-code lang="TypeScript">
@@ -1477,17 +1485,20 @@ There are a lot of other state management libraries out there, so you might ask 
 Let's look at the differences with few of the well-known alternatives. 
 
 ### Differences to Redux
+
 Doubtlessly [Redux](https://redux.js.org/) is one of the most favorite state management libraries out there in the eco system. With its solid principles of being a predictable state container and thus working towards consistently behaving apps, it's a common choice amongst React developers. A lot of that is given by the focus of immutable states and the predictability that brings with itself. Yet Redux is not solely bound to a framework and can be used with everything else, [including Aurelia](https://www.sitepoint.com/managing-state-aurelia-with-redux/) as well. There are even plugins to help you [get started](https://github.com/steelsojka/aurelia-redux-plugin).
 
 Aurelia Store shares a lot of fundamental design choices from Redux yet drastically differentiates in two points. For one it's the reduction of boilerplate code. There is no necessity to split Actions and Reducers, along with separate action constants. Plain functions are all that is needed. Secondly, handling async state calculations is simplified by treating the apps state as a stream of states. RxJS as such is a major differentiator, which slowly is also finding it's place in the [Redux eco-system](https://github.com/redux-observable/redux-observable).
 
 ### Differences to MobX
+
 [MobX](https://github.com/mobxjs/mobx) came up as a more lightweight alternative to Redux. With it's focus on observing properties for changes and that way manipulating the apps state, it addresses the issue of reducing boilerplate and not forcing the user into a strict functional programming style. MobX, same as Redux is not tied specifically to a framework - although they offer React bindings out of the box - yet it is not really a great fit for Aurelia. The primary reason for that is that observing property changes is actually one of the main selling points of Aurelia.
 Same applies to computed values resembling Aurelia's `computedFrom` and reactions, being pretty much the same as `propertyChanged` handlers.
 
 Essentially all that MobX brings to the table, might be implemented with vanilla Aurelia plus a global state service.
 
 ### Differences to VueX
+
 The last well-known alternative is [VueX](https://github.com/vuejs/vuex), state management library designed specifically for use with the [Vue framework](https://vuejs.org/v2/guide/). On the surface, VueX is relatively similar to MobX with some specific twists to how it handles internal changes, being `mutations`, although developers [seem to disagree](https://twitter.com/youyuxi/status/736939734900047874?lang=de) about that. Mutations very much translate function wise to Redux reducers, with the difference that they make use of Vue's change tracking and thus nicely fit into the framework itself. Modules, on the other hand, are another way to group your actions.
 
 Aurelia Store in that regards is pretty similar to VueX. It makes use of Aurelia's dependency injection, logging and platform abstractions, but aside from that is still a plain simple TypeScript class and could be re-used for any other purpose. One of the biggest differentiators is that Aurelia Store does not force any specific style. Whether you prefer a class-based approach, using the `connectTo` decorator, or heavy function based composition, the underlying architecture of a private BehaviorSubject and a public Observable is flexible enough to adapt to your needs.
