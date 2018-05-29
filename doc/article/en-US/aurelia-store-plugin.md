@@ -42,6 +42,7 @@ npm install aurelia-store
 ```
 
 or using [Yarn](https://yarnpkg.com)
+
 ```Shell
 yarn add aurelia-store
 ```
@@ -54,7 +55,7 @@ au import aurelia-store
 
 alternatively, you can manually add these dependencies to your vendor bundle:
 
-```json
+```JSON
 ...
 "dependencies": [
   {
@@ -75,7 +76,7 @@ alternatively, you can manually add these dependencies to your vendor bundle:
 > Info
 > With the recent release of RxJS v.6 quite a lot has changed. There are new ways to import dependencies and ways to keep compatibility with previous API versions. Take a look at the [following upgrade instructions](https://github.com/ReactiveX/rxjs/blob/master/MIGRATION.md) for further details. In case you're using a classic Require.js based Aurelia CLI project setup, make sure to [configure rxjs-compat](https://www.npmjs.com/package/rxjs-compat) in aurelia.json as a dependency and use it as the main include file. If you do on the other already use the newest APIs you'll have to adjust your `aurelia.json` or do a fresh new `au import aurelia-store` to get the rxjs dependencies properly auto-setup.
 
-**This section is only valid for RxJS versions <= 5.x.x**
+**This section is only valid for RxJS versions less than or equal to 5.x.x**
 
 Looking at the above dependency configuration for Aurelia CLI you'll note the use of `"main": false`, which tells the loader not to use any default file and not start importing things right away. The reason for this is that importing the whole RxJS library would net result in additional ~250kb for your app, where you'd most of the time need only a minimum subset. Patched imports enable to bundle only things directly referenced.
 
@@ -427,7 +428,8 @@ Not only the target but also the default `setup` and `teardown` methods can be s
 > The provided action names for setup and teardown don't necessarily have to be one of the official [lifecycle methods](http://aurelia.io/docs/fundamentals/components#the-component-lifecycle) but should be used as these get called automatically by Aurelia at the proper time.
 
 
-Last but not least you can also define a callback to be called with the next state once a state change happens
+Last but not least you can also define a callback to be called with the next state once a state change happens.
+
 <code-listing heading="Define an onChanged handler">
   <source-code lang="TypeScript">
 
@@ -447,6 +449,7 @@ Last but not least you can also define a callback to be called with the next sta
     }
   </source-code>
 </code-listing>
+
 <code-listing heading="Define an onChanged handler">
   <source-code lang="JavaScript">
 
@@ -479,6 +482,7 @@ Their job is to create the next state and return it. By doing so they should not
 either a proper clone. The reason for that is that each state represents a unique snapshot of your app in time. By modifying it, you'd alter the state and wouldn't be able to properly compare the old and new state. Further implications by that would be that advanced features such as time-traveling through states wouldn't work anymore.
 So keep in mind ... don't mutate your state.
 
+> Info
 > In case you're not a fan of functional approaches take a look at libraries like [Immer.js](https://github.com/mweststrate/immer), and the [Aurelia store example](https://github.com/zewa666/aurelia-store-examples#immer) using it, to act like you'd mutate the object but secretly get a proper clone.
 
 Continuing with above framework example, an action to add an additional framework would look like the following.
@@ -812,7 +816,6 @@ In order to do so, you can leverage the higher order function `dispatchify`. Wha
 </code-listing>
 
 With this approach, you can design your custom elements to act either as presentational or container components. For further information take a look at [this article](http://pragmatic-coder.net/using-a-state-container-with-aurelia/).
-
 
 ## Recording a navigable history of the stream of states
 
