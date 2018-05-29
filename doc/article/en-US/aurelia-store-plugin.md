@@ -141,10 +141,10 @@ Your app will typically start with a beginning state, called initial state, whic
       frameworks: ["Aurelia", "React", "Angular"]
     };
   </source-code>
-</code-listing>
-<code-listing heading="Defining the initialState">
   <source-code lang="JavaScript">
     
+    // there is no need for a dedicated entity in JavaScript
+
     // state.js
     export const initialState = {
       frameworks: ["Aurelia", "React", "Angular"]
@@ -175,8 +175,6 @@ In order to tell Aurelia how to use the plugin, we need to register it. This is 
       aurelia.start().then(() => aurelia.setRoot());
     }
   </source-code>
-</code-listing>
-<code-listing heading="Registering the plugin">
   <source-code lang="JavaScript">
     
     // main.js
@@ -231,8 +229,6 @@ As explained in the beginning, the Aurelia Store plugin provides a public observ
       }
     }
   </source-code>
-</code-listing>
-<code-listing heading="Injecting the store and creating a subscription">
   <source-code lang="JavaScript">
 
     // app.js
@@ -306,8 +302,6 @@ Above ViewModel example could look the following using the connectTo decorator:
       constructor(private store: Store<State>) {}
     }
   </source-code>
-</code-listing>
-<code-listing heading="Using the connectTo decorator">
   <source-code lang="JavaScript">
 
     // app.js
@@ -340,8 +334,6 @@ In case you want to provide a custom selector instead of subscribing to the whol
       ...
     }
   </source-code>
-</code-listing>
-<code-listing heading="Sub-state selection">
   <source-code lang="JavaScript">
 
     // app.js
@@ -370,8 +362,6 @@ If you need more control and for instance want to override the default target pr
       ...
     }
   </source-code>
-</code-listing>
-<code-listing heading="Defining the selector and target">
   <source-code lang="JavaScript">
 
     // app.js
@@ -405,8 +395,6 @@ Not only the target but also the default `setup` and `teardown` methods can be s
       ...
     }
   </source-code>
-</code-listing>
-<code-listing heading="Overriding the default setup and teardown methods">
   <source-code lang="JavaScript">
 
     // app.js
@@ -448,9 +436,6 @@ Last but not least you can also define a callback to be called with the next sta
       }
     }
   </source-code>
-</code-listing>
-
-<code-listing heading="Define an onChanged handler">
   <source-code lang="JavaScript">
 
     // app.js
@@ -498,8 +483,6 @@ You create a shallow clone of the state by using Object.assign. By saying shallo
       return newState;
     }
   </source-code>
-</code-listing>
-<code-listing heading="A simple action">
   <source-code lang="JavaScript">
 
     const demoAction = (state, frameworkName) => {
@@ -535,8 +518,6 @@ Next, we need to register the created action with the store. That is done by cal
       ...
     }
   </source-code>
-</code-listing>
-<code-listing heading="Registering an action">
   <source-code lang="JavaScript">
 
     // app.js
@@ -577,8 +558,6 @@ You can unregister actions whenever needed by using the stores `unregisterAction
       ...
     }
   </source-code>
-</code-listing>
-<code-listing heading="Unregistering an action">
   <source-code lang="JavaScript">
 
     // app.js
@@ -626,8 +605,6 @@ From above example, imagine we'd have to validate the given name, which happens 
       return newState;
     }
   </source-code>
-</code-listing>
-<code-listing heading="An async action">
   <source-code lang="JavaScript">
 
     function validateAsync(name) {
@@ -691,8 +668,6 @@ Alternatively we can also provide the previously registered name instead.
       }
     }
   </source-code>
-</code-listing>
-<code-listing heading="Dispatching an action">
   <source-code lang="JavaScript">
 
     // app.js
@@ -772,8 +747,6 @@ In order to do so, you can leverage the higher order function `dispatchify`. Wha
       @bindable add;
     }
   </source-code>
-</code-listing>
-<code-listing heading="Forwarding a dispatchable function as argument to child-elements">
   <source-code lang="JavaScript">
 
     // framework-list.js
@@ -845,8 +818,6 @@ Since the whole concept of this plugin is to stream states over time, it makes s
       aurelia.start().then(() => aurelia.setRoot());
     }
   </source-code>
-</code-listing>
-<code-listing heading="Registering the plugin with history support">
   <source-code lang="JavaScript">
     
     // main.js
@@ -904,8 +875,6 @@ export interface StateHistory<T> {
       }
     }
   </source-code>
-</code-listing>
-<code-listing heading="Subscribing to the state history">
   <source-code lang="JavaScript">
     
     // app.js
@@ -964,8 +933,6 @@ You can use the `nextStateHistory` helper function to easily push your new state
       );
     }
   </source-code>
-</code-listing>
-<code-listing heading="A StateHistory aware action">
   <source-code lang="JavaScript">
     
     // app.js
@@ -1032,8 +999,6 @@ Having a history of states is great to do state time-travelling. That means defi
       }
     }
   </source-code>
-</code-listing>
-<code-listing heading="A StateHistory aware action">
   <source-code lang="JavaScript">
     
     // app.js
@@ -1099,8 +1064,6 @@ That means your past and future arrays can hold only a maximum of the provided `
       aurelia.start().then(() => aurelia.setRoot());
     }
   </source-code>
-</code-listing>
-<code-listing heading="Registering the plugin with history overflow limits">
   <source-code lang="JavaScript">
     
     // main.js
@@ -1153,8 +1116,6 @@ Middlewares are registered using `store.registerMiddleware` with the middlewares
 
     
   </source-code>
-</code-listing>
-<code-listing heading="Registering a middleware">
   <source-code lang="JavaScript">
     
     // app.js
@@ -1182,8 +1143,6 @@ When executed, a middleware might accept a second argument which reflects the cu
       }
     }
   </source-code>
-</code-listing>
-<code-listing heading="Accessing the original state">
   <source-code lang="JavaScript">
     
     // app.js
@@ -1212,8 +1171,6 @@ These are passed in as the third argument to the middleware function and are reg
 
     
   </source-code>
-</code-listing>
-<code-listing heading="Passing settings to middlewares">
   <source-code lang="JavaScript">
     
     // app.js
@@ -1243,8 +1200,6 @@ In here you get an object containing the actions `name` and the provided `params
     
     store.registerMiddleware(gateKeeperMiddleware, MiddlewarePlacement.After);
   </source-code>
-</code-listing>
-<code-listing heading="Reference to the calling action in middlewares">
   <source-code lang="JavaScript">
     
     // app.js
@@ -1286,8 +1241,6 @@ By default errors thrown by middlewares will be swallowed in order to guarantee 
       aurelia.start().then(() => aurelia.setRoot());
     }
   </source-code>
-</code-listing>
-<code-listing heading="Registering the plugin with active error propagation">
   <source-code lang="JavaScript">
     
     // main.js
@@ -1331,8 +1284,6 @@ From the previous explanations of the inner workings of middlewares, you've come
 
     store.registerMiddleware(logMiddleware, MiddlewarePlacement.After, { logType: LogLevel.log });
   </source-code>
-</code-listing>
-<code-listing heading="Registering the Logging middleware">
   <source-code lang="JavaScript">
     
     // app.js
@@ -1363,8 +1314,6 @@ In order to make use of it all, you need to do is to register it as usual. By de
 
     store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After, { key: "my-storage-key" });
   </source-code>
-</code-listing>
-<code-listing heading="Registering the LocalStorage middleware">
   <source-code lang="JavaScript">
     
     // app.js
@@ -1391,8 +1340,6 @@ Now in order to rehydrate the stored state, all you need to do is to dispatch th
     store.registerAction("Rehydrate", rehydrateFromLocalStorage);
     store.dispatch(rehydrateFromLocalStorage, "my-storage-key");
   </source-code>
-</code-listing>
-<code-listing heading="Dispatching the localStorage rehydration action">
   <source-code lang="JavaScript">
     
     // app.js
@@ -1426,8 +1373,6 @@ In order to get insights into total run durations to effectively calculate how l
     ...
     aurelia.use.plugin("aurelia-store", { initialState, measurePerformance: PerformanceMeasurement.All });
   </source-code>
-</code-listing>
-<code-listing heading="Tracking performance data">
   <source-code lang="JavaScript">
     
     // main.js
@@ -1465,8 +1410,6 @@ For various features, Aurelia store does create log statements if turned on. E.g
       }
     }});
   </source-code>
-</code-listing>
-<code-listing heading="Dispatch logs to console.debug">
   <source-code lang="JavaScript">
     
     // main.js
