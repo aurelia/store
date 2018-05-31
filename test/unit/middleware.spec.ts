@@ -326,6 +326,21 @@ describe("middlewares", () => {
     expect(nextSpy).toHaveBeenCalledTimes(0);
   });
 
+  it("should interrupt queue action if after placed middleware returns sync false", async () => {
+    const errorMsg = "Failed on purpose";
+    const store = createStoreWithStateAndOptions(initialState, {});
+    const nextSpy = spyOn((store as any)._state, "next").and.callThrough();
+    const syncFalseMiddleware = (currentState: TestState): false => {
+      return false;
+    }
+    store.registerMiddleware(syncFalseMiddleware, MiddlewarePlacement.After);
+    store.registerAction("IncrementAction", incrementAction);
+
+    await store.dispatch(incrementAction);
+
+    expect(nextSpy).toHaveBeenCalledTimes(0);
+  });
+
   it("should interrupt queue action if middleware returns async false", async () => {
     const errorMsg = "Failed on purpose";
     const store = createStoreWithStateAndOptions(initialState, {});
