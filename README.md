@@ -9,7 +9,7 @@
 This library is part of the [Aurelia](http://www.aurelia.io/) platform and contains a plugin that provides a single state store based on RxJS.
 Various examples can be found in the [samples repository](https://github.com/zewa666/aurelia-store-examples)..
 
-You can find complete documentation on setup and usage in the official [Aurelia Developer Hub](http://aurelia.io/hub.html#/doc/article/aurelia/store/latest/aurelia-store-plugin)
+You can find complete documentation on setup and usage in the official [Aurelia Developer Hub](https://aurelia.io/docs/plugins/store)
 
 > To keep up to date on [Aurelia](http://www.aurelia.io/), please visit and subscribe to [the official blog](http://blog.aurelia.io/) and [our email list](http://eepurl.com/ces50j). We also invite you to [follow us on twitter](https://twitter.com/aureliaeffect). If you have questions look around our [Discourse forums](https://discourse.aurelia.io/), chat in our [community on Gitter](https://gitter.im/aurelia/discuss) or use [stack overflow](http://stackoverflow.com/search?q=aurelia). Documentation can be found [in our developer hub](http://aurelia.io/docs). If you would like to have deeper insight into our development process, please install the [ZenHub](https://zenhub.io) Chrome or Firefox Extension and visit any of our repository's boards.
 
