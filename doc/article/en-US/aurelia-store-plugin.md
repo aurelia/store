@@ -713,7 +713,7 @@ In order to do so, you can leverage the higher order function `dispatchify`. Wha
   <source-code lang="TypeScript">
 
     // framework-list.ts
-    import { useView } from "aurelia-framework";
+    import { inlineView } from "aurelia-framework";
     import { dispatchify } from "aurelia-store";
 
     const addFramework = (state: State, frameworkName: string) => {
@@ -723,7 +723,7 @@ In order to do so, you can leverage the higher order function `dispatchify`. Wha
       return newState;
     }
 
-    @useView(`
+    @inlineView(`
       <template>
         <require from="./framework-item"></require>
         <framework-item add.bind="addFramework"></framework-item>
@@ -734,9 +734,9 @@ In order to do so, you can leverage the higher order function `dispatchify`. Wha
     }
 
     // framework-item.ts
-    import { bindable, useView } from "aurelia-framework";
+    import { bindable, inlineView } from "aurelia-framework";
     
-    @useView(`
+    @inlineView(`
       <template>
         New framework name:
         <input value.bind="newFrameworkName" />
@@ -750,7 +750,7 @@ In order to do so, you can leverage the higher order function `dispatchify`. Wha
   <source-code lang="JavaScript">
 
     // framework-list.js
-    import { useView } from "aurelia-framework";
+    import { inlineView } from "aurelia-framework";
     import { dispatchify } from "aurelia-store";
 
     const addFramework = (state, frameworkName) => {
@@ -760,7 +760,7 @@ In order to do so, you can leverage the higher order function `dispatchify`. Wha
       return newState;
     }
 
-    @useView(`
+    @inlineView(`
       <template>
         <require from="./framework-item"></require>
         <framework-item add.bind="addFramework"></framework-item>
@@ -773,9 +773,9 @@ In order to do so, you can leverage the higher order function `dispatchify`. Wha
     }
 
     // framework-item.js
-    import { bindable, useView } from "aurelia-framework";
+    import { bindable, inlineView } from "aurelia-framework";
     
-    @useView(`
+    @inlineView(`
       <template>
         New framework name:
         <input value.bind="newFrameworkName" />
