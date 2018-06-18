@@ -501,7 +501,6 @@ Next, we need to register the created action with the store. That is done by cal
     export class App {
 
       public state: State;
-      private subscription: Subscription;
 
       constructor(private store: Store<State>) {
         this.store.registerAction("DemoAction", demoAction);
@@ -646,7 +645,6 @@ Alternatively we can also provide the previously registered name instead.
     export class App {
 
       public state: State;
-      private subscription: Subscription;
 
       constructor(private store: Store<State>) {
         this.store.registerAction("DemoAction", demoAction);
