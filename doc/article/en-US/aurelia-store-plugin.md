@@ -287,32 +287,25 @@ Above ViewModel example could look the following using the connectTo decorator:
   <source-code lang="TypeScript">
 
     // app.ts
-    import { autoinject } from "aurelia-dependency-injection";
-    import { Store, connectTo } from "aurelia-store";
+    import { connectTo } from "aurelia-store";
 
     import { State } from "./state";
 
-    @autoinject()
     @connectTo()
     export class App {
 
       public state: State;
-
-      constructor(private store: Store<State>) {}
     }
   </source-code>
   <source-code lang="JavaScript">
 
     // app.js
-    import { inject } from "aurelia-dependency-injection";
-    import { Store, connectTo } from "aurelia-store";
+    import { connectTo } from "aurelia-store";
 
     import { State } from "./state";
 
-    @inject(Store)
     @connectTo()
     export class App {
-      constructor(store) {}
     }
   </source-code>
 </code-listing>
