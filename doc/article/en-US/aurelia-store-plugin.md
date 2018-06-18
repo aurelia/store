@@ -1117,6 +1117,7 @@ Middlewares are registered using `store.registerMiddleware` with the middlewares
   </source-code>
 </code-listing>
 
+> Info
 > You can call the `store.registerMiddleware` function whenever you want. This means middlewares don't have to be defined upfront at the apps configuration time but whenever needed. Same applies to `store.unregisterMiddleware`.
 
 ## Accessing the original (unmodified) state in a middleware
@@ -1344,6 +1345,7 @@ Now in order to rehydrate the stored state, all you need to do is to dispatch th
   </source-code>
 </code-listing>
 
+> Info
 > Keep in mind that the store starts with an initialState. If the localStorage middleware is registered at the apps start, most likely the next refresh, will immediately overwrite your localStorage and that way negate the effect of restoring data from previous runs. In order to avoid that make sure to register the middleware just after the initial state has passed.
 
 ## Execution order
