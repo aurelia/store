@@ -287,33 +287,25 @@ Above ViewModel example could look the following using the connectTo decorator:
   <source-code lang="TypeScript">
 
     // app.ts
-    import { autoinject } from "aurelia-dependency-injection";
-    import { Store, connectTo } from "aurelia-store";
+    import { connectTo } from "aurelia-store";
 
     import { State } from "./state";
 
-    @autoinject()
     @connectTo()
     export class App {
 
       public state: State;
-      private subscription: Subscription;
-
-      constructor(private store: Store<State>) {}
     }
   </source-code>
   <source-code lang="JavaScript">
 
     // app.js
-    import { inject } from "aurelia-dependency-injection";
-    import { Store, connectTo } from "aurelia-store";
+    import { connectTo } from "aurelia-store";
 
     import { State } from "./state";
 
-    @inject(Store)
     @connectTo()
     export class App {
-      constructor(store) {}
     }
   </source-code>
 </code-listing>
@@ -509,7 +501,6 @@ Next, we need to register the created action with the store. That is done by cal
     export class App {
 
       public state: State;
-      private subscription: Subscription;
 
       constructor(private store: Store<State>) {
         this.store.registerAction("DemoAction", demoAction);
@@ -654,7 +645,6 @@ Alternatively we can also provide the previously registered name instead.
     export class App {
 
       public state: State;
-      private subscription: Subscription;
 
       constructor(private store: Store<State>) {
         this.store.registerAction("DemoAction", demoAction);
@@ -1093,7 +1083,7 @@ That means your past and future arrays can hold only a maximum of the provided `
 
 ## Handling side effects with middlewares
 
-Aurelia Store uses a concept of middlewares to handle side-effects. Concept-wise they are similar to Express.js middlewares in that they allow to perform side-effects or manipulate request data. As such they are registered functions, which execute before or after each dispatched action.
+Aurelia Store uses a concept of middlewares to handle side-effects. Concept-wise they are similar to [Express.js](https://expressjs.com/) middlewares in that they allow to perform side-effects or manipulate request data. As such they are registered functions, which execute before or after each dispatched action.
 
 A middleware is similar to an action, with the difference that it may return void as well. Middlewares can be executed before the dispatched action, thus potentially manipulating the current state which will be passed to the action, or afterward, modifying the returned value from the action. If they don't return the previous value will be passed as input. Either way, the middleware reducer can be sync as well as async.
 
@@ -1448,6 +1438,6 @@ Essentially all that MobX brings to the table, might be implemented with vanilla
 
 ### Differences to VueX
 
-The last well-known alternative is [VueX](https://github.com/vuejs/vuex), state management library designed specifically for use with the [Vue framework](https://vuejs.org/v2/guide/). On the surface, VueX is relatively similar to MobX with some specific twists to how it handles internal changes, being `mutations`, although developers [seem to disagree](https://twitter.com/youyuxi/status/736939734900047874?lang=de) about that. Mutations very much translate function wise to Redux reducers, with the difference that they make use of Vue's change tracking and thus nicely fit into the framework itself. Modules, on the other hand, are another way to group your actions.
+The last well-known alternative is [VueX](https://github.com/vuejs/vuex), state management library designed specifically for use with the [Vue framework](https://vuejs.org/v2/guide/). On the surface, VueX is relatively similar to MobX with some specific twists to how it handles internal changes, being `mutations`, although developers [seem to disagree](https://twitter.com/youyuxi/status/736939734900047874) about that. Mutations very much translate function wise to Redux reducers, with the difference that they make use of Vue's change tracking and thus nicely fit into the framework itself. Modules, on the other hand, are another way to group your actions.
 
 Aurelia Store in that regards is pretty similar to VueX. It makes use of Aurelia's dependency injection, logging and platform abstractions, but aside from that is still a plain simple TypeScript class and could be re-used for any other purpose. One of the biggest differentiators is that Aurelia Store does not force any specific style. Whether you prefer a class-based approach, using the `connectTo` decorator, or heavy function based composition, the underlying architecture of a private BehaviorSubject and a public Observable is flexible enough to adapt to your needs.
