@@ -297,7 +297,6 @@ Above ViewModel example could look the following using the connectTo decorator:
     export class App {
 
       public state: State;
-      private subscription: Subscription;
 
       constructor(private store: Store<State>) {}
     }
