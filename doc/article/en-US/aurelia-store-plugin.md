@@ -1083,7 +1083,7 @@ That means your past and future arrays can hold only a maximum of the provided `
 
 ## Handling side effects with middlewares
 
-Aurelia Store uses a concept of middlewares to handle side-effects. Concept-wise they are similar to Express.js middlewares in that they allow to perform side-effects or manipulate request data. As such they are registered functions, which execute before or after each dispatched action.
+Aurelia Store uses a concept of middlewares to handle side-effects. Concept-wise they are similar to [Express.js](https://expressjs.com/) middlewares in that they allow to perform side-effects or manipulate request data. As such they are registered functions, which execute before or after each dispatched action.
 
 A middleware is similar to an action, with the difference that it may return void as well. Middlewares can be executed before the dispatched action, thus potentially manipulating the current state which will be passed to the action, or afterward, modifying the returned value from the action. If they don't return the previous value will be passed as input. Either way, the middleware reducer can be sync as well as async.
 
