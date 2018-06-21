@@ -67,6 +67,12 @@ alternatively, you can manually add these dependencies to your vendor bundle:
     "name": "rxjs",
     "path": "../node_modules/rxjs",
     "main": false
+  },
+  ,
+  {
+    "name": "rxjs/operators",
+    "main": "./index.js",
+    "path": "../node_modules/rxjs/operators"
   }
 ]
 ```
