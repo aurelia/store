@@ -5,7 +5,7 @@ author: Vildan Softic (http://github.com/zewa666)
 ---
 ## Introduction
 
-This article covers the Store plugin for Aurelia. It is built on top of two core features of [RxJS](http://reactivex.io/rxjs/), namely Observables and the BehaviorSubject. You're don't have to delve into the reactive universe - in fact, you'll barely notice it at the beginning. But you can certainly benefit from having some knowledge about RxJS in order to use it wisely.
+This article covers the Store plugin for Aurelia. It is built on top of two core features of [RxJS](http://reactivex.io/rxjs/), namely Observables and the BehaviorSubject. You don't have to delve into the reactive universe - in fact, you'll barely notice it at the beginning. But you can certainly benefit from having some knowledge about RxJS in order to use it wisely.
 
 Various examples, demonstrating individual pieces of the plugin, can be found in the [samples repository](https://github.com/zewa666/aurelia-store-examples).
 
