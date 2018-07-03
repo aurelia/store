@@ -21,7 +21,7 @@ Leveraging a single store approach, there is only one source of truth for your d
 
 As mentioned in the intro this plugin uses RxJS as a foundation. The main idea is having a [BehaviorSubject](http://reactivex.io/rxjs/manual/overview.html#behaviorsubject) `store._state` which will store the current state. It starts with some initial state and emits new states as they come. Since having access to the BehaviorSubject would allow consumers to directly emit the `next` value, instead of a front-facing `state` property, being an Observable which connects to the BehaviorSubject, is exposed. This way consumers only have access to streamed values but cannot directly manipulate the streaming queue.
 
-But besides these core features, RxJS itself can be described as [*Lodash/Underscore for events*](http://reactivex.io/rxjs/manual/overview.html#introduction). As such all of the operators and objects can be used to manipulate the state in whatever way necessary. As an example [pluck](http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#instance-method-pluck) can be used to pierce into a sub-section of the state, whereas methods like [skip]()http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#instance-method-skip and [take](http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#instance-method-take) are great ways to unit test the stream of states over time.
+But besides these core features, RxJS itself can be described as *[Lodash/Underscore for events](http://reactivex.io/rxjs/manual/overview.html#introduction)*. As such all of the operators and objects can be used to manipulate the state in whatever way necessary. As an example [pluck](http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#instance-method-pluck) can be used to pierce into a sub-section of the state, whereas methods like [skip](http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#instance-method-skip) and [take](http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#instance-method-take) are great ways to unit test the stream of states over time.
 
 The main reason for using RxJS though is that observables are delivered over time. This promotes a reactive approach to how you'd design your application. Instead of pursuing an imperative approach like **a click on button A** should **trigger a re-rendering on component B**, we follow an [Observer Pattern](https://en.wikipedia.org/wiki/Observer_pattern) where **component B observes a global state** and **acts on changes**, which are **triggered through actions by button A**.
 
@@ -74,7 +74,7 @@ alternatively, you can manually add these dependencies to your vendor bundle:
 ## Granular (patched) RxJS imports
 
 > Info
-> With the recent release of RxJS v.6 quite a lot has changed. There are new ways to import dependencies and ways to keep compatibility with previous API versions. Take a look at the [following upgrade instructions](https://github.com/ReactiveX/rxjs/blob/master/MIGRATION.md) for further details. In case you're using a classic Require.js based Aurelia CLI project setup, make sure to [configure rxjs-compat](https://www.npmjs.com/package/rxjs-compat) in aurelia.json as a dependency and use it as the main include file. If, on the other hand, you already use the newest APIs you'll have to adjust your `aurelia.json` or do a fresh new `au import aurelia-store` to get the rxjs dependencies to properly do an auto-setup.
+> With the recent release of RxJS v.6 quite a lot has changed. There are new ways to import dependencies and ways to keep compatibility with previous API versions. Take a look at the [following upgrade instructions](https://github.com/ReactiveX/rxjs/blob/master/docs_app/content/guide/v6/migration.md) for further details. In case you're using a classic Require.js based Aurelia CLI project setup, make sure to [configure rxjs-compat](https://www.npmjs.com/package/rxjs-compat) in aurelia.json as a dependency and use it as the main include file. If, on the other hand, you already use the newest APIs you'll have to adjust your `aurelia.json` or do a fresh new `au import aurelia-store` to get the rxjs dependencies to properly do an auto-setup.
 
 **This section is only valid for RxJS versions less than or equal to 5.x.x**
 
@@ -287,33 +287,25 @@ The above ViewModel example could look like this using the `connectTo` decorator
   <source-code lang="TypeScript">
 
     // app.ts
-    import { autoinject } from "aurelia-dependency-injection";
-    import { Store, connectTo } from "aurelia-store";
+    import { connectTo } from "aurelia-store";
 
     import { State } from "./state";
 
-    @autoinject()
     @connectTo()
     export class App {
 
       public state: State;
-      private subscription: Subscription;
-
-      constructor(private store: Store<State>) {}
     }
   </source-code>
   <source-code lang="JavaScript">
 
     // app.js
-    import { inject } from "aurelia-dependency-injection";
-    import { Store, connectTo } from "aurelia-store";
+    import { connectTo } from "aurelia-store";
 
     import { State } from "./state";
 
-    @inject(Store)
     @connectTo()
     export class App {
-      constructor(store) {}
     }
   </source-code>
 </code-listing>
@@ -508,7 +500,6 @@ Next, we need to register the created action with the store. That is done by cal
     export class App {
 
       public state: State;
-      private subscription: Subscription;
 
       constructor(private store: Store<State>) {
         this.store.registerAction("DemoAction", demoAction);
@@ -653,7 +644,6 @@ Alternatively we can also provide the previously registered name instead.
     export class App {
 
       public state: State;
-      private subscription: Subscription;
 
       constructor(private store: Store<State>) {
         this.store.registerAction("DemoAction", demoAction);
@@ -1091,7 +1081,7 @@ That means your past and future arrays can hold only a maximum of the provided `
 
 ## Handling side-effects with middleware
 
-Aurelia Store uses a concept of middleware to handle side-effects. Conceptually they are similar to Express.js middlewares in that they allow to perform side-effects or manipulate request data. As such they are registered functions, which execute before or after each dispatched action.
+Aurelia Store uses a concept of middleware to handle side-effects. Conceptually they are similar to [Express.js](https://expressjs.com/) middlewares in that they allow to perform side-effects or manipulate request data. As such they are registered functions, which execute before or after each dispatched action.
 
 A middleware is similar to an action, with the difference that it may return void as well. Middlewares can be executed before the dispatched action, thus potentially manipulating the current state which will be passed to the action, or afterward, modifying the returned value from the action. If they don't return anything the previous value will be passed as output. Either way, the middleware can be sync as well as async.
 
@@ -1125,6 +1115,7 @@ Middlewares are registered using `store.registerMiddleware` with the middleware'
   </source-code>
 </code-listing>
 
+> Info
 > You can call the `store.registerMiddleware` function whenever you want. This means middlewares don't have to be defined upfront at the apps configuration time but whenever needed. The same applies to `store.unregisterMiddleware`.
 
 ## Accessing the original (unmodified) state in a middleware
@@ -1352,6 +1343,7 @@ Now in order to rehydrate the stored state, all you need to do is to dispatch th
   </source-code>
 </code-listing>
 
+> Info
 > Keep in mind that the store starts with an `initialState`. If the `localStorage` middleware is registered at the app's start, most likely the next refresh will immediately overwrite your `localStorage` and negate the effect of restoring data from previous runs. In order to avoid that, make sure to register the middleware just after the initial state has loaded.
 
 ## Execution order
@@ -1446,6 +1438,6 @@ Essentially all that MobX brings to the table might be implemented with vanilla 
 
 ### Differences to VueX
 
-The last well-known alternative is [VueX](https://github.com/vuejs/vuex), a state management library designed specifically for use with the [Vue framework](https://vuejs.org/v2/guide/). On the surface, VueX is relatively similar to MobX with some specific twists to how it handles internal changes, being `mutations`, although developers [seem to disagree](https://twitter.com/youyuxi/status/736939734900047874?lang=de) about that. Mutations very much translate function-wise to Redux reducers, with the difference that they make use of Vue's change tracking and thus nicely fit into the framework itself. Modules, on the other hand, are another way to group your actions.
+The last well-known alternative is [VueX](https://github.com/vuejs/vuex), a state management library designed specifically for use with the [Vue framework](https://vuejs.org/v2/guide/). On the surface, VueX is relatively similar to MobX with some specific twists to how it handles internal changes, being `mutations`, although developers [seem to disagree](https://twitter.com/youyuxi/status/736939734900047874) about that. Mutations very much translate function-wise to Redux reducers, with the difference that they make use of Vue's change tracking and thus nicely fit into the framework itself. Modules, on the other hand, are another way to group your actions.
 
 Aurelia Store is pretty similar to VueX in that regard. It makes use of Aurelia's dependency injection, logging and platform abstractions, but aside from that is still a plain simple TypeScript class and could be re-used for any other purpose. One of the biggest differentiators is that Aurelia Store does not force any specific style. Whether you prefer a class-based approach, using the `connectTo` decorator, or heavy function based composition, the underlying architecture of a private `BehaviorSubject` and a public `Observable` is flexible enough to adapt to your needs.
