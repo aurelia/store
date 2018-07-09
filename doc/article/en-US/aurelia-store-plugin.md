@@ -899,9 +899,6 @@ You can use the `nextStateHistory` helper function to easily push your new state
     import { State } from "./state";
 
     const demoAction = (currentState: StateHistory<State>, frameworkName: string) => {
-      const newState = Object.assign({}, state);
-      newState.frameworks = [...newState.frameworks, frameworkName];
-
       return nextStateHistory(currentState, {
         frameworks: [...frameworks, frameworkName]
       });
@@ -927,9 +924,6 @@ You can use the `nextStateHistory` helper function to easily push your new state
     import { nextStateHistory, StateHistory } from "aurelia-store";
 
     const demoAction = (currentState, frameworkName) => {
-      const newState = Object.assign({}, state);
-      newState.frameworks = [...newState.frameworks, frameworkName];
-
       return nextStateHistory(currentState, {
         frameworks: [...frameworks, frameworkName]
       });
