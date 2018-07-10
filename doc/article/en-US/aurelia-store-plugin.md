@@ -47,6 +47,9 @@ or using [Yarn](https://yarnpkg.com)
 yarn add aurelia-store
 ```
 
+> Info
+> If you're not using RxJS at all so far it is recommended to run `npm install rxjs` which should install the latest available rxjs (currently 6.x.x) version as a project dependency.
+
 If your app is based on the Aurelia CLI and the build is based on RequireJS or SystemJS, you can setup the plugin using the following automatic dependency import:
 
 ```Shell
@@ -65,10 +68,9 @@ alternatively, you can manually add these dependencies to your vendor bundle:
   },
   {
     "name": "rxjs",
-    "path": "../node_modules/rxjs",
-    "main": false
+    "main": "./index.js",
+    "path": "../node_modules/rxjs"
   },
-  ,
   {
     "name": "rxjs/operators",
     "main": "./index.js",
@@ -77,52 +79,9 @@ alternatively, you can manually add these dependencies to your vendor bundle:
 ]
 ```
 
-## Granular (patched) RxJS imports
-
 > Info
-> With the recent release of RxJS v.6 quite a lot has changed. There are new ways to import dependencies and ways to keep compatibility with previous API versions. Take a look at the [following upgrade instructions](https://github.com/ReactiveX/rxjs/blob/master/docs_app/content/guide/v6/migration.md) for further details. In case you're using a classic Require.js based Aurelia CLI project setup, make sure to [configure rxjs-compat](https://www.npmjs.com/package/rxjs-compat) in aurelia.json as a dependency and use it as the main include file. If you do on the other already use the newest APIs you'll have to adjust your `aurelia.json` or do a fresh new `au import aurelia-store` to get the rxjs dependencies properly auto-setup.
+> With the recent release of RxJS v.6, which this plugin depends on, quite a lot has changed. There are new ways to import dependencies and ways to keep compatibility with previous API versions. Take a look at the [following upgrade instructions](https://github.com/ReactiveX/rxjs/blob/master/docs_app/content/guide/v6/migration.md) for further details. In case you're using a classic Require.js based Aurelia CLI project setup, make sure to [configure rxjs-compat](https://www.npmjs.com/package/rxjs-compat) in aurelia.json as a dependency and use it as the main include file. If you do on the other hand already use the newest APIs you'll have to adjust your `aurelia.json` or do a fresh new `au import aurelia-store` to get the rxjs dependencies properly auto-setup.
 
-**This section is only valid for RxJS versions less than or equal to 5.x.x**
-
-Looking at the above dependency configuration for Aurelia CLI you'll note the use of `"main": false`, which tells the loader not to use any default file and not start importing things right away. The reason for this is that importing the whole RxJS library would net result in additional ~250kb for your app, where you'd most of the time need only a minimum subset. Patched imports enable to bundle only things directly referenced.
-
-What you need to make sure of when requesting features from RxJS though is that you do not import the full library itself anywhere. This applies to other bundlers such as Webpack as well. That can happen through one of the following statements:
-
-<code-listing heading="Imports triggering a full RxJS bundle">
-  <source-code lang="TypeScript">
-    
-    import * as rx from 'rxjs';  
-    import { Observable, ... } from 'rxjs';  
-    import 'rxjs';  
-    import 'rxjs/Rx'; 
-  </source-code>
-</code-listing>
-
-So try to avoid these and instead only import operators and observable features as needed like in the following way:
-
-<code-listing heading="Imports triggering a full RxJS bundle">
-  <source-code lang="TypeScript">
-    // RxJS v >= 6.x.x
-    // Imports the Observable constructor, creation methods, types and schedulers
-    import { Observable, pipe, of, from, fromEvent, ... } from 'rxjs';
-
-    // Imports of pipeable operators
-    import { map, filter, scan } from 'rxjs/operators';
-
-    // RxJS v <= 5.x.x
-    // Imports the Observable constructor
-    import { Observable } from 'rxjs/Observable'; 
-
-    // Imports only the map operator 
-    import "rxjs/add/operator/map"; 
-
-    // Imports and patches the static method of
-    import "rxjs/add/observable/of"; 
-  </source-code>
-</code-listing>
-
-> Info
-> Additional information and tips & tricks about size-sensitive bundling with Aurelia CLI can be found [here](http://pragmatic-coder.net/aurelia-cli-and-rxjs-size-sensitive-bundles/)
 
 ## What is the State?
 
