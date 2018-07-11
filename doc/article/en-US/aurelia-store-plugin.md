@@ -334,6 +334,41 @@ If you need more control and for instance want to override the default target pr
   </source-code>
 </code-listing>
 
+If you want to have multiple selectors, you can pass an object to the `selector`, where each property in that `selector` object defines the new `target` receiving the state and the value is the function matching above.
+
+<code-listing heading="Defining multiple selectors">
+  <source-code lang="TypeScript">
+
+    // app.ts
+    ...
+
+    @connectTo<State>({
+      selector: {
+        currentState: (store) => store.state.pluck("frameworks"), // same as above
+        databases: (store) => store.state.pluck("databases")
+      }
+    })
+    export class App {
+      ...
+    }
+  </source-code>
+  <source-code lang="JavaScript">
+
+    // app.js
+    ...
+
+    @connectTo({
+      selector: {
+        currentState: (store) => store.state.pluck("frameworks"), // same as above
+        databases: (store) => store.state.pluck("databases")
+      }
+    })
+    export class App {
+      ...
+    }
+  </source-code>
+</code-listing>
+
 
 Not only the target but also the default `setup` and `teardown` methods can be specified, either one or both. The hooks `bind` and `unbind` act as the default value.
 
