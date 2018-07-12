@@ -72,7 +72,7 @@ describe("using decorators", () => {
       expect(sut.state).toEqual(initialState.bar);
     });
 
-    it("should be possible to provide an object with many selectors", () => {
+    it("should be possible to provide an object with multiple selectors", () => {
       const { store, initialState } = arrange();
 
       @connectTo<DemoState>({
@@ -83,6 +83,8 @@ describe("using decorators", () => {
       })
       class DemoStoreConsumer {
         state: DemoState;
+        barTarget: string;
+        fooTarget: string;
       }
 
       const sut = new DemoStoreConsumer();
@@ -429,7 +431,7 @@ describe("using decorators", () => {
       (sut as any).bind();
     });
 
-    it("should call targetChanged handler when exists on the VM with the new and old state", () => {
+    it("should call the targetChanged handler on the VM, if existing, with the new and old state", () => {
       const { store, initialState } = arrange();
        let targetValOnChange = null;
 
@@ -456,7 +458,7 @@ describe("using decorators", () => {
       expect(sut.targetPropChanged).toHaveBeenCalledWith(initialState, "foobar");
     });
 
-    it("should call propertyChanged handler when exists on the VM with the new and old state", () => {
+    it("should call the propertyChanged handler on the VM, if existing, with the new and old state", () => {
       const { store, initialState } = arrange();
       let targetValOnChange = null;
 

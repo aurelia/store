@@ -15,14 +15,10 @@ export interface MultipleSelector<T, R = T | any> {
   [key: string]: ((store: Store<T>) => Observable<R>);
 }
 
-interface MultipleSelected {
-  [key: string]: Observable<any>;
-}
-
 export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observable<R>) | ConnectToSettings<T, R>) {
   const store = Container.instance.get(Store) as Store<T>;
 
-  function getSources(): MultipleSelected {
+  function getSources() {
     const targetName = (settings && (settings as ConnectToSettings<T, R>).target) || "";
 
     if (typeof settings === "function") {
@@ -41,7 +37,7 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
       return Object.entries(settings.selector).reduce((accu, curr) => ({
         ...accu,
         [curr[0]]: curr[1](store)
-      }), { });
+      }), {});
     }
 
     return { [targetName]: store.state };
@@ -62,7 +58,7 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
         throw new Error("Provided onChanged handler does not exist on target VM");
       }
 
-      this._stateSubscriptions = Object.entries(getSources()).map(entry => entry[1].subscribe((state: any) => {
+      this._stateSubscriptions = Object.entries(getSources()).map(entry => entry[1].subscribe((state: R) => {
         const targetName = entry[0];
         const target = this[targetName] || this.state;
 
