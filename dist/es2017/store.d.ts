@@ -28,8 +28,10 @@ export declare class Store<T> {
     constructor(initialState: T, options?: Partial<StoreOptions>);
     registerMiddleware(reducer: Middleware<T>, placement: MiddlewarePlacement, settings?: any): void;
     unregisterMiddleware(reducer: Middleware<T>): void;
+    isMiddlewareRegistered(middleware: Middleware<T>): boolean;
     registerAction(name: string, reducer: Reducer<T>): void;
     unregisterAction(reducer: Reducer<T>): void;
+    isActionRegistered(reducer: Reducer<T> | string): boolean;
     dispatch(reducer: Reducer<T> | string, ...params: any[]): Promise<void>;
     private handleQueue();
     private internalDispatch(reducer, ...params);

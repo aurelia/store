@@ -103,6 +103,9 @@ System.register(["rxjs", "aurelia-framework", "./history", "./middleware", "./lo
                         this.middlewares.delete(reducer);
                     }
                 };
+                Store.prototype.isMiddlewareRegistered = function (middleware) {
+                    return this.middlewares.has(middleware);
+                };
                 Store.prototype.registerAction = function (name, reducer) {
                     if (reducer.length === 0) {
                         throw new Error("The reducer is expected to have one or more parameters, where the first will be the present state");
@@ -113,6 +116,12 @@ System.register(["rxjs", "aurelia-framework", "./history", "./middleware", "./lo
                     if (this.actions.has(reducer)) {
                         this.actions.delete(reducer);
                     }
+                };
+                Store.prototype.isActionRegistered = function (reducer) {
+                    if (typeof reducer === "string") {
+                        return Array.from(this.actions).find(function (action) { return action[1].name === reducer; }) !== undefined;
+                    }
+                    return this.actions.has(reducer);
                 };
                 Store.prototype.dispatch = function (reducer) {
                     var _this = this;

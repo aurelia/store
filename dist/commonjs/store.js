@@ -76,6 +76,9 @@ var Store = /** @class */ (function () {
             this.middlewares.delete(reducer);
         }
     };
+    Store.prototype.isMiddlewareRegistered = function (middleware) {
+        return this.middlewares.has(middleware);
+    };
     Store.prototype.registerAction = function (name, reducer) {
         if (reducer.length === 0) {
             throw new Error("The reducer is expected to have one or more parameters, where the first will be the present state");
