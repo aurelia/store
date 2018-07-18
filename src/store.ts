@@ -70,6 +70,10 @@ export class Store<T> {
     }
   }
 
+  public isMiddlewareRegistered(middleware: Middleware<T>) {
+    return this.middlewares.has(middleware);
+  }
+
   public registerAction(name: string, reducer: Reducer<T>) {
     if (reducer.length === 0) {
       throw new Error("The reducer is expected to have one or more parameters, where the first will be the present state");
@@ -82,6 +86,14 @@ export class Store<T> {
     if (this.actions.has(reducer)) {
       this.actions.delete(reducer);
     }
+  }
+
+  public isActionRegistered(reducer: Reducer<T> | string) {
+    if (typeof reducer === "string") {
+      return Array.from(this.actions).find((action) => action[1].name === reducer) !== undefined;
+    }
+
+    return this.actions.has(reducer);
   }
 
   public dispatch(reducer: Reducer<T> | string, ...params: any[]) {

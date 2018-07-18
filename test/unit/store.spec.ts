@@ -96,6 +96,22 @@ describe("store", () => {
     expect( () => store.unregisterAction(fakeAction)).not.toThrow();
   });
 
+  it("should allow checking for already registered functions via Reducer", () => {
+    const { store } = createTestStore();
+    const fakeAction = (currentState: testState) => currentState;
+
+    store.registerAction("FakeAction", fakeAction);
+    expect(store.isActionRegistered(fakeAction)).toBe(true);
+  });
+
+  it("should allow checking for already registered functions via previously registered name", () => {
+    const { store } = createTestStore();
+    const fakeAction = (currentState: testState) => currentState;
+
+    store.registerAction("FakeAction", fakeAction);
+    expect(store.isActionRegistered("FakeAction")).toBe(true);
+  });
+
   it("should accept reducers taking multiple parameters", done => {
     const { store } = createTestStore();
     const fakeAction = (currentState: testState, param1: string, param2: string) => {

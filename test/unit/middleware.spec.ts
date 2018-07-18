@@ -108,6 +108,16 @@ describe("middlewares", () => {
     expect((store as any).middlewares.delete).not.toHaveBeenCalled();
   });
 
+  it("should allow checking for registered middlewares", () => {
+    const store = createStoreWithState(initialState);
+    const testMiddleware = (currentState: TestState): false => {
+      return false;
+    }
+
+    store.registerMiddleware(testMiddleware, MiddlewarePlacement.Before);
+    expect(store.isMiddlewareRegistered(testMiddleware)).toBe(true);
+  });
+
   it("should have a reference to the calling action name and its parameters", async () => {
     const store = createStoreWithStateAndOptions<TestState>(initialState, { propagateError: true });
     const expectedActionName = "ActionObservedByMiddleware";

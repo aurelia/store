@@ -87,6 +87,12 @@ var Store = /** @class */ (function () {
             this.actions.delete(reducer);
         }
     };
+    Store.prototype.isActionRegistered = function (reducer) {
+        if (typeof reducer === "string") {
+            return Array.from(this.actions).find(function (action) { return action[1].name === reducer; }) !== undefined;
+        }
+        return this.actions.has(reducer);
+    };
     Store.prototype.dispatch = function (reducer) {
         var _this = this;
         var params = [];

@@ -30,6 +30,7 @@ export declare class Store<T> {
     unregisterMiddleware(reducer: Middleware<T>): void;
     registerAction(name: string, reducer: Reducer<T>): void;
     unregisterAction(reducer: Reducer<T>): void;
+    isActionRegistered(reducer: Reducer<T> | string): boolean;
     dispatch(reducer: Reducer<T> | string, ...params: any[]): Promise<void>;
     private handleQueue();
     private internalDispatch(reducer, ...params);
