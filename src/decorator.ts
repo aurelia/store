@@ -48,8 +48,8 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
       // numbers are the starting index to slice all the change handling args, 
       // which are prop name, new state and old state
       changeHandlers: {
-        [`${_settings.target || target}Changed`]: _settings.target ? 0 : 1,
         [_settings.onChanged || ""]: 1,
+        [`${_settings.target || target}Changed`]: _settings.target ? 0 : 1,
         ["propertyChanged"]: 0
       }
     }));

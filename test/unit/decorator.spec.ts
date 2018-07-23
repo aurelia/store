@@ -420,7 +420,7 @@ describe("using decorators", () => {
     });
   });
 
-  describe("with settings declaring onChanged", () => {
+  describe("with handling changes", () => {
     it("should call stateChanged when exists on VM by default", () => {
       const { store, initialState } = arrange();
       const oldState = {};
@@ -444,7 +444,7 @@ describe("using decorators", () => {
       expect(sut.stateChanged.calls.argsFor(0)[1]).toBe(oldState);
     });
 
-    it("should accept a string and call the respective handler passing the new state", () => {
+    it("should accept a string for onChanged and call the respective handler passing the new state", () => {
       const { store, initialState } = arrange();
 
       @connectTo<DemoState>({
@@ -542,9 +542,9 @@ describe("using decorators", () => {
       expect(sut.propertyChanged).toHaveBeenCalledWith("targetProp", initialState, "foobar");
     });
 
-    it("should call all change handlers on the VM, if existing, with the correct args", () => {
+    it("should call all change handlers on the VM, if existing, in order and with the correct args", () => {
       const { store, initialState } = arrange();
-      const targetValsOnChange = [];
+      const calledHandlersInOrder = [];
 
       @connectTo<DemoState>({
         onChanged: "customHandler",
@@ -556,26 +556,17 @@ describe("using decorators", () => {
         state: DemoState;
         targetProp = "foobar"
 
-        customHandler() {
-          targetValsOnChange.push(sut.targetProp);
-        }
-        
-        targetPropChanged() {
-          targetValsOnChange.push(sut.targetProp);
-        }
-
-        propertyChanged() {
-          targetValsOnChange.push(sut.targetProp);
-        }
+        customHandler() {}
+        targetPropChanged() {}
+        propertyChanged() {}
       }
 
       const sut = new DemoStoreConsumer();
-      spyOn(sut, "propertyChanged").and.callThrough();
-      spyOn(sut, "targetPropChanged").and.callThrough();
-      spyOn(sut, "customHandler").and.callThrough();
+      spyOn(sut, "customHandler").and.callFake(() => calledHandlersInOrder.push("customHandler"));
+      spyOn(sut, "targetPropChanged").and.callFake(() => calledHandlersInOrder.push("targetPropChanged"));
+      spyOn(sut, "propertyChanged").and.callFake(() => calledHandlersInOrder.push("propertyChanged"));
       (sut as any).bind();
 
-      expect(targetValsOnChange).toEqual(["foobar", "foobar", "foobar"]);
       expect(sut.targetProp).toEqual(initialState);
       expect(sut.propertyChanged.calls.count()).toEqual(1);
       expect(sut.propertyChanged).toHaveBeenCalledWith("targetProp", initialState, "foobar");
@@ -583,6 +574,7 @@ describe("using decorators", () => {
       expect(sut.targetPropChanged).toHaveBeenCalledWith(initialState, "foobar");
       expect(sut.customHandler.calls.count()).toEqual(1);
       expect(sut.customHandler).toHaveBeenCalledWith(initialState, "foobar");
+      expect(calledHandlersInOrder).toEqual(["customHandler", "targetPropChanged", "propertyChanged"])
     });
 
     it("should call the targetOnChanged handler and not each multiple selector, if existing, with the 3 args", () => {
