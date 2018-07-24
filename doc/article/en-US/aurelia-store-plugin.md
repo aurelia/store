@@ -334,7 +334,7 @@ If you need more control and for instance want to override the default target pr
   </source-code>
 </code-listing>
 
-If you want to have multiple selectors, you can pass an object to the `selector`, where each property in that `selector` object defines the new `target` receiving the state and the value is the function matching above.
+If you want to have multiple selectors, you can pass an object to the `selector`, where each property in that `selector` object defines a new `target` receiving the slice of the state. The value of each property should be a function as shown above matching above.
 
 <code-listing heading="Defining multiple selectors">
   <source-code lang="TypeScript">
