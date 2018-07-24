@@ -34,7 +34,7 @@ describe("using decorators", () => {
     (sut as any).bind();
 
     expect(sut.state).toEqual(initialState);
-    expect((sut as any)._stateSubscription).toBeDefined();
+    expect((sut as any)._stateSubscriptions).toBeDefined();
   });
 
   it("should be possible to provide a state selector", () => {
@@ -72,6 +72,48 @@ describe("using decorators", () => {
       expect(sut.state).toEqual(initialState.bar);
     });
 
+    it("should be possible to provide an undefined selector and stil get the state property", () => {
+      const { store, initialState } = arrange();
+
+      @connectTo<DemoState>({
+        selector: undefined
+      })
+      class DemoStoreConsumer {
+        state: DemoState;
+      }
+
+      const sut = new DemoStoreConsumer();
+      expect(sut.state).toEqual(undefined);
+
+      (sut as any).bind();
+
+      expect(sut.state).toEqual(initialState);
+    });
+
+    it("should be possible to provide an object with multiple selectors", () => {
+      const { store, initialState } = arrange();
+
+      @connectTo<DemoState>({
+        selector: {
+          barTarget: (store) => store.state.pipe(pluck("bar")),
+          fooTarget: (store) => store.state.pipe(pluck("foo"))
+        }
+      })
+      class DemoStoreConsumer {
+        state: DemoState;
+        barTarget: string;
+        fooTarget: string;
+      }
+
+      const sut = new DemoStoreConsumer();
+
+      (sut as any).bind();
+
+      expect(sut.state).not.toBeDefined();
+      expect(sut.barTarget).toBe(initialState.bar);
+      expect(sut.fooTarget).toBe(initialState.foo);
+    });
+
     it("should use the default state observable if selector does not return an observable", () => {
       const { store, initialState } = arrange();
 
@@ -106,24 +148,37 @@ describe("using decorators", () => {
 
       (sut as any).bind();
 
+      expect(sut.state).not.toBeDefined();
       expect(sut.foo).toEqual(initialState.bar);
     });
+
+    it("should be possible to use the target as the parent object for the multiple selector targets", () => {
+      const { store, initialState } = arrange();
+
+      @connectTo<DemoState>({
+        selector: {
+          barTarget: (store) => store.state.pipe(pluck("bar")),
+          fooTarget: (store) => store.state.pipe(pluck("foo"))
+        },
+        target: "foo"
+      })
+      class DemoStoreConsumer {
+        foo: DemoState;
+      }
+
+      const sut = new DemoStoreConsumer();
+      expect(sut.foo).toEqual(undefined);
+
+      (sut as any).bind();
+
+      expect(sut.state).not.toBeDefined();
+      expect(sut.foo).toBeDefined();
+      expect(sut.foo.barTarget).toBeDefined();
+      expect(sut.foo.fooTarget).toBeDefined();
+      expect(sut.foo.barTarget).toBe(initialState.bar);
+      expect(sut.foo.fooTarget).toBe(initialState.foo);
+    });
   })
-
-  it("should use the default state subscription if provided selector returns no observable", () => {
-    const { store, initialState } = arrange();
-
-    @connectTo<DemoState>((store) => "foobar" as any)
-    class DemoStoreConsumer {
-      state: DemoState;
-    }
-
-    const sut = new DemoStoreConsumer();
-
-    (sut as any).bind();
-
-    expect(sut.state).toEqual(initialState);
-  });
 
   it("should apply original bind method after patch", () => {
     const { store, initialState } = arrange();
@@ -183,7 +238,9 @@ describe("using decorators", () => {
       expect(sut.state).toEqual(undefined);
 
       (sut as any).bind();
-      const subscription = ((sut as any)._stateSubscription as Subscription);
+      const subscriptions = ((sut as any)._stateSubscriptions as Array<Subscription>);
+      expect(subscriptions.length).toEqual(1);
+      const subscription = subscriptions[0];
       spyOn(subscription, "unsubscribe").and.callThrough();
 
       expect(sut.state).toEqual(initialState);
@@ -194,6 +251,41 @@ describe("using decorators", () => {
       expect(subscription).toBeDefined();
       expect(subscription.closed).toBe(true);
       expect(subscription.unsubscribe).toHaveBeenCalled();
+    });
+
+    it("should automatically unsubscribe from all sources when unbind is called", () => {
+      const { store, initialState } = arrange();
+
+      @connectTo({
+        selector: {
+          barTarget: (store) => store.state.pipe(pluck("bar")),
+          stateTarget: (store) => "foo" as any
+        }
+      })
+      class DemoStoreConsumer {
+        state: DemoState;
+      }
+
+      const sut = new DemoStoreConsumer();
+      expect(sut.state).toEqual(undefined);
+
+      (sut as any).bind();
+      const subscriptions = ((sut as any)._stateSubscriptions as Array<Subscription>);
+      expect(subscriptions.length).toEqual(2);
+      spyOn(subscriptions[0], "unsubscribe").and.callThrough();
+      spyOn(subscriptions[1], "unsubscribe").and.callThrough();
+
+      expect(subscriptions[0].closed).toBe(false);
+      expect(subscriptions[1].closed).toBe(false);
+
+      (sut as any).unbind();
+
+      expect(subscriptions[0]).toBeDefined();
+      expect(subscriptions[1]).toBeDefined();
+      expect(subscriptions[0].closed).toBe(true);
+      expect(subscriptions[1].closed).toBe(true);
+      expect(subscriptions[0].unsubscribe).toHaveBeenCalled();
+      expect(subscriptions[1].unsubscribe).toHaveBeenCalled();
     });
 
     it("should not unsubscribe if subscription is already closed", () => {
@@ -208,7 +300,9 @@ describe("using decorators", () => {
       expect(sut.state).toEqual(undefined);
 
       (sut as any).bind();
-      const subscription = ((sut as any)._stateSubscription as Subscription);
+      const subscriptions = ((sut as any)._stateSubscriptions as Array<Subscription>);
+      expect(subscriptions.length).toEqual(1);
+      const subscription = subscriptions[0];
       subscription.unsubscribe();
 
       expect(sut.state).toEqual(initialState);
@@ -220,6 +314,31 @@ describe("using decorators", () => {
 
       expect(subscription).toBeDefined();
       expect(subscription.unsubscribe).not.toHaveBeenCalled();
+    });
+
+    [ null, { }].forEach((stateSubscription: any) => {
+      it("should not unsubscribe if state subscription changes and is not an array", () => {
+        const { store, initialState } = arrange();
+
+        @connectTo()
+        class DemoStoreConsumer {
+          state: DemoState;
+        }
+
+        const sut = new DemoStoreConsumer();
+        expect(sut.state).toEqual(undefined);
+
+        (sut as any).bind();
+        const subscriptions = ((sut as any)._stateSubscriptions as Array<Subscription>);
+        (sut as any)._stateSubscriptions = stateSubscription;
+        const subscription = subscriptions[0];
+        spyOn(subscription, "unsubscribe");
+
+        (sut as any).unbind();
+
+        expect(subscription).toBeDefined();
+        expect(subscription.unsubscribe).not.toHaveBeenCalled();
+      });
     });
   });
 
@@ -267,7 +386,7 @@ describe("using decorators", () => {
       (sut as any).created();
 
       expect(sut.state).toEqual(initialState);
-      expect((sut as any)._stateSubscription).toBeDefined();
+      expect((sut as any)._stateSubscriptions).toBeDefined();
     });
 
     it("should allow to specify a lifecycle hook for the unsubscription", () => {
@@ -285,7 +404,9 @@ describe("using decorators", () => {
 
       (sut as any).bind();
 
-      const subscription = ((sut as any)._stateSubscription as Subscription);
+      const subscriptions = ((sut as any)._stateSubscriptions as Array<Subscription>);
+      expect(subscriptions.length).toEqual(1);
+      const subscription = subscriptions[0];
       spyOn(subscription, "unsubscribe").and.callThrough();
 
       expect(sut.state).toEqual(initialState);
@@ -299,8 +420,31 @@ describe("using decorators", () => {
     });
   });
 
-  describe("with settings declaring onChanged", () => {
-    it("should accept a string and call the respective handler passing the new state", () => {
+  describe("with handling changes", () => {
+    it("should call stateChanged when exists on VM by default", () => {
+      const { store, initialState } = arrange();
+      const oldState = {};
+
+      @connectTo<DemoState>({
+        selector: (store) => store.state,
+      })
+      class DemoStoreConsumer {
+        state: DemoState = oldState;
+
+        stateChanged(state: DemoState) { }
+      }
+
+      const sut = new DemoStoreConsumer();
+      spyOn(sut, "stateChanged");
+      (sut as any).bind();
+
+      expect(sut.state).toEqual(initialState);
+      expect(sut.stateChanged.calls.count()).toEqual(1);
+      expect(sut.stateChanged.calls.argsFor(0)[0]).toBe(initialState);
+      expect(sut.stateChanged.calls.argsFor(0)[1]).toBe(oldState);
+    });
+
+    it("should accept a string for onChanged and call the respective handler passing the new state", () => {
       const { store, initialState } = arrange();
 
       @connectTo<DemoState>({
@@ -310,7 +454,7 @@ describe("using decorators", () => {
       class DemoStoreConsumer {
         state: DemoState;
 
-        stateChanged(state: DemoState) { /**/ }
+        stateChanged(state: DemoState) { /* */ }
       }
 
       const sut = new DemoStoreConsumer();
@@ -318,7 +462,8 @@ describe("using decorators", () => {
       (sut as any).bind();
 
       expect(sut.state).toEqual(initialState);
-      expect(sut.stateChanged).toHaveBeenCalledWith(initialState);
+      expect(sut.stateChanged.calls.count()).toEqual(1);
+      expect(sut.stateChanged).toHaveBeenCalledWith(initialState, undefined);
     });
 
     it("should be called before assigning the new state, so there is still access to the previous state", () => {
@@ -339,6 +484,133 @@ describe("using decorators", () => {
 
       const sut = new DemoStoreConsumer();
       (sut as any).bind();
+    });
+
+    it("should call the targetChanged handler on the VM, if existing, with the new and old state", () => {
+      const { store, initialState } = arrange();
+       let targetValOnChange = null;
+
+      @connectTo<DemoState>({
+        selector: { 
+          targetProp: (store) => store.state
+        }
+      })
+      class DemoStoreConsumer {
+        state: DemoState;
+        targetProp = "foobar"
+        
+        targetPropChanged() {
+          targetValOnChange = sut.targetProp;
+        }
+      }
+
+      const sut = new DemoStoreConsumer();
+      spyOn(sut, "targetPropChanged").and.callThrough();
+      (sut as any).bind();
+
+      expect(targetValOnChange).toEqual("foobar");
+      expect(sut.targetProp).toEqual(initialState);
+      expect(sut.targetPropChanged.calls.count()).toEqual(1);
+      expect(sut.targetPropChanged).toHaveBeenCalledWith(initialState, "foobar");
+      expect(sut.targetPropChanged.calls.argsFor(0)[0]).toBe(initialState);
+    });
+
+    it("should call the propertyChanged handler on the VM, if existing, with the new and old state", () => {
+      const { store, initialState } = arrange();
+      let targetValOnChange = null;
+
+      @connectTo<DemoState>({
+        selector: { 
+          targetProp: (store) => store.state
+        }
+      })
+      class DemoStoreConsumer {
+        state: DemoState;
+        targetProp = "foobar"
+
+        propertyChanged() {
+          targetValOnChange = sut.targetProp;
+        }
+      }
+
+      const sut = new DemoStoreConsumer();
+      spyOn(sut, "propertyChanged").and.callThrough();
+      (sut as any).bind();
+
+      expect(targetValOnChange).toEqual("foobar");
+      expect(sut.targetProp).toEqual(initialState);
+      expect(sut.propertyChanged).toHaveBeenCalledWith("targetProp", initialState, "foobar");
+    });
+
+    it("should call all change handlers on the VM, if existing, in order and with the correct args", () => {
+      const { store, initialState } = arrange();
+      const calledHandlersInOrder = [];
+
+      @connectTo<DemoState>({
+        onChanged: "customHandler",
+        selector: { 
+          targetProp: (store) => store.state
+        }
+      })
+      class DemoStoreConsumer {
+        state: DemoState;
+        targetProp = "foobar"
+
+        customHandler() {}
+        targetPropChanged() {}
+        propertyChanged() {}
+      }
+
+      const sut = new DemoStoreConsumer();
+      spyOn(sut, "customHandler").and.callFake(() => calledHandlersInOrder.push("customHandler"));
+      spyOn(sut, "targetPropChanged").and.callFake(() => calledHandlersInOrder.push("targetPropChanged"));
+      spyOn(sut, "propertyChanged").and.callFake(() => calledHandlersInOrder.push("propertyChanged"));
+      (sut as any).bind();
+
+      expect(sut.targetProp).toEqual(initialState);
+      expect(sut.propertyChanged.calls.count()).toEqual(1);
+      expect(sut.propertyChanged).toHaveBeenCalledWith("targetProp", initialState, "foobar");
+      expect(sut.targetPropChanged.calls.count()).toEqual(1);
+      expect(sut.targetPropChanged).toHaveBeenCalledWith(initialState, "foobar");
+      expect(sut.customHandler.calls.count()).toEqual(1);
+      expect(sut.customHandler).toHaveBeenCalledWith(initialState, "foobar");
+      expect(calledHandlersInOrder).toEqual(["customHandler", "targetPropChanged", "propertyChanged"])
+    });
+
+    it("should call the targetOnChanged handler and not each multiple selector, if existing, with the 3 args", () => {
+      const { store, initialState } = arrange();
+      let targetValOnChange = null;
+
+      @connectTo<DemoState>({
+        target: "foo",
+        selector: { 
+          targetProp: (store) => store.state
+        }
+      })
+      class DemoStoreConsumer {
+        state: DemoState;
+        foo = {
+          targetProp: "foobar"
+        };
+
+        targetPropChanged() {
+        }
+
+        fooChanged() {
+          targetValOnChange = sut.foo.targetProp;
+        }
+      }
+
+      const sut = new DemoStoreConsumer();
+      spyOn(sut, "fooChanged").and.callThrough();
+      spyOn(sut, "targetPropChanged");
+      (sut as any).bind();
+
+      expect(targetValOnChange).toEqual("foobar");
+      expect(sut.foo.targetProp).toEqual(initialState);
+      expect(sut.targetPropChanged.calls.count()).toEqual(0);
+      expect(sut.fooChanged.calls.count()).toEqual(1);
+      expect(sut.fooChanged).toHaveBeenCalledWith("targetProp", initialState, "foobar");
     });
 
     it("should check whether the method exists before calling it and throw a meaningful error", () => {

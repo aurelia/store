@@ -5,31 +5,54 @@ import { Store } from "./store";
 
 export interface ConnectToSettings<T, R = T | any> {
   onChanged?: string;
-  selector: ((store: Store<T>) => Observable<R>);
+  selector: ((store: Store<T>) => Observable<R>) | MultipleSelector<T, R>;
   setup?: string;
   target?: string;
   teardown?: string;
 }
 
+export interface MultipleSelector<T, R = T | any> {
+  [key: string]: ((store: Store<T>) => Observable<R>);
+}
+
+const defaultSelector = <T>(store: Store<T>) => store.state;
+
 export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observable<R>) | ConnectToSettings<T, R>) {
   const store = Container.instance.get(Store) as Store<T>;
+  const _settings: ConnectToSettings<T, any> = {
+    selector: typeof settings === "function" ? settings : defaultSelector,
+    ...settings
+  };
 
-  function getSource(): Observable<any> {
-    if (typeof settings === "function") {
-      const selector = settings(store);
+  function getSource(selector: (((store: Store<T>) => Observable<R>))): Observable<any> {
+    const source = selector(store);
 
-      if (selector instanceof Observable) {
-        return selector;
+      if (source instanceof Observable) {
+        return source;
       }
-    } else if (settings && typeof settings.selector === "function") {
-      const selector = settings.selector(store);
-
-      if (selector instanceof Observable) {
-        return selector;
-      }
-    }
 
     return store.state;
+  }
+
+  function createSelectors() {
+    const isSelectorObj = typeof _settings.selector === "object"; 
+    const fallbackSelector = {
+      [_settings.target || "state"]: _settings.selector || defaultSelector
+    };
+      
+    return Object.entries({
+      ...((isSelectorObj  ? _settings.selector : fallbackSelector) as MultipleSelector<T, any>)
+    }).map(([target, selector]) => ({
+      targets: _settings.target && isSelectorObj ? [_settings.target, target] : [target],
+      selector,
+      // numbers are the starting index to slice all the change handling args, 
+      // which are prop name, new state and old state
+      changeHandlers: {
+        [_settings.onChanged || ""]: 1,
+        [`${_settings.target || target}Changed`]: _settings.target ? 0 : 1,
+        ["propertyChanged"]: 0
+      }
+    }));
   }
 
   return function (target: any) {
@@ -41,27 +64,27 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
       : target.prototype.unbind;
 
     target.prototype[typeof settings === "object" && settings.setup ? settings.setup : "bind"] = function () {
-      const source = getSource();
-
       if (typeof settings == "object" &&
         typeof settings.onChanged === "string" &&
         !(settings.onChanged in this)) {
         throw new Error("Provided onChanged handler does not exist on target VM");
       }
 
-      this._stateSubscription = source.subscribe(state => {
-        // call onChanged first so that the handler has also access to the previous state
-        if (typeof settings == "object" &&
-          typeof settings.onChanged === "string") {
-          this[settings.onChanged](state);
-        }
+      this._stateSubscriptions = createSelectors().map(s => getSource(s.selector).subscribe((state: any) => {
+        const lastTargetIdx = s.targets.length - 1;
+        const oldState = s.targets.reduce((accu = {}, curr) => accu[curr], this);
 
-        if (typeof settings === "object" && settings.target) {
-          this[settings.target] = state;
-        } else {
-          this.state = state;
-        }
-      });
+        Object.entries(s.changeHandlers).forEach(([handlerName, args]) => {
+          if (handlerName in this) {
+            this[handlerName](...[ s.targets[lastTargetIdx], state, oldState ].slice(args, 3))
+          }
+        });
+
+        s.targets.reduce((accu, curr, idx) => {
+          accu[curr] = idx === lastTargetIdx ? state : accu[curr] || {};
+          return accu[curr];
+        }, this);
+      }));
 
       if (originalSetup) {
         return originalSetup.apply(this, arguments);
@@ -69,10 +92,12 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
     }
 
     target.prototype[typeof settings === "object" && settings.teardown ? settings.teardown : "unbind"] = function () {
-      if (this._stateSubscription &&
-        this._stateSubscription instanceof Subscription &&
-        (this._stateSubscription as Subscription).closed === false) {
-        this._stateSubscription.unsubscribe();
+      if (this._stateSubscriptions && Array.isArray(this._stateSubscriptions)) {
+        this._stateSubscriptions.forEach((sub: Subscription) => {
+          if (sub instanceof Subscription && sub.closed === false) {
+            sub.unsubscribe();
+          }
+        });
       }
 
       if (originalTeardown) {

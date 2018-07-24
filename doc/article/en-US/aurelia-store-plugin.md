@@ -334,6 +334,83 @@ If you need more control and for instance want to override the default target pr
   </source-code>
 </code-listing>
 
+If you want to have multiple selectors, you can pass an object to the `selector`, where each property in that `selector` object defines a new `target` receiving the slice of the state. The value of each property should be a function as shown above matching above.
+
+<code-listing heading="Defining multiple selectors">
+  <source-code lang="TypeScript">
+
+    // app.ts
+    ...
+
+    @connectTo<State>({
+      selector: {
+        currentState: (store) => store.state.pluck("frameworks"), // same as above
+        databases: (store) => store.state.pluck("databases")
+      }
+    })
+    export class App {
+      ...
+    }
+  </source-code>
+  <source-code lang="JavaScript">
+
+    // app.js
+    ...
+
+    @connectTo({
+      selector: {
+        currentState: (store) => store.state.pluck("frameworks"), // same as above
+        databases: (store) => store.state.pluck("databases")
+      }
+    })
+    export class App {
+      ...
+    }
+  </source-code>
+</code-listing>
+
+You can still provide a `target` with multiple selectors, which changes the behavior of multiple selectors. Instead of having multiple target properties on your view model for each selector name, the `target` will be an object on your view model and the multiple selector names will be the properties on that object. 
+
+<code-listing heading="Defining multiple selectors with a target">
+  <source-code lang="TypeScript">
+
+    // app.ts
+    ...
+
+    @connectTo<State>({
+      target: 'currentState',
+      selector: {
+        frameworks: (store) => store.state.pluck("frameworks"),
+        databases: (store) => store.state.pluck("databases")
+      }
+    })
+    export class App {
+      activate() {
+        console.log(this.currentState.frameworks);
+        console.log(this.currentState.databases);
+      }
+    }
+  </source-code>
+  <source-code lang="JavaScript">
+
+    // app.js
+    ...
+
+    @connectTo({
+      target: 'currentState',
+      selector: {
+        currentState: (store) => store.state.pluck("frameworks"), // same as above
+        databases: (store) => store.state.pluck("databases")
+      }
+    })
+    export class App {
+      activate() {
+        console.log(this.currentState.frameworks);
+        console.log(this.currentState.databases);
+      }
+    }
+  </source-code>
+</code-listing>
 
 Not only the target but also the default `setup` and `teardown` methods can be specified, either one or both. The hooks `bind` and `unbind` act as the default value.
 
@@ -372,6 +449,195 @@ Not only the target but also the default `setup` and `teardown` methods can be s
 > Info
 > The provided action names for setup and teardown don't necessarily have to be one of the official [lifecycle methods](http://aurelia.io/docs/fundamentals/components#the-component-lifecycle) but should be used as these get called automatically by Aurelia at the proper time.
 
+Last but not least you can also handle changes from the state in multiple ways
+
+The decorator will attempt to call `stateChanged(newState, oldState)` when no settings are passed, a function is used or an object settings is used with selector.
+
+<code-listing heading="Default change stateChanged handling">
+  <source-code lang="TypeScript">
+
+    // app.ts
+    ...
+
+    // All of these have the same change handling
+    // @connectTo<State>({
+    //   selector: (store) => store.state.pluck("frameworks"),
+    // })
+    // OR
+    // @connectTo<State>((store) => store.state.pluck("frameworks"))
+    // OR
+    @connectTo<State>()
+    export class App {
+      ...
+
+      stateChanged(newState: State, oldState: State) {
+        console.log("The state has changed", newState);
+      }
+    }
+  </source-code>
+  <source-code lang="JavaScript">
+
+    // app.js
+    ...
+
+    // All of these have the same change handling
+    // @connectTo({
+    //   selector: (store) => store.state.pluck("frameworks"),
+    // })
+    // OR
+    // @connectTo((store) => store.state.pluck("frameworks"))
+    // OR
+    @connectTo()
+    export class App {
+      ...
+
+      stateChanged(newState, oldState) {
+        console.log("The state has changed", newState);
+      }
+    }
+  </source-code>
+</code-listing>
+
+Providing a target name without multiple selectors calls the`target`Changed method instead.
+
+<code-listing heading="Default change handling with target">
+  <source-code lang="TypeScript">
+
+    // app.ts
+    ...
+
+    @connectTo<State>({
+      target: "currentState"
+    })
+    export class App {
+      ...
+
+      currentStateChanged(newState: State, oldState: State) {
+        console.log("The state has changed", newState);
+      }
+    }
+  </source-code>
+  <source-code lang="JavaScript">
+
+    // app.js
+    ...
+
+    @connectTo({
+      target: "currentState"
+    })
+    export class App {
+      ...
+
+      currentStateChanged(newState, oldState) {
+        console.log("The state has changed", newState);
+      }
+    }
+  </source-code>
+</code-listing>
+
+With multiple selectors, you get the same change handling per selector.
+
+<code-listing heading="Default change handling with multiple selectors">
+  <source-code lang="TypeScript">
+
+    // app.ts
+    ...
+
+    @connectTo<State>({
+      selector: {
+        frameworks: (store) => store.state.pluck("frameworks"),
+        databases: (store) => store.state.pluck("databases")
+      }
+    })
+    export class App {
+      ...
+
+      frameworksChanged(newState: State, oldState: State) {
+        console.log("The state has changed", newState);
+      }
+
+      databasesChanged(newState: State, oldState: State) {
+        console.log("The state has changed", newState);
+      }
+    }
+  </source-code>
+  <source-code lang="JavaScript">
+
+    // app.js
+    ...
+
+    @connectTo({
+      selector: {
+        frameworks: (store) => store.state.pluck("frameworks"),
+        databases: (store) => store.state.pluck("databases")
+      }
+    })
+    export class App {
+      ...
+
+      frameworksChanged(newState, oldState) {
+        console.log("The state has changed", newState);
+      }
+
+      databasesChanged(newState, oldState) {
+        console.log("The state has changed", newState);
+      }
+    }
+  </source-code>
+</code-listing>
+
+However, providing a `target` with multiple selectors changes the prior behavior by calling the `target`Changed method with 3 arguments instead of each individual selector with 2 arguments. You get access to individual state being changed from the first argument.
+
+<code-listing heading="Default change handling with multiple selectors and target">
+  <source-code lang="TypeScript">
+
+    // app.ts
+    ...
+
+    @connectTo<State>({
+      target: "currentState",
+      selector: {
+        frameworks: (store) => store.state.pluck("frameworks"),
+        databases: (store) => store.state.pluck("databases")
+      }
+    })
+    export class App {
+      ...
+
+      currentStateChanged(stateName: string, newState: State, oldState: State) {
+        // this will be called twice:
+        //   once for stateName="frameworks"
+        //   once for stateName="databases"
+
+        console.log("The state has changed", newState);
+      }
+    }
+  </source-code>
+  <source-code lang="JavaScript">
+
+    // app.js
+    ...
+
+    @connectTo({
+      target: "currentState",
+      selector: {
+        frameworks: (store) => store.state.pluck("frameworks"),
+        databases: (store) => store.state.pluck("databases")
+      }
+    })
+    export class App {
+      ...
+
+      currentStateChanged(stateName, newState, oldState) {
+        // this will be called twice:
+        //   once for stateName="frameworks"
+        //   once for stateName="databases"
+
+        console.log("The state has changed", newState);
+      }
+    }
+  </source-code>
+</code-listing>
 
 Last but not least you can also define a callback to be called with the next state once a state change happens.
 
@@ -382,14 +648,14 @@ Last but not least you can also define a callback to be called with the next sta
     ...
 
     @connectTo<State>({
-      selector: (store) => store.state.pluck("frameworks"), // same as above
-      onChanged: "stateChanged"
+      selector: (store) => store.state.pluck("frameworks"),
+      onChanged: "changeHandler"
     })
     export class App {
       ...
 
-      stateChanged(state: State) {
-        console.log("The state has changed", state);
+      changeHandler(newState: State, oldState: State) {
+        console.log("The state has changed", newState);
       }
     }
   </source-code>
@@ -400,20 +666,56 @@ Last but not least you can also define a callback to be called with the next sta
 
     @connectTo({
       selector: (store) => store.state.pluck("frameworks"), // same as above
-      onChanged: "stateChanged"
+      onChanged: "changeHandler"
     })
     export class App {
       ...
 
-      stateChanged(state) {
-        console.log("The state has changed", state);
+      changeHandler(newState, oldState) {
+        console.log("The state has changed", newState);
+      }
+    }
+  </source-code>
+</code-listing>
+
+For any one of these configuration, you can add an additional change handling function called `propertyChanged` that will be called last. This has 3 arguments, the state name being changed, the new state and the old state.
+
+<code-listing heading="Default change handling with propertyChanged">
+  <source-code lang="TypeScript">
+
+    // app.ts
+    ...
+
+    @connectTo<State>()
+    export class App {
+      ...
+
+      propertyChanged(stateName: string, newState: State, oldState: State) {
+        // stateName will be "state"
+        console.log("The state has changed", newState);
+      }
+    }
+  </source-code>
+  <source-code lang="JavaScript">
+
+    // app.js
+    ...
+
+    @connectTo()
+    export class App {
+      ...
+
+      propertyChanged(stateName, newState, oldState) {
+        // stateName will be "state"
+        console.log("The state has changed", newState);
       }
     }
   </source-code>
 </code-listing>
 
 > Info
-> Your `onChanged` handler will be called before the target property is changed. This way you have access to both the current and previous state.
+> Your change handler function will be called before the target property is changed. This way you have access to both the current and previous state.
+> If you provide an `onChanged` handler, then you could have up to 3 change handling methods in your view model (called in order): the `onChanged` method, the `target`Changed method and the `propertyChanged` method.
 
 Next, let's find out how to produce state changes.
 
