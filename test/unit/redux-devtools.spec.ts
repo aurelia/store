@@ -1,3 +1,4 @@
+import { DevToolsOptions } from "./../../src/store";
 import { skip, delay } from "rxjs/operators";
 
 import {
@@ -11,12 +12,14 @@ class DevToolsMock {
   public subscriptions = [];
   public init = jest.fn();
   public subscribe = jest.fn().mockImplementation((cb: (message: any) => void) => this.subscriptions.push(cb));
+
+  constructor(public devToolsOptions: DevToolsOptions) {}
 }
 
 function createDevToolsMock() {
   PAL.PLATFORM.global.devToolsExtension = {};
   PAL.PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__ = {
-    connect: () => new DevToolsMock()
+    connect: (devToolsOptions?: DevToolsOptions) => new DevToolsMock(devToolsOptions)
   }
 }
 
@@ -41,6 +44,13 @@ describe("redux devtools", () => {
 
     expect((store as any).devToolsAvailable).toBe(true);
     expect((store as any).devTools.init).toHaveBeenCalled();
+  });
+
+  it("should use DevToolsOptions if available", () => {
+    createDevToolsMock();
+    const store = new Store<testState>({ foo: "bar " }, { devToolsOptions: { serialize: false } });
+
+    expect((store as any).devTools.devToolsOptions).toBeDefined();
   });
 
   it("should receive time-travel notification from devtools", () => {
