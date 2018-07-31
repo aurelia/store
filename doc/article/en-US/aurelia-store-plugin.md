@@ -1645,6 +1645,27 @@ If you've ever worked with Redux then you know for sure about the [Redux Devtool
 
 There are tons of [great articles](https://codeburst.io/redux-devtools-for-dummies-74566c597d7) to get you started. Head over to [DevTools browser extension page](https://github.com/zalmoxisus/redux-devtools-extension) for instructions on how to install the extension, start your Aurelia Store plugin project and see how it works.
 
+## Defining custom devToolOptions
+
+if you use the Redux DevTools extension you can pass options to Aurelia-Store to setup the extension with your preferred configuration.
+We can set the serialize property to an [object or boolean](https://github.com/zalmoxisus/redux-devtools-extension/blob/master/docs/API/Arguments.md#serialize).
+
+In the following example, we set serialize to false. This way our state will not get serialized when sending it to the extension.
+
+<code-listing heading="Dispatch logs to console.debug">
+  <source-code lang="TypeScript">
+    
+    // main.ts
+
+    import { LogLevel } from "aurelia-store";
+    ...
+    aurelia.use.plugin("aurelia-store", { initialState, {
+      devToolOptions: {
+        serialize: false
+      }, 
+    }});
+  </source-code>
+</code-listing>
 
 ## Defining custom LogLevels
 
