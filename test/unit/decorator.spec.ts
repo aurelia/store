@@ -20,6 +20,18 @@ function arrange() {
 }
 
 describe("using decorators", () => {
+  it("should throw an descriptive error if Object.entries is not available", () => {
+    const originalEntries = Object.entries;
+
+    Object.entries = null;
+
+    expect(() => {
+      connectTo();
+    }).toThrowError(/Object.entries/);
+
+    Object.entries = originalEntries;
+  });
+
   it("should be possible to decorate a class and assign the subscribed result to the state property", () => {
     const { store, initialState } = arrange();
 

@@ -82,6 +82,31 @@ alternatively, you can manually add these dependencies to your vendor bundle:
 > Info
 > With the recent release of RxJS v.6, which this plugin depends on, quite a lot has changed. There are new ways to import dependencies and ways to keep compatibility with previous API versions. Take a look at the [following upgrade instructions](https://github.com/ReactiveX/rxjs/blob/master/docs_app/content/guide/v6/migration.md) for further details. In case you're using a classic Require.js based Aurelia CLI project setup, make sure to [configure rxjs-compat](https://www.npmjs.com/package/rxjs-compat) in aurelia.json as a dependency and use it as the main include file. If you do on the other hand already use the newest APIs you'll have to adjust your `aurelia.json` or do a fresh new `au import aurelia-store` to get the rxjs dependencies properly auto-setup.
 
+## Bring your own polyfills (BYOP)
+This plugin depends on the [Object.entries feature](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries#Polyfill) which is not available in Internet Explorer out of the box.
+
+Since it's not actually needed for the core of Aurelia, it won't be part of [aurelia-polyfills](https://github.com/aurelia/polyfills) and you should add the following polyfill by yourself.
+
+In case of the Aurelia CLI with RequireJS/SystemJS you can either create a new `object.entries.polyfill.js` file in the root of your project and add it into the configuration file `aurelia.json` in the prepend section.
+
+```
+// object.entries.polyfill.js
+
+if (!Object.entries) {
+  Object.entries = function(obj) {
+    var ownProps = Object.keys(obj),
+      i = ownProps.length,
+      resArray = new Array(i); // preallocate the Array
+    while (i--) {
+      resArray[i] = [ownProps[i], obj[ownProps[i]]];
+    }
+    
+    return resArray;
+  }
+}
+```
+
+Alternatively you can include the file via a script tag as one of the first scripts in your `index.html`.
 
 ## What is the State?
 
