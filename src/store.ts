@@ -18,12 +18,26 @@ export enum PerformanceMeasurement {
   All = "all"
 }
 
+export interface DevToolsOptions {
+  serialize?: boolean | {
+    date?: boolean;
+    regex?: boolean;
+    undefined?: boolean;
+    error?: boolean;
+    symbol?: boolean;
+    map?: boolean;
+    set?: boolean;
+    function?: boolean | Function;
+  };
+}
+
 export interface StoreOptions {
   history: Partial<HistoryOptions>;
   logDispatchedActions?: boolean;
   measurePerformance?: PerformanceMeasurement;
   propagateError?: boolean;
   logDefinitions?: LogDefinitions;
+  devToolsOptions?: DevToolsOptions;
 }
 
 interface DispatchQueueItem<T> {
@@ -258,7 +272,7 @@ export class Store<T> {
     if (PLATFORM.global.devToolsExtension) {
       this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)]("DevTools are available");
       this.devToolsAvailable = true;
-      this.devTools = PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__.connect();
+      this.devTools = PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
       this.devTools.init(this.initialState);
 
       this.devTools.subscribe((message: any) => {
