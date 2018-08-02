@@ -30,7 +30,7 @@ describe("store", () => {
       return Object.assign({}, currentState, { foo: param1 + param2 })
     };
 
-    expect(store.dispatch(unregisteredAction)).rejects.toThrowError();
+    expect((store.dispatch as any)(unregisteredAction)).rejects.toThrowError();
   })
 
   it("should fail when dispatching non actions", async () => {

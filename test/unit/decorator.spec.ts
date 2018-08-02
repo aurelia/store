@@ -4,6 +4,7 @@ import { pluck } from "rxjs/operators";
 
 import { Store } from "../../src/store";
 import { connectTo } from "../../src/decorator";
+import { Spied } from "./helpers";
 
 interface DemoState {
   foo: string;
@@ -21,15 +22,15 @@ function arrange() {
 
 describe("using decorators", () => {
   it("should throw an descriptive error if Object.entries is not available", () => {
-    const originalEntries = Object.entries;
+    const originalEntries = (Object as any).entries;
 
-    Object.entries = null;
+    (Object as any).entries = undefined;
 
     expect(() => {
       connectTo();
     }).toThrowError(/Object.entries/);
 
-    Object.entries = originalEntries;
+    (Object as any).entries = originalEntries;
   });
 
   it("should be possible to decorate a class and assign the subscribed result to the state property", () => {
@@ -160,7 +161,7 @@ describe("using decorators", () => {
 
       (sut as any).bind();
 
-      expect(sut.state).not.toBeDefined();
+      expect((sut as any).state).not.toBeDefined();
       expect(sut.foo).toEqual(initialState.bar);
     });
 
@@ -183,12 +184,12 @@ describe("using decorators", () => {
 
       (sut as any).bind();
 
-      expect(sut.state).not.toBeDefined();
+      expect((sut as any).state).not.toBeDefined();
       expect(sut.foo).toBeDefined();
-      expect(sut.foo.barTarget).toBeDefined();
-      expect(sut.foo.fooTarget).toBeDefined();
-      expect(sut.foo.barTarget).toBe(initialState.bar);
-      expect(sut.foo.fooTarget).toBe(initialState.foo);
+      expect((sut.foo as any).barTarget).toBeDefined();
+      expect((sut.foo as any).fooTarget).toBeDefined();
+      expect((sut.foo as any).barTarget).toBe(initialState.bar);
+      expect((sut.foo as any).fooTarget).toBe(initialState.foo);
     });
   })
 
@@ -435,7 +436,7 @@ describe("using decorators", () => {
   describe("with handling changes", () => {
     it("should call stateChanged when exists on VM by default", () => {
       const { store, initialState } = arrange();
-      const oldState = {};
+      const oldState = {} as DemoState;
 
       @connectTo<DemoState>({
         selector: (store) => store.state,
@@ -446,7 +447,7 @@ describe("using decorators", () => {
         stateChanged(state: DemoState) { }
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut = new DemoStoreConsumer() as Spied<DemoStoreConsumer>;
       spyOn(sut, "stateChanged");
       (sut as any).bind();
 
@@ -469,7 +470,7 @@ describe("using decorators", () => {
         stateChanged(state: DemoState) { /* */ }
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut = new DemoStoreConsumer() as Spied<DemoStoreConsumer>;
       spyOn(sut, "stateChanged");
       (sut as any).bind();
 
@@ -516,7 +517,7 @@ describe("using decorators", () => {
         }
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut = new DemoStoreConsumer() as Spied<DemoStoreConsumer>;
       spyOn(sut, "targetPropChanged").and.callThrough();
       (sut as any).bind();
 
@@ -573,7 +574,7 @@ describe("using decorators", () => {
         propertyChanged() {}
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut = new DemoStoreConsumer() as Spied<DemoStoreConsumer>;
       spyOn(sut, "customHandler").and.callFake(() => calledHandlersInOrder.push("customHandler"));
       spyOn(sut, "targetPropChanged").and.callFake(() => calledHandlersInOrder.push("targetPropChanged"));
       spyOn(sut, "propertyChanged").and.callFake(() => calledHandlersInOrder.push("propertyChanged"));
@@ -613,7 +614,7 @@ describe("using decorators", () => {
         }
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut = new DemoStoreConsumer() as Spied<DemoStoreConsumer>;
       spyOn(sut, "fooChanged").and.callThrough();
       spyOn(sut, "targetPropChanged");
       (sut as any).bind();

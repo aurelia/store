@@ -11,7 +11,7 @@ import { jump, applyLimits, HistoryOptions, isStateHistory } from "./history";
 import { Middleware, MiddlewarePlacement, CallingAction } from "./middleware";
 import { LogDefinitions, LogLevel, getLogType, LoggerIndexed } from "./logging";
 
-export type Reducer<T> = (state: T, ...params: any[]) => T | false | Promise<T | false>;
+export type Reducer<T, P extends any[] = any[]> = (state: T, ...params: P) => T | false | Promise<T | false>;
 
 export enum PerformanceMeasurement {
   StartEnd = "startEnd",
@@ -110,8 +110,8 @@ export class Store<T> {
     return this.actions.has(reducer);
   }
 
-  public dispatch(reducer: Reducer<T> | string, ...params: any[]) {
-    let action: Reducer<T>;
+  public dispatch<P extends any[]>(reducer: Reducer<T, P> | string, ...params: P) {
+    let action: Reducer<T, P>;
 
     if (typeof reducer === "string") {
       const result = Array.from(this.actions)
@@ -125,7 +125,7 @@ export class Store<T> {
     }
 
     return new Promise<void>((resolve, reject) => {
-      this.dispatchQueue.push({ reducer: action, params, resolve, reject });
+      this.dispatchQueue.push({ reducer: action, params, resolve, reject } as any);
       if (this.dispatchQueue.length === 1) {
         this.handleQueue();
       }
