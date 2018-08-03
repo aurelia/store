@@ -25,7 +25,6 @@
     ".vscode",
     "dist",
     "doc",
-    "node_modules",
-    "test"
+    "node_modules"
   ]
 }
