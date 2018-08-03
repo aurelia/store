@@ -49,7 +49,7 @@ describe("middlewares", () => {
   it("should allow registering middlewares with additional settings", async () => {
     const store = createStoreWithState(initialState);
     const fakeSettings = { foo: "bar" };
-    const settingsMiddleware: Middleware<TestState> = (currentState, originalState, settings) => {
+    const settingsMiddleware: Middleware<TestState> = (_, __, settings) => {
       try {
         expect(settings.foo).toBeDefined();
         expect(settings.foo).toEqual(fakeSettings.foo);
@@ -110,7 +110,7 @@ describe("middlewares", () => {
 
   it("should allow checking for registered middlewares", () => {
     const store = createStoreWithState(initialState);
-    const testMiddleware = (currentState: TestState): false => {
+    const testMiddleware = (): false => {
       return false;
     }
 
@@ -122,15 +122,15 @@ describe("middlewares", () => {
     const store = createStoreWithStateAndOptions<TestState>(initialState, { propagateError: true });
     const expectedActionName = "ActionObservedByMiddleware";
 
-    const actionObservedByMiddleware = (state, foo: string, bar: string) => {
-      return state;
+    const actionObservedByMiddleware = (state: TestState, foo: string, bar: string) => {
+      return Object.assign({}, state, { counter: foo.length + bar.length });
     }
 
-    const actionAwareMiddleware: Middleware<TestState> = (currentState, _, __, action) => {
+    const actionAwareMiddleware: Middleware<TestState> = (_, __, ___, action) => {
       expect(action).toBeDefined();
-      expect(action.name).toBe(expectedActionName);
-      expect(action.params).toBeDefined();
-      expect(action.params).toEqual(["A", "B"]);
+      expect(action!.name).toBe(expectedActionName);
+      expect(action!.params).toBeDefined();
+      expect(action!.params).toEqual(["A", "B"]);
     }
 
     store.registerAction(expectedActionName, actionObservedByMiddleware);
@@ -140,7 +140,7 @@ describe("middlewares", () => {
       store,
       false,
       () => store.dispatch(actionObservedByMiddleware, "A", "B"),
-      (res: TestState) => { expect(res.counter).toBe(1); }
+      (res: TestState) => { expect(res.counter).toBe(2); }
     );
   });
 
@@ -188,15 +188,15 @@ describe("middlewares", () => {
     it("should get additionally the original state, before prev modifications passed in", done => {
       const store = createStoreWithState(initialState);
 
-      const decreaseBefore = (currentState: TestState, originalState: TestState) => {
+      const decreaseBefore = (currentState: TestState, originalState?: TestState) => {
         const newState = Object.assign({}, currentState);
-        newState.counter = originalState.counter;
+        newState.counter = originalState!.counter;
 
         return newState;
       }
       store.registerMiddleware(decreaseBefore, MiddlewarePlacement.Before);
 
-      const resetBefore = (currentState: TestState, originalState: TestState) => {
+      const resetBefore = (currentState: TestState, originalState?: TestState) => {
         expect(currentState.counter).toBe(0);
         return originalState;
       }
@@ -265,9 +265,9 @@ describe("middlewares", () => {
     it("should get additionally the original state, before prev modifications passed in", done => {
       const store = createStoreWithState(initialState);
 
-      const decreaseAfter = (currentState: TestState, originalState: TestState) => {
+      const decreaseAfter = (currentState: TestState, originalState: TestState | undefined) => {
         const newState = Object.assign({}, currentState);
-        newState.counter = originalState.counter;
+        newState.counter = originalState!.counter;
 
         return newState;
       }
@@ -288,7 +288,7 @@ describe("middlewares", () => {
 
   it("should handle throwing middlewares and maintain queue", done => {
     const store = createStoreWithState(initialState);
-    const decreaseBefore = (currentState: TestState) => {
+    const decreaseBefore = () => {
       throw new Error("Failed on purpose");
     }
     store.registerMiddleware(decreaseBefore, MiddlewarePlacement.Before);
@@ -307,7 +307,7 @@ describe("middlewares", () => {
   it("should not swallow errors from middlewares and interrupt queue if option provided", async () => {
     const errorMsg = "Failed on purpose";
     const store = createStoreWithStateAndOptions(initialState, { propagateError: true });
-    const decreaseBefore = (currentState: TestState) => {
+    const decreaseBefore = () => {
       throw new Error(errorMsg);
     }
     store.registerMiddleware(decreaseBefore, MiddlewarePlacement.Before);
@@ -322,10 +322,9 @@ describe("middlewares", () => {
   });
 
   it("should interrupt queue action if middleware returns sync false", async () => {
-    const errorMsg = "Failed on purpose";
     const store = createStoreWithStateAndOptions(initialState, {});
     const nextSpy = spyOn((store as any)._state, "next").and.callThrough();
-    const syncFalseMiddleware = (currentState: TestState): false => {
+    const syncFalseMiddleware = (): false => {
       return false;
     }
     store.registerMiddleware(syncFalseMiddleware, MiddlewarePlacement.Before);
@@ -337,10 +336,9 @@ describe("middlewares", () => {
   });
 
   it("should interrupt queue action if after placed middleware returns sync false", async () => {
-    const errorMsg = "Failed on purpose";
     const store = createStoreWithStateAndOptions(initialState, {});
     const nextSpy = spyOn((store as any)._state, "next").and.callThrough();
-    const syncFalseMiddleware = (currentState: TestState): false => {
+    const syncFalseMiddleware = (): false => {
       return false;
     }
     store.registerMiddleware(syncFalseMiddleware, MiddlewarePlacement.After);
@@ -352,10 +350,9 @@ describe("middlewares", () => {
   });
 
   it("should interrupt queue action if middleware returns async false", async () => {
-    const errorMsg = "Failed on purpose";
     const store = createStoreWithStateAndOptions(initialState, {});
     const nextSpy = spyOn((store as any)._state, "next").and.callThrough();
-    const syncFalseMiddleware = (currentState: TestState): Promise<false> => {
+    const syncFalseMiddleware = (): Promise<false> => {
       return Promise.resolve<false>(false);
     }
     store.registerMiddleware(syncFalseMiddleware, MiddlewarePlacement.Before);
@@ -370,10 +367,10 @@ describe("middlewares", () => {
     const errorMsg = "Failed on purpose";
     const store = createStoreWithStateAndOptions(initialState, { propagateError: true });
     let secondMiddlewareIsCalled = false;
-    const firstMiddleware = (currentState: TestState) => {
+    const firstMiddleware = () => {
       throw new Error(errorMsg);
     }
-    const secondMiddleware = (currentState: TestState) => {
+    const secondMiddleware = () => {
       secondMiddlewareIsCalled = true;
     }
     store.registerMiddleware(firstMiddleware, MiddlewarePlacement.Before);

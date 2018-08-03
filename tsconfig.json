@@ -15,6 +15,7 @@
     "strictNullChecks": true,
     "declaration": true,
     "forceConsistentCasingInFileNames": true,
+    "strictPropertyInitialization": false,
     "experimentalDecorators": true,
     "noEmitHelpers": false,
     "strict": true,
