@@ -296,10 +296,10 @@ export class Store<T> {
   }
 }
 
-export function dispatchify<T>(action: Reducer<T> | string) {
+export function dispatchify<T, P extends any[]>(action: Reducer<T, P> | string) {
   const store = Container.instance.get(Store);
 
-  return function (...params: any[]) {
+  return function (...params: P) {
     return store.dispatch(action, ...params) as Promise<void>;
   }
 }
