@@ -1,5 +1,6 @@
 System.register(["./store", "./history", "./test-helpers", "./middleware", "./logging", "./decorator"], function (exports_1, context_1) {
     "use strict";
+    var store_1, history_1;
     var __moduleName = context_1 && context_1.id;
     function configure(aurelia, options) {
         if (!options || !options.initialState) {
@@ -14,7 +15,6 @@ System.register(["./store", "./history", "./test-helpers", "./middleware", "./lo
             .registerInstance(store_1.Store, new store_1.Store(initState, options));
     }
     exports_1("configure", configure);
-    var store_1, history_1;
     var exportedNames_1 = {
         "configure": true
     };

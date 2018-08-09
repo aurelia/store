@@ -1,15 +1,22 @@
 System.register(["aurelia-dependency-injection", "rxjs", "./store"], function (exports_1, context_1) {
     "use strict";
-    var __assign = (this && this.__assign) || Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
+    var __assign = (this && this.__assign) || function () {
+        __assign = Object.assign || function(t) {
+            for (var s, i = 1, n = arguments.length; i < n; i++) {
+                s = arguments[i];
+                for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                    t[p] = s[p];
+            }
+            return t;
+        };
+        return __assign.apply(this, arguments);
     };
+    var aurelia_dependency_injection_1, rxjs_1, store_1, defaultSelector;
     var __moduleName = context_1 && context_1.id;
     function connectTo(settings) {
+        if (!Object.entries) {
+            throw new Error("You need a polyfill for Object.entries for browsers like Internet Explorer. Example: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries#Polyfill");
+        }
         var store = aurelia_dependency_injection_1.Container.instance.get(store_1.Store);
         var _settings = __assign({ selector: typeof settings === "function" ? settings : defaultSelector }, settings);
         function getSource(selector) {
@@ -20,12 +27,14 @@ System.register(["aurelia-dependency-injection", "rxjs", "./store"], function (e
             return store.state;
         }
         function createSelectors() {
+            var _a;
             var isSelectorObj = typeof _settings.selector === "object";
             var fallbackSelector = (_a = {},
                 _a[_settings.target || "state"] = _settings.selector || defaultSelector,
                 _a);
             return Object.entries(__assign({}, (isSelectorObj ? _settings.selector : fallbackSelector))).map(function (_a) {
                 var target = _a[0], selector = _a[1];
+                var _b;
                 return ({
                     targets: _settings.target && isSelectorObj ? [_settings.target, target] : [target],
                     selector: selector,
@@ -37,9 +46,7 @@ System.register(["aurelia-dependency-injection", "rxjs", "./store"], function (e
                         _b["propertyChanged"] = 0,
                         _b)
                 });
-                var _b;
             });
-            var _a;
         }
         return function (target) {
             var originalSetup = typeof settings === "object" && settings.setup
@@ -91,7 +98,6 @@ System.register(["aurelia-dependency-injection", "rxjs", "./store"], function (e
         };
     }
     exports_1("connectTo", connectTo);
-    var aurelia_dependency_injection_1, rxjs_1, store_1, defaultSelector;
     return {
         setters: [
             function (aurelia_dependency_injection_1_1) {

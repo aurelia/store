@@ -1,15 +1,19 @@
 System.register(["aurelia-logging"], function (exports_1, context_1) {
     "use strict";
     var __extends = (this && this.__extends) || (function () {
-        var extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        var extendStatics = function (d, b) {
+            extendStatics = Object.setPrototypeOf ||
+                ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+                function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            return extendStatics(d, b);
+        }
         return function (d, b) {
             extendStatics(d, b);
             function __() { this.constructor = d; }
             d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
         };
     })();
+    var aurelia_logging_1, LogLevel, LoggerIndexed;
     var __moduleName = context_1 && context_1.id;
     function getLogType(options, definition, defaultLevel) {
         if (definition &&
@@ -22,7 +26,6 @@ System.register(["aurelia-logging"], function (exports_1, context_1) {
         return defaultLevel;
     }
     exports_1("getLogType", getLogType);
-    var aurelia_logging_1, LogLevel, LoggerIndexed;
     return {
         setters: [
             function (aurelia_logging_1_1) {

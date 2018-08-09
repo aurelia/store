@@ -178,7 +178,7 @@ let Store = class Store {
         if (PLATFORM.global.devToolsExtension) {
             this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)]("DevTools are available");
             this.devToolsAvailable = true;
-            this.devTools = PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__.connect();
+            this.devTools = PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
             this.devTools.init(this.initialState);
             this.devTools.subscribe((message) => {
                 this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)](`DevTools sent change ${message.type}`);

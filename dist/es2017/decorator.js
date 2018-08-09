@@ -3,6 +3,9 @@ import { Observable, Subscription } from "rxjs";
 import { Store } from "./store";
 const defaultSelector = (store) => store.state;
 export function connectTo(settings) {
+    if (!Object.entries) {
+        throw new Error("You need a polyfill for Object.entries for browsers like Internet Explorer. Example: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries#Polyfill");
+    }
     const store = Container.instance.get(Store);
     const _settings = Object.assign({ selector: typeof settings === "function" ? settings : defaultSelector }, settings);
     function getSource(selector) {
