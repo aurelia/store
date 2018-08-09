@@ -10,25 +10,13 @@ import {
 import { jump, applyLimits, HistoryOptions, isStateHistory } from "./history";
 import { Middleware, MiddlewarePlacement, CallingAction } from "./middleware";
 import { LogDefinitions, LogLevel, getLogType, LoggerIndexed } from "./logging";
+import { DevToolsOptions, Action } from "./devtools";
 
 export type Reducer<T, P extends any[] = any[]> = (state: T, ...params: P) => T | false | Promise<T | false>;
 
 export enum PerformanceMeasurement {
   StartEnd = "startEnd",
   All = "all"
-}
-
-export interface DevToolsOptions {
-  serialize?: boolean | {
-    date?: boolean;
-    regex?: boolean;
-    undefined?: boolean;
-    error?: boolean;
-    symbol?: boolean;
-    map?: boolean;
-    set?: boolean;
-    function?: boolean | Function;
-  };
 }
 
 export interface StoreOptions {
@@ -54,7 +42,7 @@ export class Store<T> {
   private logger = LogManager.getLogger("aurelia-store") as LoggerIndexed;
   private devToolsAvailable: boolean = false;
   private devTools: any;
-  private actions: Map<Reducer<T>, { name: string }> = new Map();
+  private actions: Map<Reducer<T>, Action<string>> = new Map();
   private middlewares: Map<Middleware<T>, { placement: MiddlewarePlacement, settings?: any }> = new Map();
   private _state: BehaviorSubject<T>;
   private options: Partial<StoreOptions>;
@@ -93,7 +81,7 @@ export class Store<T> {
       throw new Error("The reducer is expected to have one or more parameters, where the first will be the present state");
     }
 
-    this.actions.set(reducer, { name });
+    this.actions.set(reducer, { type: name });
   }
 
   public unregisterAction(reducer: Reducer<T>) {
@@ -104,7 +92,7 @@ export class Store<T> {
 
   public isActionRegistered(reducer: Reducer<T> | string) {
     if (typeof reducer === "string") {
-      return Array.from(this.actions).find((action) => action[1].name === reducer) !== undefined;
+      return Array.from(this.actions).find((action) => action[1].type === reducer) !== undefined;
     }
 
     return this.actions.has(reducer);
@@ -115,7 +103,7 @@ export class Store<T> {
 
     if (typeof reducer === "string") {
       const result = Array.from(this.actions)
-        .find((val) => val[1].name === reducer);
+        .find((val) => val[1].type === reducer);
 
       if (result) {
         action = result[0];
@@ -157,14 +145,14 @@ export class Store<T> {
     const action = this.actions.get(reducer);
 
     if (this.options.logDispatchedActions) {
-      this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)](`Dispatching: ${action!.name}`);
+      this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)](`Dispatching: ${action!.type}`);
     }
 
     const beforeMiddleswaresResult = await this.executeMiddlewares(
       this._state.getValue(),
       MiddlewarePlacement.Before,
       {
-        name: action!.name,
+        name: action!.type,
         params
       }
     );
@@ -183,7 +171,7 @@ export class Store<T> {
 
       return;
     }
-    PLATFORM.performance.mark("dispatch-after-reducer-" + action!.name);
+    PLATFORM.performance.mark("dispatch-after-reducer-" + action!.type);
 
     if (!result && typeof result !== "object") {
       throw new Error("The reducer has to return a new state");
@@ -193,7 +181,7 @@ export class Store<T> {
       result,
       MiddlewarePlacement.After,
       {
-        name: action!.name,
+        name: action!.type,
         params
       }
     );
@@ -223,14 +211,14 @@ export class Store<T> {
 
       const measures = PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
       this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
-        `Total duration ${measures[0].duration} of dispatched action ${action!.name}:`,
+        `Total duration ${measures[0].duration} of dispatched action ${action!.type}:`,
         measures
       );
     } else if (this.options.measurePerformance === PerformanceMeasurement.All) {
       const marks = PLATFORM.performance.getEntriesByType("mark");
       const totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
       this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
-        `Total duration ${totalDuration} of dispatched action ${action!.name}:`,
+        `Total duration ${totalDuration} of dispatched action ${action!.type}:`,
         marks
       );
     }
@@ -238,7 +226,7 @@ export class Store<T> {
     PLATFORM.performance.clearMarks();
     PLATFORM.performance.clearMeasures();
 
-    this.updateDevToolsState(action!.name, resultingState);
+    this.updateDevToolsState(action!, resultingState);
   }
 
   private executeMiddlewares(state: T, placement: MiddlewarePlacement, action: CallingAction): T | false {
@@ -285,7 +273,7 @@ export class Store<T> {
     }
   }
 
-  private updateDevToolsState(action: string, state: T) {
+  private updateDevToolsState(action: Action<string>, state: T) {
     if (this.devToolsAvailable) {
       this.devTools.send(action, state);
     }
