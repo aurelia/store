@@ -1673,9 +1673,9 @@ There are tons of [great articles](https://codeburst.io/redux-devtools-for-dummi
 ## Defining custom devToolsOptions
 
 if you use the Redux DevTools extension you can pass options to Aurelia-Store to setup the extension with your [preferred configuration](https://github.com/zalmoxisus/redux-devtools-extension/blob/master/docs/API/Arguments.md).
-We can set the serialize property to an [object or boolean](https://github.com/zalmoxisus/redux-devtools-extension/blob/master/docs/API/Arguments.md#serialize).
 
-In the following example, we set serialize to false. This way our state will not get serialized when sending it to the extension.
+
+In the following example, we set the serialize option to false. This way our state will not get serialized when sending it to the extension.
 
 <code-listing heading="Initializing the DevTools extension with custom options">
   <source-code lang="TypeScript">
