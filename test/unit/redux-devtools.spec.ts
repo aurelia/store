@@ -9,7 +9,7 @@ import { Store } from "../../src/store";
 import * as PAL from "aurelia-pal";
 
 class DevToolsMock {
-  public subscriptions = [];
+  public subscriptions = [] as Function[];
   public init = jest.fn();
   public subscribe = jest.fn().mockImplementation((cb: (message: any) => void) => this.subscriptions.push(cb));
 
@@ -19,7 +19,7 @@ class DevToolsMock {
 function createDevToolsMock() {
   PAL.PLATFORM.global.devToolsExtension = {};
   PAL.PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__ = {
-    connect: (devToolsOptions?: DevToolsOptions) => new DevToolsMock(devToolsOptions)
+    connect: (devToolsOptions?: DevToolsOptions) => new DevToolsMock(devToolsOptions!)
   }
 }
 
@@ -31,7 +31,7 @@ describe("redux devtools", () => {
 
   it("should setup devtools on construction", () => {
     const spy = jest.spyOn(Store.prototype as any, "setupDevTools");
-    const store = new Store<testState>({ foo: "bar " });
+    new Store<testState>({ foo: "bar " });
 
     expect(spy).toHaveBeenCalled();
     spy.mockReset();

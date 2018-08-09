@@ -4,6 +4,7 @@ import { pluck } from "rxjs/operators";
 
 import { Store } from "../../src/store";
 import { connectTo } from "../../src/decorator";
+import { Spied } from "./helpers";
 
 interface DemoState {
   foo: string;
@@ -21,19 +22,19 @@ function arrange() {
 
 describe("using decorators", () => {
   it("should throw an descriptive error if Object.entries is not available", () => {
-    const originalEntries = Object.entries;
+    const originalEntries = (Object as any).entries;
 
-    Object.entries = null;
+    (Object as any).entries = undefined;
 
     expect(() => {
       connectTo();
     }).toThrowError(/Object.entries/);
 
-    Object.entries = originalEntries;
+    (Object as any).entries = originalEntries;
   });
 
   it("should be possible to decorate a class and assign the subscribed result to the state property", () => {
-    const { store, initialState } = arrange();
+    const { initialState } = arrange();
 
     @connectTo()
     class DemoStoreConsumer {
@@ -50,7 +51,7 @@ describe("using decorators", () => {
   });
 
   it("should be possible to provide a state selector", () => {
-    const { store, initialState } = arrange();
+    const { initialState } = arrange();
 
     @connectTo<DemoState>((store) => store.state.pipe(pluck("bar")))
     class DemoStoreConsumer {
@@ -67,7 +68,7 @@ describe("using decorators", () => {
 
   describe("with a complex settings object", () => {
     it("should be possible to provide a selector", () => {
-      const { store, initialState } = arrange();
+      const { initialState } = arrange();
 
       @connectTo<DemoState>({
         selector: (store) => store.state.pipe(pluck("bar"))
@@ -84,12 +85,12 @@ describe("using decorators", () => {
       expect(sut.state).toEqual(initialState.bar);
     });
 
-    it("should be possible to provide an undefined selector and stil get the state property", () => {
-      const { store, initialState } = arrange();
+    it("should be possible to provide an undefined selector and still get the state property", () => {
+      const { initialState } = arrange();
 
       @connectTo<DemoState>({
         selector: undefined
-      })
+      } as any)
       class DemoStoreConsumer {
         state: DemoState;
       }
@@ -103,7 +104,7 @@ describe("using decorators", () => {
     });
 
     it("should be possible to provide an object with multiple selectors", () => {
-      const { store, initialState } = arrange();
+      const { initialState } = arrange();
 
       @connectTo<DemoState>({
         selector: {
@@ -127,7 +128,7 @@ describe("using decorators", () => {
     });
 
     it("should use the default state observable if selector does not return an observable", () => {
-      const { store, initialState } = arrange();
+      const { initialState } = arrange();
 
       @connectTo<DemoState>({
         selector: () => "foobar" as any
@@ -145,7 +146,7 @@ describe("using decorators", () => {
     });
 
     it("should be possible to override the target property", () => {
-      const { store, initialState } = arrange();
+      const { initialState } = arrange();
 
       @connectTo<DemoState>({
         selector: (store) => store.state.pipe(pluck("bar")),
@@ -160,12 +161,12 @@ describe("using decorators", () => {
 
       (sut as any).bind();
 
-      expect(sut.state).not.toBeDefined();
+      expect((sut as any).state).not.toBeDefined();
       expect(sut.foo).toEqual(initialState.bar);
     });
 
     it("should be possible to use the target as the parent object for the multiple selector targets", () => {
-      const { store, initialState } = arrange();
+      const { initialState } = arrange();
 
       @connectTo<DemoState>({
         selector: {
@@ -183,17 +184,17 @@ describe("using decorators", () => {
 
       (sut as any).bind();
 
-      expect(sut.state).not.toBeDefined();
+      expect((sut as any).state).not.toBeDefined();
       expect(sut.foo).toBeDefined();
-      expect(sut.foo.barTarget).toBeDefined();
-      expect(sut.foo.fooTarget).toBeDefined();
-      expect(sut.foo.barTarget).toBe(initialState.bar);
-      expect(sut.foo.fooTarget).toBe(initialState.foo);
+      expect((sut.foo as any).barTarget).toBeDefined();
+      expect((sut.foo as any).fooTarget).toBeDefined();
+      expect((sut.foo as any).barTarget).toBe(initialState.bar);
+      expect((sut.foo as any).fooTarget).toBe(initialState.foo);
     });
   })
 
   it("should apply original bind method after patch", () => {
-    const { store, initialState } = arrange();
+    const { initialState } = arrange();
 
     @connectTo()
     class DemoStoreConsumer {
@@ -215,7 +216,7 @@ describe("using decorators", () => {
 
   describe("the unbind lifecycle-method", () => {
     it("should apply original unbind method after patch", () => {
-      const { store, initialState } = arrange();
+      const { initialState } = arrange();
 
       @connectTo()
       class DemoStoreConsumer {
@@ -239,7 +240,7 @@ describe("using decorators", () => {
     });
 
     it("should automatically unsubscribe when unbind is called", () => {
-      const { store, initialState } = arrange();
+      const { initialState } = arrange();
 
       @connectTo()
       class DemoStoreConsumer {
@@ -266,12 +267,12 @@ describe("using decorators", () => {
     });
 
     it("should automatically unsubscribe from all sources when unbind is called", () => {
-      const { store, initialState } = arrange();
+      arrange();
 
       @connectTo({
         selector: {
           barTarget: (store) => store.state.pipe(pluck("bar")),
-          stateTarget: (store) => "foo" as any
+          stateTarget: () => "foo" as any
         }
       })
       class DemoStoreConsumer {
@@ -301,7 +302,7 @@ describe("using decorators", () => {
     });
 
     it("should not unsubscribe if subscription is already closed", () => {
-      const { store, initialState } = arrange();
+      const { initialState } = arrange();
 
       @connectTo()
       class DemoStoreConsumer {
@@ -328,9 +329,9 @@ describe("using decorators", () => {
       expect(subscription.unsubscribe).not.toHaveBeenCalled();
     });
 
-    [ null, { }].forEach((stateSubscription: any) => {
+    [null, {}].forEach((stateSubscription: any) => {
       it("should not unsubscribe if state subscription changes and is not an array", () => {
-        const { store, initialState } = arrange();
+        arrange();
 
         @connectTo()
         class DemoStoreConsumer {
@@ -356,7 +357,8 @@ describe("using decorators", () => {
 
   describe("with custom setup and teardown settings", () => {
     it("should return the value from the original setup / teardown functions", () => {
-      const { store, initialState } = arrange();
+      arrange();
+
       const expectedBindResult = "foo";
       const expectedUnbindResult = "bar";
 
@@ -382,7 +384,7 @@ describe("using decorators", () => {
     });
 
     it("should allow to specify a lifecycle hook for the subscription", () => {
-      const { store, initialState } = arrange();
+      const { initialState } = arrange();
 
       @connectTo<DemoState>({
         selector: (store) => store.state,
@@ -402,7 +404,7 @@ describe("using decorators", () => {
     });
 
     it("should allow to specify a lifecycle hook for the unsubscription", () => {
-      const { store, initialState } = arrange();
+      const { initialState } = arrange();
 
       @connectTo<DemoState>({
         selector: (store) => store.state,
@@ -434,8 +436,8 @@ describe("using decorators", () => {
 
   describe("with handling changes", () => {
     it("should call stateChanged when exists on VM by default", () => {
-      const { store, initialState } = arrange();
-      const oldState = {};
+      const { initialState } = arrange();
+      const oldState = {} as DemoState;
 
       @connectTo<DemoState>({
         selector: (store) => store.state,
@@ -443,10 +445,10 @@ describe("using decorators", () => {
       class DemoStoreConsumer {
         state: DemoState = oldState;
 
-        stateChanged(state: DemoState) { }
+        stateChanged(state: DemoState) { return state; }
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut = new DemoStoreConsumer() as Spied<DemoStoreConsumer>;
       spyOn(sut, "stateChanged");
       (sut as any).bind();
 
@@ -457,7 +459,7 @@ describe("using decorators", () => {
     });
 
     it("should accept a string for onChanged and call the respective handler passing the new state", () => {
-      const { store, initialState } = arrange();
+      const { initialState } = arrange();
 
       @connectTo<DemoState>({
         onChanged: "stateChanged",
@@ -466,10 +468,10 @@ describe("using decorators", () => {
       class DemoStoreConsumer {
         state: DemoState;
 
-        stateChanged(state: DemoState) { /* */ }
+        stateChanged(state: DemoState) { return state; }
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut = new DemoStoreConsumer() as Spied<DemoStoreConsumer>;
       spyOn(sut, "stateChanged");
       (sut as any).bind();
 
@@ -479,7 +481,7 @@ describe("using decorators", () => {
     });
 
     it("should be called before assigning the new state, so there is still access to the previous state", () => {
-      const { store, initialState } = arrange();
+      const { initialState } = arrange();
 
       @connectTo<DemoState>({
         onChanged: "stateChanged",
@@ -499,24 +501,24 @@ describe("using decorators", () => {
     });
 
     it("should call the targetChanged handler on the VM, if existing, with the new and old state", () => {
-      const { store, initialState } = arrange();
-       let targetValOnChange = null;
+      const { initialState } = arrange();
+      let targetValOnChange = null;
 
       @connectTo<DemoState>({
-        selector: { 
+        selector: {
           targetProp: (store) => store.state
         }
       })
       class DemoStoreConsumer {
         state: DemoState;
         targetProp = "foobar"
-        
+
         targetPropChanged() {
           targetValOnChange = sut.targetProp;
         }
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut = new DemoStoreConsumer() as Spied<DemoStoreConsumer>;
       spyOn(sut, "targetPropChanged").and.callThrough();
       (sut as any).bind();
 
@@ -528,11 +530,11 @@ describe("using decorators", () => {
     });
 
     it("should call the propertyChanged handler on the VM, if existing, with the new and old state", () => {
-      const { store, initialState } = arrange();
+      const { initialState } = arrange();
       let targetValOnChange = null;
 
       @connectTo<DemoState>({
-        selector: { 
+        selector: {
           targetProp: (store) => store.state
         }
       })
@@ -555,12 +557,12 @@ describe("using decorators", () => {
     });
 
     it("should call all change handlers on the VM, if existing, in order and with the correct args", () => {
-      const { store, initialState } = arrange();
-      const calledHandlersInOrder = [];
+      const { initialState } = arrange();
+      const calledHandlersInOrder = [] as string[];
 
       @connectTo<DemoState>({
         onChanged: "customHandler",
-        selector: { 
+        selector: {
           targetProp: (store) => store.state
         }
       })
@@ -568,12 +570,12 @@ describe("using decorators", () => {
         state: DemoState;
         targetProp = "foobar"
 
-        customHandler() {}
-        targetPropChanged() {}
-        propertyChanged() {}
+        customHandler() { }
+        targetPropChanged() { }
+        propertyChanged() { }
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut = new DemoStoreConsumer() as Spied<DemoStoreConsumer>;
       spyOn(sut, "customHandler").and.callFake(() => calledHandlersInOrder.push("customHandler"));
       spyOn(sut, "targetPropChanged").and.callFake(() => calledHandlersInOrder.push("targetPropChanged"));
       spyOn(sut, "propertyChanged").and.callFake(() => calledHandlersInOrder.push("propertyChanged"));
@@ -590,12 +592,12 @@ describe("using decorators", () => {
     });
 
     it("should call the targetOnChanged handler and not each multiple selector, if existing, with the 3 args", () => {
-      const { store, initialState } = arrange();
+      const { initialState } = arrange();
       let targetValOnChange = null;
 
       @connectTo<DemoState>({
         target: "foo",
-        selector: { 
+        selector: {
           targetProp: (store) => store.state
         }
       })
@@ -613,7 +615,7 @@ describe("using decorators", () => {
         }
       }
 
-      const sut = new DemoStoreConsumer();
+      const sut = new DemoStoreConsumer() as Spied<DemoStoreConsumer>;
       spyOn(sut, "fooChanged").and.callThrough();
       spyOn(sut, "targetPropChanged");
       (sut as any).bind();
@@ -626,7 +628,7 @@ describe("using decorators", () => {
     });
 
     it("should check whether the method exists before calling it and throw a meaningful error", () => {
-      const { store, initialState } = arrange();
+      arrange();
 
       @connectTo<DemoState>({
         onChanged: "stateChanged",

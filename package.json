@@ -16,16 +16,16 @@
     "test": "cross-env jest",
     "test-ci": "cross-env jest && cat ./test/coverage-jest/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "test-watch": "concurrently \"tsc --watch\" \"jest --watch\"",
-    "build:amd": "cross-env tsc --outDir dist/amd --module amd",
-    "build:commonjs": "cross-env tsc --outDir dist/commonjs --module commonjs",
-    "build:es2015": "cross-env tsc --outDir dist/es2015 --module es2015",
-    "build:es2017": "cross-env tsc --outDir dist/es2017 --module es2015 --target es2017",
-    "build:native-modules": "cross-env tsc --outDir dist/native-modules --module es2015",
-    "build:system": "cross-env tsc --outDir dist/system --module system",
+    "build:amd": "cross-env tsc --p tsconfig-build.json --outDir dist/amd --module amd",
+    "build:commonjs": "cross-env tsc --p tsconfig-build.json --outDir dist/commonjs --module commonjs",
+    "build:es2015": "cross-env tsc --p tsconfig-build.json --outDir dist/es2015 --module es2015",
+    "build:es2017": "cross-env tsc --p tsconfig-build.json --outDir dist/es2017 --module es2015 --target es2017",
+    "build:native-modules": "cross-env tsc --p tsconfig-build.json --outDir dist/native-modules --module es2015",
+    "build:system": "cross-env tsc --p tsconfig-build.json --outDir dist/system --module system",
     "prebuild": "cross-env rimraf dist",
     "build": "concurrently \"npm run build:amd\" \"npm run build:commonjs\" \"npm run build:es2015\" \"npm run build:es2017\" \"npm run build:native-modules\" \"npm run build:system\"",
     "precommit": "npm run lint",
-    "predoc": "cross-env rimraf doc/api.json && rimraf dist/doc-temp && tsc --module amd --outFile dist/doc-temp/aurelia-store.js && node doc/shape-defs && copyfiles tsconfig.json dist/doc-temp",
+    "predoc": "cross-env rimraf doc/api.json && rimraf dist/doc-temp && tsc --p tsconfig-build.json --module amd --outFile dist/doc-temp/aurelia-store.js && node doc/shape-defs && copyfiles tsconfig.json dist/doc-temp",
     "doc": "cross-env typedoc --json doc/api.json --excludeExternals --includeDeclarations --mode modules --target ES6 --name aurelia-store-docs dist/doc-temp/",
     "postdoc": "cross-env node doc/shape-doc && rimraf dist/doc-temp",
     "changelog": "cross-env conventional-changelog -p angular -i doc/CHANGELOG.md -s",
@@ -121,7 +121,7 @@
     "ts-jest": "^22.4.6",
     "tslint": "^5.9.1",
     "typedoc": "^0.11.1",
-    "typescript": "^2.8.3"
+    "typescript": "^3.0.1"
   },
   "aurelia": {
     "import": {
