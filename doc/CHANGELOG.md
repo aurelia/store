@@ -1,3 +1,13 @@
+<a name="1.1.0"></a>
+# [1.1.0](https://github.com/aurelia/store/compare/1.0.0...1.1.0) (2018-08-25)
+
+
+### Features
+
+* **DevTools:** add all options ([20c6adc](https://github.com/aurelia/store/commit/20c6adc))
+
+
+
 <a name="1.0.0"></a>
 # 1.0.0 (2018-08-09)
 

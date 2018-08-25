@@ -2,22 +2,11 @@ import { Observable } from "rxjs";
 import { HistoryOptions } from "./history";
 import { Middleware, MiddlewarePlacement } from "./middleware";
 import { LogDefinitions } from "./logging";
+import { DevToolsOptions } from "./devtools";
 export declare type Reducer<T, P extends any[] = any[]> = (state: T, ...params: P) => T | false | Promise<T | false>;
 export declare enum PerformanceMeasurement {
     StartEnd = "startEnd",
     All = "all"
-}
-export interface DevToolsOptions {
-    serialize?: boolean | {
-        date?: boolean;
-        regex?: boolean;
-        undefined?: boolean;
-        error?: boolean;
-        symbol?: boolean;
-        map?: boolean;
-        set?: boolean;
-        function?: boolean | Function;
-    };
 }
 export interface StoreOptions {
     history: Partial<HistoryOptions>;
