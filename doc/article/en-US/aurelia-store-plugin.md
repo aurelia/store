@@ -929,7 +929,7 @@ From the above example, imagine we'd have to validate the given name, which happ
 </code-listing>
 
 > Info
-> You dont't have to use async/await but it's highly recommended to use it for better readability whenever you can.
+> You don't have to use async/await but it's highly recommended to use it for better readability whenever you can.
 
 ## Dispatching actions
 
@@ -1212,7 +1212,7 @@ You can use the `nextStateHistory` helper function to easily push your new state
       });
     }
 
-    // The same as returing a handcrafted object like
+    // The same as returning a handcrafted object like
 
     const demoAction = (currentState: StateHistory<State>, frameworkName: string) => {
       return Object.assign(
@@ -1237,7 +1237,7 @@ You can use the `nextStateHistory` helper function to easily push your new state
       });
     }
 
-    // The same as returing a handcrafted object like
+    // The same as returning a handcrafted object like
 
     const demoAction = (currentState, frameworkName) => {
       return Object.assign(
@@ -1475,7 +1475,7 @@ These are passed in as the third argument to the middleware function and are reg
 
 ## Reference to the calling action for middlewares
 
-Last but not least the optional forth argument passed into a middleware is the calling action, meaning the action that is being dispatched.
+Last but not least the optional fourth argument passed into a middleware is the calling action, meaning the action that is being dispatched.
 In here you get an object containing the action's `name` and the provided `params`. This is useful when you, for instance, want only certain actions to pass or be canceled under certain circumstances. 
 
 <code-listing heading="Reference to the calling action in middlewares">
