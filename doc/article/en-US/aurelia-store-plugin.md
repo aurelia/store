@@ -1699,22 +1699,24 @@ In the following example, we set the serialize option to false. This way our sta
     // main.ts
 
     ...
-    aurelia.use.plugin("aurelia-store", { initialState, {
+    aurelia.use.plugin("aurelia-store", { 
+      initialState,
       devToolsOptions: {
         serialize: false
       }, 
-    }});
+    });
   </source-code>
   <source-code lang="JavaScript">
     
     // main.js
 
     ...
-    aurelia.use.plugin("aurelia-store", { initialState, {
+    aurelia.use.plugin("aurelia-store", { 
+      initialState,
       devToolsOptions: {
         serialize: false
       }, 
-    }});
+    });
   </source-code>
 </code-listing>
 
@@ -1729,7 +1731,8 @@ For various features, Aurelia Store can log information if logging is turned on.
 
     import { LogLevel } from "aurelia-store";
     ...
-    aurelia.use.plugin("aurelia-store", { initialState, {
+    aurelia.use.plugin("aurelia-store", { 
+      initialState,
       logDispatchedActions: true,
       logDefinitions: {
         dispatchedActions: LogLevel.debug
@@ -1740,12 +1743,13 @@ For various features, Aurelia Store can log information if logging is turned on.
     
     // main.js
 
-    aurelia.use.plugin("aurelia-store", { initialState, history: {
+    aurelia.use.plugin("aurelia-store", { 
+      initialState,
       logDispatchedActions: true,
       logDefinitions: {
         dispatchedActions: "debug"
       }
-    }});
+    });
   </source-code>
 </code-listing>
 
