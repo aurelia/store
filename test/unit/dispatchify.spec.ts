@@ -15,12 +15,12 @@ describe("dispatchify", () => {
     store.registerAction("FakeAction", fakeAction as any);
     cont.registerInstance(Store, store);
 
-    dispatchify(fakeAction)("A", "B");
+    dispatchify(fakeAction)(1, 2);
 
     store.state.pipe(
       skip(1)
     ).subscribe((state) => {
-      expect(state.foo).toEqual("AB");
+      expect(state.foo).toEqual(3);
       done();
     });
   });
@@ -35,7 +35,7 @@ describe("dispatchify", () => {
     store.registerAction("FakeAction", fakeAction as any);
     cont.registerInstance(Store, store);
 
-    const result = dispatchify(fakeAction)("A", "B");
+    const result = dispatchify(fakeAction)(1, 2);
     expect(result.then).toBeDefined();
 
     await result;

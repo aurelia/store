@@ -1,5 +1,6 @@
 System.register(["aurelia-pal"], function (exports_1, context_1) {
     "use strict";
+    var aurelia_pal_1, MiddlewarePlacement;
     var __moduleName = context_1 && context_1.id;
     function logMiddleware(state, _, settings) {
         if (settings && settings.logType && console.hasOwnProperty(settings.logType)) {
@@ -34,7 +35,6 @@ System.register(["aurelia-pal"], function (exports_1, context_1) {
         return state;
     }
     exports_1("rehydrateFromLocalStorage", rehydrateFromLocalStorage);
-    var aurelia_pal_1, MiddlewarePlacement;
     return {
         setters: [
             function (aurelia_pal_1_1) {

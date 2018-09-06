@@ -309,9 +309,10 @@ In case you want to provide a custom selector instead of subscribing to the whol
   <source-code lang="TypeScript">
 
     // app.ts
+    import { pluck } from "rxjs/operators";
     ...
 
-    @connectTo<State>((store) => store.state.pluck("frameworks"))
+    @connectTo<State>((store) => store.state.pipe(pluck("frameworks")))
     export class App {
       ...
     }
@@ -319,9 +320,10 @@ In case you want to provide a custom selector instead of subscribing to the whol
   <source-code lang="JavaScript">
 
     // app.js
+    import { pluck } from "rxjs/operators";
     ...
 
-    @connectTo((store) => store.state.pluck("frameworks"))
+    @connectTo((store) => store.state.pipe(pluck("frameworks")))
     export class App {
       ...
     }
@@ -334,10 +336,11 @@ If you need more control and for instance want to override the default target pr
   <source-code lang="TypeScript">
 
     // app.ts
+    import { pluck } from "rxjs/operators";
     ...
 
     @connectTo<State>({
-      selector: (store) => store.state.pluck("frameworks"), // same as above
+      selector: (store) => store.state.pipe(pluck("frameworks")), // same as above
       target: "currentState" // link to currentState instead of state property
     })
     export class App {
@@ -347,10 +350,11 @@ If you need more control and for instance want to override the default target pr
   <source-code lang="JavaScript">
 
     // app.js
+    import { pluck } from "rxjs/operators";
     ...
 
     @connectTo({
-      selector: (store) => store.state.pluck("frameworks"), // same as above
+      selector: (store) => store.state.pipe(pluck("frameworks")), // same as above
       target: "currentState" // link to currentState instead of state property
     })
     export class App {
@@ -365,11 +369,12 @@ If you want to have multiple selectors, you can pass an object to the `selector`
   <source-code lang="TypeScript">
 
     // app.ts
+    import { pluck } from "rxjs/operators";
     ...
 
     @connectTo<State>({
       selector: {
-        currentState: (store) => store.state.pluck("frameworks"), // same as above
+        currentState: (store) => store.state.pipe(pluck("frameworks")), // same as above
         databases: (store) => store.state.pluck("databases")
       }
     })
@@ -380,11 +385,12 @@ If you want to have multiple selectors, you can pass an object to the `selector`
   <source-code lang="JavaScript">
 
     // app.js
+    import { pluck } from "rxjs/operators";
     ...
 
     @connectTo({
       selector: {
-        currentState: (store) => store.state.pluck("frameworks"), // same as above
+        currentState: (store) => store.state.pipe(pluck("frameworks")), // same as above
         databases: (store) => store.state.pluck("databases")
       }
     })
@@ -400,13 +406,14 @@ You can still provide a `target` with multiple selectors, which changes the beha
   <source-code lang="TypeScript">
 
     // app.ts
+    import { pluck } from "rxjs/operators";
     ...
 
     @connectTo<State>({
       target: 'currentState',
       selector: {
-        frameworks: (store) => store.state.pluck("frameworks"),
-        databases: (store) => store.state.pluck("databases")
+        frameworks: (store) => store.state.pipe(pluck("frameworks")),
+        databases: (store) => store.state.pipe(pluck("databases"))
       }
     })
     export class App {
@@ -419,13 +426,14 @@ You can still provide a `target` with multiple selectors, which changes the beha
   <source-code lang="JavaScript">
 
     // app.js
+    import { pluck } from "rxjs/operators";
     ...
 
     @connectTo({
       target: 'currentState',
       selector: {
-        currentState: (store) => store.state.pluck("frameworks"), // same as above
-        databases: (store) => store.state.pluck("databases")
+        currentState: (store) => store.state.pipe(pluck("frameworks")), // same as above
+        databases: (store) => store.state.pipe(pluck("databases"))
       }
     })
     export class App {
@@ -443,10 +451,11 @@ Not only the target but also the default `setup` and `teardown` methods can be s
   <source-code lang="TypeScript">
 
     // app.ts
+    import { pluck } from "rxjs/operators";
     ...
 
     @connectTo<State>({
-      selector: (store) => store.state.pluck("frameworks"), // same as above
+      selector: (store) => store.state.pipe(pluck("frameworks")), // same as above
       setup: "create"        // create the subscription inside the create life-cycle hook
       teardown: "deactivate" // do the disposal in deactivate
     })
@@ -457,10 +466,11 @@ Not only the target but also the default `setup` and `teardown` methods can be s
   <source-code lang="JavaScript">
 
     // app.js
+    import { pluck } from "rxjs/operators";
     ...
 
     @connectTo({
-      selector: (store) => store.state.pluck("frameworks"), // same as above
+      selector: (store) => store.state.pipe(pluck("frameworks")), // same as above
       setup: "create"        // create the subscription inside the create life-cycle hook
       teardown: "deactivate" // do the disposal in deactivate
     })
@@ -486,10 +496,10 @@ The decorator will attempt to call `stateChanged(newState, oldState)` when no se
 
     // All of these have the same change handling
     // @connectTo<State>({
-    //   selector: (store) => store.state.pluck("frameworks"),
+    //   selector: (store) => store.state.pipe(pluck("frameworks")),
     // })
     // OR
-    // @connectTo<State>((store) => store.state.pluck("frameworks"))
+    // @connectTo<State>((store) => store.state.pipe(pluck("frameworks")))
     // OR
     @connectTo<State>()
     export class App {
@@ -507,10 +517,10 @@ The decorator will attempt to call `stateChanged(newState, oldState)` when no se
 
     // All of these have the same change handling
     // @connectTo({
-    //   selector: (store) => store.state.pluck("frameworks"),
+    //   selector: (store) => store.state.pipe(pluck("frameworks")),
     // })
     // OR
-    // @connectTo((store) => store.state.pluck("frameworks"))
+    // @connectTo((store) => store.state.pipe(pluck("frameworks")))
     // OR
     @connectTo()
     export class App {
@@ -566,12 +576,13 @@ With multiple selectors, you get the same change handling per selector.
   <source-code lang="TypeScript">
 
     // app.ts
+    import { pluck } from "rxjs/operators";
     ...
 
     @connectTo<State>({
       selector: {
-        frameworks: (store) => store.state.pluck("frameworks"),
-        databases: (store) => store.state.pluck("databases")
+        frameworks: (store) => store.state.pipe(pluck("frameworks")),
+        databases: (store) => store.state.pipe(pluck("databases"))
       }
     })
     export class App {
@@ -589,12 +600,13 @@ With multiple selectors, you get the same change handling per selector.
   <source-code lang="JavaScript">
 
     // app.js
+    import { pluck } from "rxjs/operators";
     ...
 
     @connectTo({
       selector: {
-        frameworks: (store) => store.state.pluck("frameworks"),
-        databases: (store) => store.state.pluck("databases")
+        frameworks: (store) => store.state.pipe(pluck("frameworks")),
+        databases: (store) => store.state.pipe(pluck("databases"))
       }
     })
     export class App {
@@ -617,13 +629,14 @@ However, providing a `target` with multiple selectors changes the prior behavior
   <source-code lang="TypeScript">
 
     // app.ts
+    import { pluck } from "rxjs/operators";
     ...
 
     @connectTo<State>({
       target: "currentState",
       selector: {
-        frameworks: (store) => store.state.pluck("frameworks"),
-        databases: (store) => store.state.pluck("databases")
+        frameworks: (store) => store.state.pipe(pluck("frameworks")),
+        databases: (store) => store.state.pipe(pluck("databases"))
       }
     })
     export class App {
@@ -641,13 +654,14 @@ However, providing a `target` with multiple selectors changes the prior behavior
   <source-code lang="JavaScript">
 
     // app.js
+    import { pluck } from "rxjs/operators";
     ...
 
     @connectTo({
       target: "currentState",
       selector: {
-        frameworks: (store) => store.state.pluck("frameworks"),
-        databases: (store) => store.state.pluck("databases")
+        frameworks: (store) => store.state.pipe(pluck("frameworks")),
+        databases: (store) => store.state.pipe(pluck("databases"))
       }
     })
     export class App {
@@ -670,10 +684,11 @@ Last but not least you can also define a callback to be called with the next sta
   <source-code lang="TypeScript">
 
     // app.ts
+    import { pluck } from "rxjs/operators";
     ...
 
     @connectTo<State>({
-      selector: (store) => store.state.pluck("frameworks"),
+      selector: (store) => store.state.pipe(pluck("frameworks")),
       onChanged: "changeHandler"
     })
     export class App {
@@ -687,10 +702,11 @@ Last but not least you can also define a callback to be called with the next sta
   <source-code lang="JavaScript">
 
     // app.js
+    import { pluck } from "rxjs/operators";
     ...
 
     @connectTo({
-      selector: (store) => store.state.pluck("frameworks"), // same as above
+      selector: (store) => store.state.pipe(pluck("frameworks")), // same as above
       onChanged: "changeHandler"
     })
     export class App {
@@ -913,7 +929,7 @@ From the above example, imagine we'd have to validate the given name, which happ
 </code-listing>
 
 > Info
-> You dont't have to use async/await but it's highly recommended to use it for better readability whenever you can.
+> You don't have to use async/await but it's highly recommended to use it for better readability whenever you can.
 
 ## Dispatching actions
 
@@ -1196,7 +1212,7 @@ You can use the `nextStateHistory` helper function to easily push your new state
       });
     }
 
-    // The same as returing a handcrafted object like
+    // The same as returning a handcrafted object like
 
     const demoAction = (currentState: StateHistory<State>, frameworkName: string) => {
       return Object.assign(
@@ -1221,7 +1237,7 @@ You can use the `nextStateHistory` helper function to easily push your new state
       });
     }
 
-    // The same as returing a handcrafted object like
+    // The same as returning a handcrafted object like
 
     const demoAction = (currentState, frameworkName) => {
       return Object.assign(
@@ -1459,7 +1475,7 @@ These are passed in as the third argument to the middleware function and are reg
 
 ## Reference to the calling action for middlewares
 
-Last but not least the optional forth argument passed into a middleware is the calling action, meaning the action that is being dispatched.
+Last but not least the optional fourth argument passed into a middleware is the calling action, meaning the action that is being dispatched.
 In here you get an object containing the action's `name` and the provided `params`. This is useful when you, for instance, want only certain actions to pass or be canceled under certain circumstances. 
 
 <code-listing heading="Reference to the calling action in middlewares">

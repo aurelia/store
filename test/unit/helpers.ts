@@ -36,3 +36,7 @@ export function createStoreWithState<T>(state: T, withUndo = false) {
 export function createStoreWithStateAndOptions<T>(state: T, options: Partial<StoreOptions>) {
   return new Store<T>(state, options);
 }
+
+export type Spied<T> = {  
+  [Method in keyof T]: T[Method] & jasmine.Spy;
+};

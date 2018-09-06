@@ -19,8 +19,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -79,7 +79,7 @@ define(["require", "exports", "rxjs", "aurelia-framework", "./history", "./middl
             if (reducer.length === 0) {
                 throw new Error("The reducer is expected to have one or more parameters, where the first will be the present state");
             }
-            this.actions.set(reducer, { name: name });
+            this.actions.set(reducer, { type: name });
         };
         Store.prototype.unregisterAction = function (reducer) {
             if (this.actions.has(reducer)) {
@@ -88,7 +88,7 @@ define(["require", "exports", "rxjs", "aurelia-framework", "./history", "./middl
         };
         Store.prototype.isActionRegistered = function (reducer) {
             if (typeof reducer === "string") {
-                return Array.from(this.actions).find(function (action) { return action[1].name === reducer; }) !== undefined;
+                return Array.from(this.actions).find(function (action) { return action[1].type === reducer; }) !== undefined;
             }
             return this.actions.has(reducer);
         };
@@ -101,7 +101,7 @@ define(["require", "exports", "rxjs", "aurelia-framework", "./history", "./middl
             var action;
             if (typeof reducer === "string") {
                 var result = Array.from(this.actions)
-                    .find(function (val) { return val[1].name === reducer; });
+                    .find(function (val) { return val[1].type === reducer; });
                 if (result) {
                     action = result[0];
                 }
@@ -161,10 +161,10 @@ define(["require", "exports", "rxjs", "aurelia-framework", "./history", "./middl
                             aurelia_framework_1.PLATFORM.performance.mark("dispatch-start");
                             action = this.actions.get(reducer);
                             if (this.options.logDispatchedActions) {
-                                this.logger[logging_1.getLogType(this.options, "dispatchedActions", logging_1.LogLevel.info)]("Dispatching: " + action.name);
+                                this.logger[logging_1.getLogType(this.options, "dispatchedActions", logging_1.LogLevel.info)]("Dispatching: " + action.type);
                             }
                             return [4 /*yield*/, this.executeMiddlewares(this._state.getValue(), middleware_1.MiddlewarePlacement.Before, {
-                                    name: action.name,
+                                    name: action.type,
                                     params: params
                                 })];
                         case 1:
@@ -182,12 +182,12 @@ define(["require", "exports", "rxjs", "aurelia-framework", "./history", "./middl
                                 aurelia_framework_1.PLATFORM.performance.clearMeasures();
                                 return [2 /*return*/];
                             }
-                            aurelia_framework_1.PLATFORM.performance.mark("dispatch-after-reducer-" + action.name);
+                            aurelia_framework_1.PLATFORM.performance.mark("dispatch-after-reducer-" + action.type);
                             if (!result && typeof result !== "object") {
                                 throw new Error("The reducer has to return a new state");
                             }
                             return [4 /*yield*/, this.executeMiddlewares(result, middleware_1.MiddlewarePlacement.After, {
-                                    name: action.name,
+                                    name: action.type,
                                     params: params
                                 })];
                         case 3:
@@ -207,16 +207,16 @@ define(["require", "exports", "rxjs", "aurelia-framework", "./history", "./middl
                             if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
                                 aurelia_framework_1.PLATFORM.performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
                                 measures = aurelia_framework_1.PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
-                                this.logger[logging_1.getLogType(this.options, "performanceLog", logging_1.LogLevel.info)]("Total duration " + measures[0].duration + " of dispatched action " + action.name + ":", measures);
+                                this.logger[logging_1.getLogType(this.options, "performanceLog", logging_1.LogLevel.info)]("Total duration " + measures[0].duration + " of dispatched action " + action.type + ":", measures);
                             }
                             else if (this.options.measurePerformance === PerformanceMeasurement.All) {
                                 marks = aurelia_framework_1.PLATFORM.performance.getEntriesByType("mark");
                                 totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
-                                this.logger[logging_1.getLogType(this.options, "performanceLog", logging_1.LogLevel.info)]("Total duration " + totalDuration + " of dispatched action " + action.name + ":", marks);
+                                this.logger[logging_1.getLogType(this.options, "performanceLog", logging_1.LogLevel.info)]("Total duration " + totalDuration + " of dispatched action " + action.type + ":", marks);
                             }
                             aurelia_framework_1.PLATFORM.performance.clearMarks();
                             aurelia_framework_1.PLATFORM.performance.clearMeasures();
-                            this.updateDevToolsState(action.name, resultingState);
+                            this.updateDevToolsState(action, resultingState);
                             return [2 /*return*/];
                     }
                 });
@@ -269,7 +269,7 @@ define(["require", "exports", "rxjs", "aurelia-framework", "./history", "./middl
             if (aurelia_framework_1.PLATFORM.global.devToolsExtension) {
                 this.logger[logging_1.getLogType(this.options, "devToolsStatus", logging_1.LogLevel.debug)]("DevTools are available");
                 this.devToolsAvailable = true;
-                this.devTools = aurelia_framework_1.PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__.connect();
+                this.devTools = aurelia_framework_1.PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
                 this.devTools.init(this.initialState);
                 this.devTools.subscribe(function (message) {
                     _this.logger[logging_1.getLogType(_this.options, "devToolsStatus", logging_1.LogLevel.debug)]("DevTools sent change " + message.type);

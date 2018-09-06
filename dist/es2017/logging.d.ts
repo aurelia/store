@@ -6,7 +6,7 @@ export declare enum LogLevel {
     info = "info",
     log = "log",
     warn = "warn",
-    error = "error",
+    error = "error"
 }
 export declare class LoggerIndexed extends Logger {
     [key: string]: any;

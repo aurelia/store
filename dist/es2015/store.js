@@ -19,8 +19,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -81,7 +81,7 @@ var Store = /** @class */ (function () {
         if (reducer.length === 0) {
             throw new Error("The reducer is expected to have one or more parameters, where the first will be the present state");
         }
-        this.actions.set(reducer, { name: name });
+        this.actions.set(reducer, { type: name });
     };
     Store.prototype.unregisterAction = function (reducer) {
         if (this.actions.has(reducer)) {
@@ -90,7 +90,7 @@ var Store = /** @class */ (function () {
     };
     Store.prototype.isActionRegistered = function (reducer) {
         if (typeof reducer === "string") {
-            return Array.from(this.actions).find(function (action) { return action[1].name === reducer; }) !== undefined;
+            return Array.from(this.actions).find(function (action) { return action[1].type === reducer; }) !== undefined;
         }
         return this.actions.has(reducer);
     };
@@ -103,7 +103,7 @@ var Store = /** @class */ (function () {
         var action;
         if (typeof reducer === "string") {
             var result = Array.from(this.actions)
-                .find(function (val) { return val[1].name === reducer; });
+                .find(function (val) { return val[1].type === reducer; });
             if (result) {
                 action = result[0];
             }
@@ -163,10 +163,10 @@ var Store = /** @class */ (function () {
                         PLATFORM.performance.mark("dispatch-start");
                         action = this.actions.get(reducer);
                         if (this.options.logDispatchedActions) {
-                            this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)]("Dispatching: " + action.name);
+                            this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)]("Dispatching: " + action.type);
                         }
                         return [4 /*yield*/, this.executeMiddlewares(this._state.getValue(), MiddlewarePlacement.Before, {
-                                name: action.name,
+                                name: action.type,
                                 params: params
                             })];
                     case 1:
@@ -184,12 +184,12 @@ var Store = /** @class */ (function () {
                             PLATFORM.performance.clearMeasures();
                             return [2 /*return*/];
                         }
-                        PLATFORM.performance.mark("dispatch-after-reducer-" + action.name);
+                        PLATFORM.performance.mark("dispatch-after-reducer-" + action.type);
                         if (!result && typeof result !== "object") {
                             throw new Error("The reducer has to return a new state");
                         }
                         return [4 /*yield*/, this.executeMiddlewares(result, MiddlewarePlacement.After, {
-                                name: action.name,
+                                name: action.type,
                                 params: params
                             })];
                     case 3:
@@ -209,16 +209,16 @@ var Store = /** @class */ (function () {
                         if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
                             PLATFORM.performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
                             measures = PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
-                            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)]("Total duration " + measures[0].duration + " of dispatched action " + action.name + ":", measures);
+                            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)]("Total duration " + measures[0].duration + " of dispatched action " + action.type + ":", measures);
                         }
                         else if (this.options.measurePerformance === PerformanceMeasurement.All) {
                             marks = PLATFORM.performance.getEntriesByType("mark");
                             totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
-                            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)]("Total duration " + totalDuration + " of dispatched action " + action.name + ":", marks);
+                            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)]("Total duration " + totalDuration + " of dispatched action " + action.type + ":", marks);
                         }
                         PLATFORM.performance.clearMarks();
                         PLATFORM.performance.clearMeasures();
-                        this.updateDevToolsState(action.name, resultingState);
+                        this.updateDevToolsState(action, resultingState);
                         return [2 /*return*/];
                 }
             });
@@ -271,7 +271,7 @@ var Store = /** @class */ (function () {
         if (PLATFORM.global.devToolsExtension) {
             this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)]("DevTools are available");
             this.devToolsAvailable = true;
-            this.devTools = PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__.connect();
+            this.devTools = PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
             this.devTools.init(this.initialState);
             this.devTools.subscribe(function (message) {
                 _this.logger[getLogType(_this.options, "devToolsStatus", LogLevel.debug)]("DevTools sent change " + message.type);

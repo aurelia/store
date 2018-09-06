@@ -15,7 +15,7 @@ You can find complete documentation on setup and usage in the official [Aurelia 
 
 ## Dependencies
 
-* [RxJS](https://github.com/ReactiveX/rxjs)
+* [RxJS v6](https://github.com/ReactiveX/rxjs)
 * aurelia-dependency-injection
 * aurelia-framework
 * aurelia-logging

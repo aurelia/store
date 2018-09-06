@@ -46,7 +46,7 @@ let Store = class Store {
         if (reducer.length === 0) {
             throw new Error("The reducer is expected to have one or more parameters, where the first will be the present state");
         }
-        this.actions.set(reducer, { name });
+        this.actions.set(reducer, { type: name });
     }
     unregisterAction(reducer) {
         if (this.actions.has(reducer)) {
@@ -55,7 +55,7 @@ let Store = class Store {
     }
     isActionRegistered(reducer) {
         if (typeof reducer === "string") {
-            return Array.from(this.actions).find((action) => action[1].name === reducer) !== undefined;
+            return Array.from(this.actions).find((action) => action[1].type === reducer) !== undefined;
         }
         return this.actions.has(reducer);
     }
@@ -63,7 +63,7 @@ let Store = class Store {
         let action;
         if (typeof reducer === "string") {
             const result = Array.from(this.actions)
-                .find((val) => val[1].name === reducer);
+                .find((val) => val[1].type === reducer);
             if (result) {
                 action = result[0];
             }
@@ -99,10 +99,10 @@ let Store = class Store {
         PLATFORM.performance.mark("dispatch-start");
         const action = this.actions.get(reducer);
         if (this.options.logDispatchedActions) {
-            this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)](`Dispatching: ${action.name}`);
+            this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)](`Dispatching: ${action.type}`);
         }
         const beforeMiddleswaresResult = await this.executeMiddlewares(this._state.getValue(), MiddlewarePlacement.Before, {
-            name: action.name,
+            name: action.type,
             params
         });
         if (beforeMiddleswaresResult === false) {
@@ -116,12 +116,12 @@ let Store = class Store {
             PLATFORM.performance.clearMeasures();
             return;
         }
-        PLATFORM.performance.mark("dispatch-after-reducer-" + action.name);
+        PLATFORM.performance.mark("dispatch-after-reducer-" + action.type);
         if (!result && typeof result !== "object") {
             throw new Error("The reducer has to return a new state");
         }
         let resultingState = await this.executeMiddlewares(result, MiddlewarePlacement.After, {
-            name: action.name,
+            name: action.type,
             params
         });
         if (resultingState === false) {
@@ -139,16 +139,16 @@ let Store = class Store {
         if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
             PLATFORM.performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
             const measures = PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
-            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](`Total duration ${measures[0].duration} of dispatched action ${action.name}:`, measures);
+            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](`Total duration ${measures[0].duration} of dispatched action ${action.type}:`, measures);
         }
         else if (this.options.measurePerformance === PerformanceMeasurement.All) {
             const marks = PLATFORM.performance.getEntriesByType("mark");
             const totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
-            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](`Total duration ${totalDuration} of dispatched action ${action.name}:`, marks);
+            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](`Total duration ${totalDuration} of dispatched action ${action.type}:`, marks);
         }
         PLATFORM.performance.clearMarks();
         PLATFORM.performance.clearMeasures();
-        this.updateDevToolsState(action.name, resultingState);
+        this.updateDevToolsState(action, resultingState);
     }
     executeMiddlewares(state, placement, action) {
         return Array.from(this.middlewares)
@@ -178,7 +178,7 @@ let Store = class Store {
         if (PLATFORM.global.devToolsExtension) {
             this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)]("DevTools are available");
             this.devToolsAvailable = true;
-            this.devTools = PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__.connect();
+            this.devTools = PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
             this.devTools.init(this.initialState);
             this.devTools.subscribe((message) => {
                 this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)](`DevTools sent change ${message.type}`);
