@@ -1686,6 +1686,9 @@ If you've ever worked with Redux then you know for sure about the [Redux Devtool
 
 There are tons of [great articles](https://codeburst.io/redux-devtools-for-dummies-74566c597d7) to get you started. Head over to [DevTools browser extension page](https://github.com/zalmoxisus/redux-devtools-extension) for instructions on how to install the extension, start your Aurelia Store plugin project and see how it works.
 
+> Info
+> Because of the way Aurelia Binding works with `bind`, `one-way`, `two-way` or `to-view`, your state could be manipulated outside of the knowledge of the store, showing an incorrect current state in Redux DevTools. If your state object for a view model does not initialize every property (e.g. your initial state for a view model is an empty object such as `currentState = {}`), and you are binding properties in your view using one of the binding commands mentioned previously (such as `<input value.one-way="currentState.foo"`), your state will get an `undefined` value for the `foo` property. The properties that are added will not show up in Redux DevTools because the change is made outside of the stores knowledge. Redux DevTools will still show an empty `currentState`, but your state will have `currentState = { foo: undefined }` in your view model.
+
 ## Defining custom devToolsOptions
 
 if you use the Redux DevTools extension you can pass options to Aurelia-Store to setup the extension with your [preferred configuration](https://github.com/zalmoxisus/redux-devtools-extension/blob/master/docs/API/Arguments.md).
