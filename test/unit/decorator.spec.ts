@@ -1,6 +1,6 @@
 import { Container } from "aurelia-framework";
 import { Subscription } from "rxjs";
-import { pluck } from "rxjs/operators";
+import { pluck, distinctUntilChanged } from "rxjs/operators";
 
 import { Store } from "../../src/store";
 import { connectTo } from "../../src/decorator";
@@ -625,6 +625,34 @@ describe("using decorators", () => {
       expect(sut.targetPropChanged.calls.count()).toEqual(0);
       expect(sut.fooChanged.calls.count()).toEqual(1);
       expect(sut.fooChanged).toHaveBeenCalledWith("targetProp", initialState, "foobar");
+    });
+
+    it("should call changed handler for multiple selectors only when their state slice is affected", async () => {
+      const { store } = arrange();
+      const changeOnlyBar = (state: DemoState) => Object.assign({}, state, { bar: "changed" });
+      store.registerAction("changeOnlyBar", changeOnlyBar);
+
+      @connectTo<DemoState>({
+        selector: {
+          foo: (store) => store.state.pipe(pluck("foo"), distinctUntilChanged()),
+          bar: (store) => store.state.pipe(pluck("bar"), distinctUntilChanged())
+        }
+      })
+      class DemoStoreConsumer {
+        barChanged() { }
+
+        fooChanged() { }
+      }
+
+      const sut = new DemoStoreConsumer() as Spied<DemoStoreConsumer>;
+      const spyFoo = jest.spyOn(sut, "fooChanged");
+      const spyBar = jest.spyOn(sut, "barChanged");
+      (sut as any).bind();
+
+      await store.dispatch(changeOnlyBar);
+
+      expect(spyFoo).toHaveBeenCalledTimes(1);
+      expect(spyBar).toHaveBeenCalledTimes(2);
     });
 
     it("should check whether the method exists before calling it and throw a meaningful error", () => {
