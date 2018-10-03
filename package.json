@@ -15,7 +15,7 @@
     "pretest": "cross-env npm run lint",
     "test": "cross-env jest",
     "test-ci": "cross-env jest && cat ./test/coverage-jest/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
-    "test-watch": "concurrently \"tsc --watch\" \"jest --watch\"",
+    "test-watch": "jest --watch",
     "build:amd": "cross-env tsc --p tsconfig-build.json --outDir dist/amd --module amd",
     "build:commonjs": "cross-env tsc --p tsconfig-build.json --outDir dist/commonjs --module commonjs",
     "build:es2015": "cross-env tsc --p tsconfig-build.json --outDir dist/es2015 --module es2015",
