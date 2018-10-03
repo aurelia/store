@@ -1,12 +1,12 @@
-import { DevToolsOptions } from "./../../src/store";
 import { skip, delay } from "rxjs/operators";
+import * as PAL from "aurelia-pal";
 
 import {
   createTestStore,
   testState
 } from "./helpers";
 import { Store } from "../../src/store";
-import * as PAL from "aurelia-pal";
+import { DevToolsOptions } from "../../src/devtools";
 
 class DevToolsMock {
   public subscriptions = [] as Function[];
