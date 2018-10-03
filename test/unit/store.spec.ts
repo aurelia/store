@@ -311,4 +311,25 @@ describe("store", () => {
 
     expect(loggerSpy).toHaveBeenCalledWith(expect.any(String), expect.any(Array));
   });
+
+  it("should reset the state without going through the internal dispatch queue", async (done) => {
+    const { initialState, store } = createTestStore();
+    const internalDispatchSpy = jest.spyOn((store as any), "internalDispatch");
+    const demoAction = (currentState: testState) => {
+      return Object.assign({}, currentState, { foo: "demo" })
+    };
+
+    store.registerAction("demoAction", demoAction);
+
+    await store.dispatch(demoAction);
+    internalDispatchSpy.mockReset();
+    store.resetToState(initialState);
+
+    store.state.subscribe((state) => {
+      expect(internalDispatchSpy).not.toHaveBeenCalled();
+      expect(state.foo).toBe(initialState.foo);
+
+      done();
+    });
+  });
 });

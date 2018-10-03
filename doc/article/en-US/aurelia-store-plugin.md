@@ -1086,6 +1086,13 @@ In order to do so, you can leverage the higher order function `dispatchify`. Wha
 
 With this approach, you can design your custom elements to act either as presentational or container components. For further information take a look at [this article](http://pragmatic-coder.net/using-a-state-container-with-aurelia/).
 
+## Resetting the store to a specific state
+Occasionally it might be necessary to *reset* the store to a specific state, without running through it built-in queue and thus without notifying middlewares.
+A use case for this can be restoring the initial state or time-travelling with the Redux-DevTools extension. To do so use the method `resetToState` and pass in the desired state.
+The result will be that a new state is emitted and your subscriptions will receive it.
+
+> Keep in mind that this feature should be used with caution as it might introduce unintended side effects, especially in collaboration with the Redux DevTools, as the reset states are not tracked by it.
+
 ## Recording a navigable history of the stream of states
 
 Since the whole concept of this plugin is to stream states over time, it makes sense to also keep track of the historical changes. Aurelia Store supports this feature by turning on the history support during the plugin registration.

@@ -98,6 +98,10 @@ export class Store<T> {
     return this.actions.has(reducer);
   }
 
+  public resetToState(state: T) {
+    this._state.next(state);
+  }
+
   public dispatch<P extends any[]>(reducer: Reducer<T, P> | string, ...params: P) {
     let action: Reducer<T, P>;
 
