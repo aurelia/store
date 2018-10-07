@@ -1,5 +1,4 @@
-import { Observable } from "rxjs/internal/Observable";
-import { BehaviorSubject } from "rxjs/internal/BehaviorSubject";
+import { BehaviorSubject, Observable } from "rxjs";
 
 import { Container } from "aurelia-dependency-injection"
 import { getLogger } from "aurelia-logging"

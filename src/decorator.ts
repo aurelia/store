@@ -1,6 +1,5 @@
 import { Container } from "aurelia-dependency-injection";
-import { Observable } from "rxjs/internal/Observable";
-import { Subscription } from "rxjs/internal/Subscription"
+import { Observable, Subscription } from "rxjs";
 
 import { Store } from "./store";
 
