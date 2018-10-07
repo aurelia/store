@@ -102,7 +102,7 @@
   },
   "devDependencies": {
     "@types/jest": "^21.1.10",
-    "@types/node": "^8.10.26",
+    "@types/node": "^10.11.4",
     "aurelia-bootstrapper": "^2.3.0",
     "aurelia-loader-nodejs": "^1.0.1",
     "aurelia-pal-browser": "^1.8.0",
