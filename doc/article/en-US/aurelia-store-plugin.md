@@ -1093,6 +1093,106 @@ The result will be that a new state is emitted and your subscriptions will recei
 
 > Keep in mind that this feature should be used with caution as it might introduce unintended side effects, especially in collaboration with the Redux DevTools, as the reset states are not tracked by it.
 
+## Two-way binding and state management
+Two-way binding definitely has its merits when it comes to easily develop applications. By having Aurelia take care of synchronizing of the View and ViewModel a lot of work gets done for free.
+This behavior though becomes troublesome when working with a central state management. Remember, the primary vision is to do state modifications only via dispatching actions. This way we guarantee a single source of truth and no side-effects.
+Yet exactly the later is what a two-way binding introduces if you bind your VM directly to state objects. So instead of two-way binding to state objects you should:
+
+* Create a new property, reflecting the state part you'd like to modify and bind to that.
+* When changes are made, persist the changes by dispatching an action which uses the binding models values
+* After dispatching make sure to update the binding model to match any updates to the object happening during dispatch
+
+<code-listing heading="Sub-state selection">
+  <source-code lang="TypeScript">
+
+    /*
+     * state: {
+     *  firstName: string,
+     *  lastName: string
+     * }
+     */
+
+    // app.ts
+    ...
+
+    function updateUser(state: State, model: State) {
+      return Object.assign({}, state, model);
+    }
+
+    @autoinject()
+    @inlineView(`
+      <template>
+        Firstname: <input type="text" value.bind="model.firstName">
+        Lastname: <input type="text" value.bind="model.lastName">
+        <button click.delegate="updateUser()">Update</button>
+      </template>
+    `)
+    export class App {
+      public state: State;
+      public model: State;
+
+      constructor(private store: Store<State>) {
+        this.store.registerAction("updateUser", updateUser);
+      }
+
+      bind() {
+        this.store.state.subscribe((newState) => {
+          this.state = newState;
+          this.model = Object.assign({}, newState); // take care of shallow cloning
+        });
+      }
+
+      updateUser() {
+        this.store.dispatch(updateUser, this.model);
+      }
+    }
+  </source-code>
+  <source-code lang="JavaScript">
+
+    /*
+     * state: {
+     *  firstName: string,
+     *  lastName: string
+     * }
+     */
+
+    // app.js
+    ...
+
+    function updateUser(state, model) {
+      return Object.assign({}, state, model);
+    }
+
+    @autoinject()
+    @inlineView(`
+      <template>
+        Firstname: <input type="text" value.bind="model.firstName">
+        Lastname: <input type="text" value.bind="model.lastName">
+        <button click.delegate="updateUser()">Update</button>
+      </template>
+    `)
+    export class App {
+      constructor(private store: Store<State>) {
+        this.store.registerAction("updateUser", updateUser);
+      }
+
+      bind() {
+        this.store.state.subscribe((newState) => {
+          this.state = newState;
+          this.model = Object.assign({}, newState); // take care of shallow cloning
+        });
+      }
+
+      updateUser() {
+        this.store.dispatch(updateUser, this.model);
+      }
+    }
+  </source-code>
+</code-listing>
+
+Alternatively you can resort to only using `one-time`, `to-view`, `one-way` and handle the updates yourself.
+
+
 ## Recording a navigable history of the stream of states
 
 Since the whole concept of this plugin is to stream states over time, it makes sense to also keep track of the historical changes. Aurelia Store supports this feature by turning on the history support during the plugin registration.
