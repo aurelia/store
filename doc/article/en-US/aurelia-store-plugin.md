@@ -100,7 +100,7 @@ if (!Object.entries) {
     while (i--) {
       resArray[i] = [ownProps[i], obj[ownProps[i]]];
     }
-    
+
     return resArray;
   }
 }
@@ -121,7 +121,7 @@ Your app will typically start with an initial state, which is then manipulated t
 
 <code-listing heading="Defining the State entity and initialState">
   <source-code lang="TypeScript">
-    
+
     // state.ts
     export interface State {
       frameworks: string[];
@@ -132,7 +132,7 @@ Your app will typically start with an initial state, which is then manipulated t
     };
   </source-code>
   <source-code lang="JavaScript">
-    
+
     // there is no need for a dedicated entity in JavaScript
 
     // state.js
@@ -148,7 +148,7 @@ In order to tell Aurelia how to use the plugin, we need to register it. This is 
 
 <code-listing heading="Registering the plugin">
   <source-code lang="TypeScript">
-    
+
     // main.ts
     import {Aurelia} from 'aurelia-framework'
     import {initialState} from './state';
@@ -166,7 +166,7 @@ In order to tell Aurelia how to use the plugin, we need to register it. This is 
     }
   </source-code>
   <source-code lang="JavaScript">
-    
+
     // main.js
     import {Aurelia} from 'aurelia-framework'
     import {initialState} from './state';
@@ -400,7 +400,7 @@ If you want to have multiple selectors, you can pass an object to the `selector`
   </source-code>
 </code-listing>
 
-You can still provide a `target` with multiple selectors, which changes the behavior of multiple selectors. Instead of having multiple target properties on your view model for each selector name, the `target` will be an object on your view model and the multiple selector names will be the properties on that object. 
+You can still provide a `target` with multiple selectors, which changes the behavior of multiple selectors. Instead of having multiple target properties on your view model for each selector name, the `target` will be an object on your view model and the multiple selector names will be the properties on that object.
 
 <code-listing heading="Defining multiple selectors with a target">
   <source-code lang="TypeScript">
@@ -1031,11 +1031,11 @@ In order to do so, you can leverage the higher order function `dispatchify`. Wha
 
     // framework-item.ts
     import { bindable, inlineView } from "aurelia-framework";
-    
+
     @inlineView(`
       <template>
         New framework name:
-        <input value.bind="newFrameworkName" />
+        <input value.bind="newFrameworkName">
         <button click.trigger="add(newFrameworkName)" >Add</button>
       </template>
     `)
@@ -1070,11 +1070,11 @@ In order to do so, you can leverage the higher order function `dispatchify`. Wha
 
     // framework-item.js
     import { bindable, inlineView } from "aurelia-framework";
-    
+
     @inlineView(`
       <template>
         New framework name:
-        <input value.bind="newFrameworkName" />
+        <input value.bind="newFrameworkName">
         <button click.trigger="add(newFrameworkName)" >Add</button>
       </template>
     `)
@@ -1199,7 +1199,7 @@ Since the whole concept of this plugin is to stream states over time, it makes s
 
 <code-listing heading="Registering the plugin with history support">
   <source-code lang="TypeScript">
-    
+
     // main.ts
     import {Aurelia} from 'aurelia-framework'
     import {initialState} from './state';
@@ -1222,7 +1222,7 @@ Since the whole concept of this plugin is to stream states over time, it makes s
     }
   </source-code>
   <source-code lang="JavaScript">
-    
+
     // main.js
     import {Aurelia} from 'aurelia-framework'
     import {initialState} from './state';
@@ -1259,12 +1259,12 @@ export interface StateHistory<T> {
 
 <code-listing heading="Subscribing to the state history">
   <source-code lang="TypeScript">
-    
+
     // app.ts
     import { autoinject } from "aurelia-framework";
     import { Store, StateHistory } from "aurelia-store";
     import { State } from "./state";
-    
+
     @autoinject()
     export class App {
       constructor(private store: Store<StateHistory<State>>) {
@@ -1279,11 +1279,11 @@ export interface StateHistory<T> {
     }
   </source-code>
   <source-code lang="JavaScript">
-    
+
     // app.js
     import { inject } from "aurelia-framework";
     import { Store } from "aurelia-store";
-    
+
     @inject(Store)
     export class App {
       constructor(store) {
@@ -1308,7 +1308,7 @@ You can use the `nextStateHistory` helper function to easily push your new state
 
 <code-listing heading="A StateHistory-aware action">
   <source-code lang="TypeScript">
-    
+
     // app.ts
     import { nextStateHistory, StateHistory } from "aurelia-store";
     import { State } from "./state";
@@ -1325,16 +1325,16 @@ You can use the `nextStateHistory` helper function to easily push your new state
       return Object.assign(
         {},
         currentState,
-        { 
+        {
           past: [...currentState.past, currentState.present],
           present: { frameworks: [...frameworks, frameworkName] },
-          future: [] 
+          future: []
         }
       );
     }
   </source-code>
   <source-code lang="JavaScript">
-    
+
     // app.js
     import { nextStateHistory, StateHistory } from "aurelia-store";
 
@@ -1350,10 +1350,10 @@ You can use the `nextStateHistory` helper function to easily push your new state
       return Object.assign(
         {},
         currentState,
-        { 
+        {
           past: [...currentState.past, currentState.present],
           present: { frameworks: [...frameworks, frameworkName] },
-          future: [] 
+          future: []
         }
       );
     }
@@ -1367,12 +1367,12 @@ Having a history of states is great to do state time-travelling. That means defi
 
 <code-listing heading="Time-travelling states">
   <source-code lang="TypeScript">
-    
+
     // app.ts
     import { autoinject } from "aurelia-framework";
     import { Store, StateHistory, jump } from "aurelia-store";
     import { State } from "./state";
-    
+
     @autoinject()
     export class App {
       constructor(private store: Store<StateHistory<State>>) {
@@ -1397,11 +1397,11 @@ Having a history of states is great to do state time-travelling. That means defi
     }
   </source-code>
   <source-code lang="JavaScript">
-    
+
     // app.js
     import { inject } from "aurelia-framework";
     import { Store, jump } from "aurelia-store";
-    
+
     @inject(Store)
     export class App {
       constructor(store) {
@@ -1438,7 +1438,7 @@ That means your past and future arrays can hold only a maximum of the provided `
 
 <code-listing heading="Registering the plugin with history overflow limits">
   <source-code lang="TypeScript">
-    
+
     // main.ts
     import {Aurelia} from 'aurelia-framework'
     import {initialState} from './state';
@@ -1462,7 +1462,7 @@ That means your past and future arrays can hold only a maximum of the provided `
     }
   </source-code>
   <source-code lang="JavaScript">
-    
+
     // main.js
     import {Aurelia} from 'aurelia-framework'
     import {initialState} from './state';
@@ -1503,22 +1503,22 @@ Middlewares are registered using `store.registerMiddleware` with the middleware'
 
 <code-listing heading="Registering a middleware">
   <source-code lang="TypeScript">
-    
+
     // app.ts
 
     const customLogMiddleware = (currentState: State) => console.log(currentState);
-    
+
     // In TypeScript you can use the exported MiddlewarePlacement string enum
     store.registerMiddleware(customLogMiddleware, MiddlewarePlacement.After);
 
-    
+
   </source-code>
   <source-code lang="JavaScript">
-    
+
     // app.js
 
     const customLogMiddleware = (currentState) => console.log(currentState);
-    
+
     // in JavaScript just provide the string "before" or "after"
     store.registerMiddleware(customLogMiddleware, "after");
   </source-code>
@@ -1533,7 +1533,7 @@ When executed, a middleware might accept a second argument which reflects the cu
 
 <code-listing heading="Accessing the original state">
   <source-code lang="TypeScript">
-    
+
     // app.ts
 
     const blacklister = (currentState: TestState, originalState: TestState) => {
@@ -1543,7 +1543,7 @@ When executed, a middleware might accept a second argument which reflects the cu
     }
   </source-code>
   <source-code lang="JavaScript">
-    
+
     // app.js
 
     const blacklister = (currentState, originalState) => {
@@ -1561,21 +1561,21 @@ These are passed in as the third argument to the middleware function and are reg
 
 <code-listing heading="Passing settings to middlewares">
   <source-code lang="TypeScript">
-    
+
     // app.ts
 
     const customLogMiddleware = (currentState, originalState, settings) => console[settings.logType](currentState);
-    
+
     store.registerMiddleware(customLogMiddleware, MiddlewarePlacement.After, { logType: "debug" });
 
-    
+
   </source-code>
   <source-code lang="JavaScript">
-    
+
     // app.js
 
     const customLogMiddleware = (currentState, originalState, settings) => console[settings.logType](currentState);
-    
+
     store.registerMiddleware(customLogMiddleware, "after", { logType: "debug" });
   </source-code>
 </code-listing>
@@ -1583,11 +1583,11 @@ These are passed in as the third argument to the middleware function and are reg
 ## Reference to the calling action for middlewares
 
 Last but not least the optional fourth argument passed into a middleware is the calling action, meaning the action that is being dispatched.
-In here you get an object containing the action's `name` and the provided `params`. This is useful when you, for instance, want only certain actions to pass or be canceled under certain circumstances. 
+In here you get an object containing the action's `name` and the provided `params`. This is useful when you, for instance, want only certain actions to pass or be canceled under certain circumstances.
 
 <code-listing heading="Reference to the calling action in middlewares">
   <source-code lang="TypeScript">
-    
+
     // app.ts
 
     const gateKeeperMiddleware = (currentState, originalState, _, action) => {
@@ -1596,11 +1596,11 @@ In here you get an object containing the action's `name` and the provided `param
         return originalState;
       }
     };
-    
+
     store.registerMiddleware(gateKeeperMiddleware, MiddlewarePlacement.After);
   </source-code>
   <source-code lang="JavaScript">
-    
+
     // app.js
 
     const gateKeeperMiddleware = (currentState, originalState, _, action) => {
@@ -1609,7 +1609,7 @@ In here you get an object containing the action's `name` and the provided `param
         return originalState;
       }
     };
-    
+
     store.registerMiddleware(gateKeeperMiddleware, "after");
   </source-code>
 </code-listing>
@@ -1620,7 +1620,7 @@ By default errors thrown by middlewares will be swallowed in order to guarantee 
 
 <code-listing heading="Registering the plugin with active error propagation">
   <source-code lang="TypeScript">
-    
+
     // main.ts
     import {Aurelia} from 'aurelia-framework'
     import {initialState} from './state';
@@ -1641,7 +1641,7 @@ By default errors thrown by middlewares will be swallowed in order to guarantee 
     }
   </source-code>
   <source-code lang="JavaScript">
-    
+
     // main.js
     import {Aurelia} from 'aurelia-framework'
     import {initialState} from './state';
@@ -1674,7 +1674,7 @@ From the previous explanations of the inner workings of middlewares, you've come
 
 <code-listing heading="Registering the Logging middleware">
   <source-code lang="TypeScript">
-    
+
     // app.ts
 
     import { logMiddleware, LogLevel } from "aurelia-store";
@@ -1684,7 +1684,7 @@ From the previous explanations of the inner workings of middlewares, you've come
     store.registerMiddleware(logMiddleware, MiddlewarePlacement.After, { logType: LogLevel.log });
   </source-code>
   <source-code lang="JavaScript">
-    
+
     // app.js
 
     import { logMiddleware } from "aurelia-store";
@@ -1704,7 +1704,7 @@ In order to make use of it all, all you need to do is to register the middleware
 
 <code-listing heading="Registering the LocalStorage middleware">
   <source-code lang="TypeScript">
-    
+
     // app.ts
 
     import { localStorageMiddleware } from "aurelia-store";
@@ -1714,7 +1714,7 @@ In order to make use of it all, all you need to do is to register the middleware
     store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After, { key: "my-storage-key" });
   </source-code>
   <source-code lang="JavaScript">
-    
+
     // app.js
 
     import { localStorageMiddleware } from "aurelia-store";
@@ -1729,7 +1729,7 @@ Now in order to rehydrate the stored state, all you need to do is to dispatch th
 
 <code-listing heading="Dispatching the localStorage rehydration action">
   <source-code lang="TypeScript">
-    
+
     // app.ts
 
     import { rehydrateFromLocalStorage } from "aurelia-store";
@@ -1740,7 +1740,7 @@ Now in order to rehydrate the stored state, all you need to do is to dispatch th
     store.dispatch(rehydrateFromLocalStorage, "my-storage-key");
   </source-code>
   <source-code lang="JavaScript">
-    
+
     // app.js
 
     import { rehydrateFromLocalStorage } from "aurelia-store";
@@ -1759,7 +1759,7 @@ Now in order to rehydrate the stored state, all you need to do is to dispatch th
 
 If multiple actions are dispatched, they will get queued and executed one after another in order to make sure that each dispatch starts with an up-to-date state.
 
-If either your actions or middlewares return a sync or async value of `false` it will cause the Aurelia Store plugin to interrupt the execution and not emit the next state. Use this behavior in order to avoid unnecessary state updates. 
+If either your actions or middlewares return a sync or async value of `false` it will cause the Aurelia Store plugin to interrupt the execution and not emit the next state. Use this behavior in order to avoid unnecessary state updates.
 
 
 ## Tracking overall performance
@@ -1768,7 +1768,7 @@ In order to get insights into total run durations to effectively calculate how l
 
 <code-listing heading="Tracking performance data">
   <source-code lang="TypeScript">
-    
+
     // main.ts
 
     import { PerformanceMeasurement } from "aurelia-store";
@@ -1776,7 +1776,7 @@ In order to get insights into total run durations to effectively calculate how l
     aurelia.use.plugin("aurelia-store", { initialState, measurePerformance: PerformanceMeasurement.All });
   </source-code>
   <source-code lang="JavaScript">
-    
+
     // main.js
 
     aurelia.use.plugin("aurelia-store", { initialState, measurePerformance: "all" });
@@ -1802,27 +1802,27 @@ In the following example, we set the serialize option to false. This way our sta
 
 <code-listing heading="Initializing the DevTools extension with custom options">
   <source-code lang="TypeScript">
-    
+
     // main.ts
 
     ...
-    aurelia.use.plugin("aurelia-store", { 
+    aurelia.use.plugin("aurelia-store", {
       initialState,
       devToolsOptions: {
         serialize: false
-      }, 
+      },
     });
   </source-code>
   <source-code lang="JavaScript">
-    
+
     // main.js
 
     ...
-    aurelia.use.plugin("aurelia-store", { 
+    aurelia.use.plugin("aurelia-store", {
       initialState,
       devToolsOptions: {
         serialize: false
-      }, 
+      },
     });
   </source-code>
 </code-listing>
@@ -1833,12 +1833,12 @@ For various features, Aurelia Store can log information if logging is turned on.
 
 <code-listing heading="Dispatch logs to console.debug">
   <source-code lang="TypeScript">
-    
+
     // main.ts
 
     import { LogLevel } from "aurelia-store";
     ...
-    aurelia.use.plugin("aurelia-store", { 
+    aurelia.use.plugin("aurelia-store", {
       initialState,
       logDispatchedActions: true,
       logDefinitions: {
@@ -1847,10 +1847,10 @@ For various features, Aurelia Store can log information if logging is turned on.
     }});
   </source-code>
   <source-code lang="JavaScript">
-    
+
     // main.js
 
-    aurelia.use.plugin("aurelia-store", { 
+    aurelia.use.plugin("aurelia-store", {
       initialState,
       logDispatchedActions: true,
       logDefinitions: {
@@ -1865,7 +1865,7 @@ Besides the control for `dispatchedActions` you can also set the logType for the
 ## Comparison to other state management libraries
 
 There are a lot of other state management libraries out there, so you might ask yourself why you should favor Aurelia Store instead. As always Aurelia doesn't want to force you into a certain direction. There are good reasons to stick with something you're already familiar or using in another project.
-Let's look at the differences with a few of the well-known alternatives. 
+Let's look at the differences with a few of the well-known alternatives.
 
 ### Differences to Redux
 
