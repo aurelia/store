@@ -1,9 +1,3 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -40,7 +34,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 import { BehaviorSubject } from "rxjs";
-import { autoinject, Container, LogManager, PLATFORM } from "aurelia-framework";
+import { Container } from "aurelia-dependency-injection";
+import { getLogger } from "aurelia-logging";
+import { PLATFORM } from "aurelia-pal";
 import { jump, applyLimits, isStateHistory } from "./history";
 import { MiddlewarePlacement } from "./middleware";
 import { LogLevel, getLogType } from "./logging";
@@ -52,7 +48,7 @@ export var PerformanceMeasurement;
 var Store = /** @class */ (function () {
     function Store(initialState, options) {
         this.initialState = initialState;
-        this.logger = LogManager.getLogger("aurelia-store");
+        this.logger = getLogger("aurelia-store");
         this.devToolsAvailable = false;
         this.actions = new Map();
         this.middlewares = new Map();
@@ -93,6 +89,9 @@ var Store = /** @class */ (function () {
             return Array.from(this.actions).find(function (action) { return action[1].type === reducer; }) !== undefined;
         }
         return this.actions.has(reducer);
+    };
+    Store.prototype.resetToState = function (state) {
+        this._state.next(state);
     };
     Store.prototype.dispatch = function (reducer) {
         var _this = this;
@@ -289,9 +288,6 @@ var Store = /** @class */ (function () {
     Store.prototype.registerHistoryMethods = function () {
         this.registerAction("jump", jump);
     };
-    Store = __decorate([
-        autoinject()
-    ], Store);
     return Store;
 }());
 export { Store };

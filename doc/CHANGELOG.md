@@ -1,3 +1,18 @@
+<a name="1.2.0"></a>
+# [1.2.0](https://github.com/aurelia/store/compare/1.1.0...1.2.0) (2018-10-08)
+
+
+### Bug Fixes
+
+* **store:** Narrow dependency importing to improve commonjs bundling ([23c16f9](https://github.com/aurelia/store/commit/23c16f9))
+
+
+### Features
+
+* **store:** resetToState public api ([e2214c6](https://github.com/aurelia/store/commit/e2214c6))
+
+
+
 <a name="1.1.0"></a>
 # [1.1.0](https://github.com/aurelia/store/compare/1.0.0...1.1.0) (2018-08-25)
 

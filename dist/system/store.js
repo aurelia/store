@@ -1,11 +1,5 @@
-System.register(["rxjs", "aurelia-framework", "./history", "./middleware", "./logging"], function (exports_1, context_1) {
+System.register(["rxjs", "aurelia-dependency-injection", "aurelia-logging", "aurelia-pal", "./history", "./middleware", "./logging"], function (exports_1, context_1) {
     "use strict";
-    var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-        var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-        return c > 3 && r && Object.defineProperty(target, key, r), r;
-    };
     var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
         return new (P || (P = Promise))(function (resolve, reject) {
             function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -41,10 +35,10 @@ System.register(["rxjs", "aurelia-framework", "./history", "./middleware", "./lo
             if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
         }
     };
-    var rxjs_1, aurelia_framework_1, history_1, middleware_1, logging_1, PerformanceMeasurement, Store;
+    var rxjs_1, aurelia_dependency_injection_1, aurelia_logging_1, aurelia_pal_1, history_1, middleware_1, logging_1, PerformanceMeasurement, Store;
     var __moduleName = context_1 && context_1.id;
     function dispatchify(action) {
-        var store = aurelia_framework_1.Container.instance.get(Store);
+        var store = aurelia_dependency_injection_1.Container.instance.get(Store);
         return function () {
             var params = [];
             for (var _i = 0; _i < arguments.length; _i++) {
@@ -59,8 +53,14 @@ System.register(["rxjs", "aurelia-framework", "./history", "./middleware", "./lo
             function (rxjs_1_1) {
                 rxjs_1 = rxjs_1_1;
             },
-            function (aurelia_framework_1_1) {
-                aurelia_framework_1 = aurelia_framework_1_1;
+            function (aurelia_dependency_injection_1_1) {
+                aurelia_dependency_injection_1 = aurelia_dependency_injection_1_1;
+            },
+            function (aurelia_logging_1_1) {
+                aurelia_logging_1 = aurelia_logging_1_1;
+            },
+            function (aurelia_pal_1_1) {
+                aurelia_pal_1 = aurelia_pal_1_1;
             },
             function (history_1_1) {
                 history_1 = history_1_1;
@@ -81,7 +81,7 @@ System.register(["rxjs", "aurelia-framework", "./history", "./middleware", "./lo
             Store = /** @class */ (function () {
                 function Store(initialState, options) {
                     this.initialState = initialState;
-                    this.logger = aurelia_framework_1.LogManager.getLogger("aurelia-store");
+                    this.logger = aurelia_logging_1.getLogger("aurelia-store");
                     this.devToolsAvailable = false;
                     this.actions = new Map();
                     this.middlewares = new Map();
@@ -122,6 +122,9 @@ System.register(["rxjs", "aurelia-framework", "./history", "./middleware", "./lo
                         return Array.from(this.actions).find(function (action) { return action[1].type === reducer; }) !== undefined;
                     }
                     return this.actions.has(reducer);
+                };
+                Store.prototype.resetToState = function (state) {
+                    this._state.next(state);
                 };
                 Store.prototype.dispatch = function (reducer) {
                     var _this = this;
@@ -189,7 +192,7 @@ System.register(["rxjs", "aurelia-framework", "./history", "./middleware", "./lo
                                     if (!this.actions.has(reducer)) {
                                         throw new Error("Tried to dispatch an unregistered action" + (reducer ? " " + reducer.name : ""));
                                     }
-                                    aurelia_framework_1.PLATFORM.performance.mark("dispatch-start");
+                                    aurelia_pal_1.PLATFORM.performance.mark("dispatch-start");
                                     action = this.actions.get(reducer);
                                     if (this.options.logDispatchedActions) {
                                         this.logger[logging_1.getLogType(this.options, "dispatchedActions", logging_1.LogLevel.info)]("Dispatching: " + action.type);
@@ -201,19 +204,19 @@ System.register(["rxjs", "aurelia-framework", "./history", "./middleware", "./lo
                                 case 1:
                                     beforeMiddleswaresResult = _a.sent();
                                     if (beforeMiddleswaresResult === false) {
-                                        aurelia_framework_1.PLATFORM.performance.clearMarks();
-                                        aurelia_framework_1.PLATFORM.performance.clearMeasures();
+                                        aurelia_pal_1.PLATFORM.performance.clearMarks();
+                                        aurelia_pal_1.PLATFORM.performance.clearMeasures();
                                         return [2 /*return*/];
                                     }
                                     return [4 /*yield*/, reducer.apply(void 0, [beforeMiddleswaresResult].concat(params))];
                                 case 2:
                                     result = _a.sent();
                                     if (result === false) {
-                                        aurelia_framework_1.PLATFORM.performance.clearMarks();
-                                        aurelia_framework_1.PLATFORM.performance.clearMeasures();
+                                        aurelia_pal_1.PLATFORM.performance.clearMarks();
+                                        aurelia_pal_1.PLATFORM.performance.clearMeasures();
                                         return [2 /*return*/];
                                     }
-                                    aurelia_framework_1.PLATFORM.performance.mark("dispatch-after-reducer-" + action.type);
+                                    aurelia_pal_1.PLATFORM.performance.mark("dispatch-after-reducer-" + action.type);
                                     if (!result && typeof result !== "object") {
                                         throw new Error("The reducer has to return a new state");
                                     }
@@ -224,8 +227,8 @@ System.register(["rxjs", "aurelia-framework", "./history", "./middleware", "./lo
                                 case 3:
                                     resultingState = _a.sent();
                                     if (resultingState === false) {
-                                        aurelia_framework_1.PLATFORM.performance.clearMarks();
-                                        aurelia_framework_1.PLATFORM.performance.clearMeasures();
+                                        aurelia_pal_1.PLATFORM.performance.clearMarks();
+                                        aurelia_pal_1.PLATFORM.performance.clearMeasures();
                                         return [2 /*return*/];
                                     }
                                     if (history_1.isStateHistory(resultingState) &&
@@ -234,19 +237,19 @@ System.register(["rxjs", "aurelia-framework", "./history", "./middleware", "./lo
                                         resultingState = history_1.applyLimits(resultingState, this.options.history.limit);
                                     }
                                     this._state.next(resultingState);
-                                    aurelia_framework_1.PLATFORM.performance.mark("dispatch-end");
+                                    aurelia_pal_1.PLATFORM.performance.mark("dispatch-end");
                                     if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
-                                        aurelia_framework_1.PLATFORM.performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
-                                        measures = aurelia_framework_1.PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
+                                        aurelia_pal_1.PLATFORM.performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
+                                        measures = aurelia_pal_1.PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
                                         this.logger[logging_1.getLogType(this.options, "performanceLog", logging_1.LogLevel.info)]("Total duration " + measures[0].duration + " of dispatched action " + action.type + ":", measures);
                                     }
                                     else if (this.options.measurePerformance === PerformanceMeasurement.All) {
-                                        marks = aurelia_framework_1.PLATFORM.performance.getEntriesByType("mark");
+                                        marks = aurelia_pal_1.PLATFORM.performance.getEntriesByType("mark");
                                         totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
                                         this.logger[logging_1.getLogType(this.options, "performanceLog", logging_1.LogLevel.info)]("Total duration " + totalDuration + " of dispatched action " + action.type + ":", marks);
                                     }
-                                    aurelia_framework_1.PLATFORM.performance.clearMarks();
-                                    aurelia_framework_1.PLATFORM.performance.clearMeasures();
+                                    aurelia_pal_1.PLATFORM.performance.clearMarks();
+                                    aurelia_pal_1.PLATFORM.performance.clearMeasures();
                                     this.updateDevToolsState(action, resultingState);
                                     return [2 /*return*/];
                             }
@@ -288,7 +291,7 @@ System.register(["rxjs", "aurelia-framework", "./history", "./middleware", "./lo
                                     return [4 /*yield*/, prev];
                                 case 6: return [2 /*return*/, _d.sent()];
                                 case 7:
-                                    aurelia_framework_1.PLATFORM.performance.mark("dispatch-" + placement + "-" + curr[0].name);
+                                    aurelia_pal_1.PLATFORM.performance.mark("dispatch-" + placement + "-" + curr[0].name);
                                     return [7 /*endfinally*/];
                                 case 8: return [2 /*return*/];
                             }
@@ -297,10 +300,10 @@ System.register(["rxjs", "aurelia-framework", "./history", "./middleware", "./lo
                 };
                 Store.prototype.setupDevTools = function () {
                     var _this = this;
-                    if (aurelia_framework_1.PLATFORM.global.devToolsExtension) {
+                    if (aurelia_pal_1.PLATFORM.global.devToolsExtension) {
                         this.logger[logging_1.getLogType(this.options, "devToolsStatus", logging_1.LogLevel.debug)]("DevTools are available");
                         this.devToolsAvailable = true;
-                        this.devTools = aurelia_framework_1.PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
+                        this.devTools = aurelia_pal_1.PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
                         this.devTools.init(this.initialState);
                         this.devTools.subscribe(function (message) {
                             _this.logger[logging_1.getLogType(_this.options, "devToolsStatus", logging_1.LogLevel.debug)]("DevTools sent change " + message.type);
@@ -318,9 +321,6 @@ System.register(["rxjs", "aurelia-framework", "./history", "./middleware", "./lo
                 Store.prototype.registerHistoryMethods = function () {
                     this.registerAction("jump", history_1.jump);
                 };
-                Store = __decorate([
-                    aurelia_framework_1.autoinject()
-                ], Store);
                 return Store;
             }());
             exports_1("Store", Store);

@@ -1,11 +1,7 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 import { BehaviorSubject } from "rxjs";
-import { autoinject, Container, LogManager, PLATFORM } from "aurelia-framework";
+import { Container } from "aurelia-dependency-injection";
+import { getLogger } from "aurelia-logging";
+import { PLATFORM } from "aurelia-pal";
 import { jump, applyLimits, isStateHistory } from "./history";
 import { MiddlewarePlacement } from "./middleware";
 import { LogLevel, getLogType } from "./logging";
@@ -14,10 +10,10 @@ export var PerformanceMeasurement;
     PerformanceMeasurement["StartEnd"] = "startEnd";
     PerformanceMeasurement["All"] = "all";
 })(PerformanceMeasurement || (PerformanceMeasurement = {}));
-let Store = class Store {
+export class Store {
     constructor(initialState, options) {
         this.initialState = initialState;
-        this.logger = LogManager.getLogger("aurelia-store");
+        this.logger = getLogger("aurelia-store");
         this.devToolsAvailable = false;
         this.actions = new Map();
         this.middlewares = new Map();
@@ -58,6 +54,9 @@ let Store = class Store {
             return Array.from(this.actions).find((action) => action[1].type === reducer) !== undefined;
         }
         return this.actions.has(reducer);
+    }
+    resetToState(state) {
+        this._state.next(state);
     }
     dispatch(reducer, ...params) {
         let action;
@@ -196,11 +195,7 @@ let Store = class Store {
     registerHistoryMethods() {
         this.registerAction("jump", jump);
     }
-};
-Store = __decorate([
-    autoinject()
-], Store);
-export { Store };
+}
 export function dispatchify(action) {
     const store = Container.instance.get(Store);
     return function (...params) {

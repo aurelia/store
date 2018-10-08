@@ -34,6 +34,7 @@ export declare class Store<T> {
     registerAction(name: string, reducer: Reducer<T>): void;
     unregisterAction(reducer: Reducer<T>): void;
     isActionRegistered(reducer: Reducer<T> | string): boolean;
+    resetToState(state: T): void;
     dispatch<P extends any[]>(reducer: Reducer<T, P> | string, ...params: P): Promise<void>;
     private handleQueue;
     private internalDispatch;
