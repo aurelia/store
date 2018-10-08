@@ -13,8 +13,8 @@
   "scripts": {
     "lint": "cross-env tslint --project tsconfig.json",
     "pretest": "cross-env npm run lint",
-    "test": "cross-env jest",
-    "test-ci": "cross-env jest && cat ./test/coverage-jest/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
+    "test": "cross-env jest --coverage",
+    "test-ci": "cross-env jest --coverage && cat ./test/coverage-jest/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "test-watch": "jest --watch",
     "build:amd": "cross-env tsc --p tsconfig-build.json --outDir dist/amd --module amd",
     "build:commonjs": "cross-env tsc --p tsconfig-build.json --outDir dist/commonjs --module commonjs",
@@ -56,7 +56,7 @@
       "(test\\\\unit\\\\)aurelia-(.*)": "<rootDir>/node_modules/aurelia-$2",
       "^.+\\.(css)$": "<rootDir>/test/jest-css-stub.js"
     },
-    "collectCoverage": true,
+    "collectCoverage": false,
     "collectCoverageFrom": [
       "src/**/*.{js,ts}",
       "!**/*.spec.{js,ts}",
