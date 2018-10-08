@@ -1,11 +1,8 @@
 import { BehaviorSubject, Observable } from "rxjs";
 
-import {
-  autoinject,
-  Container,
-  LogManager,
-  PLATFORM
-} from "aurelia-framework";
+import { Container } from "aurelia-dependency-injection"
+import { getLogger } from "aurelia-logging"
+import { PLATFORM } from "aurelia-pal";
 
 import { jump, applyLimits, HistoryOptions, isStateHistory } from "./history";
 import { Middleware, MiddlewarePlacement, CallingAction } from "./middleware";
@@ -35,11 +32,10 @@ interface DispatchQueueItem<T> {
   reject: any;
 }
 
-@autoinject()
 export class Store<T> {
   public readonly state: Observable<T>;
 
-  private logger = LogManager.getLogger("aurelia-store") as LoggerIndexed;
+  private logger = getLogger("aurelia-store") as LoggerIndexed;
   private devToolsAvailable: boolean = false;
   private devTools: any;
   private actions: Map<Reducer<T>, Action<string>> = new Map();
