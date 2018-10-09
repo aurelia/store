@@ -1102,7 +1102,7 @@ Yet exactly the later is what a two-way binding introduces if you bind your VM d
 * When changes are made, persist the changes by dispatching an action which uses the binding models values
 * After dispatching make sure to update the binding model to match any updates to the object happening during dispatch
 
-<code-listing heading="Sub-state selection">
+<code-listing heading="Using binding models instead of the state">
   <source-code lang="TypeScript">
 
     /*
