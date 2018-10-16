@@ -128,7 +128,7 @@ Your app will typically start with an initial state, which is then manipulated t
     }
 
     export const initialState: State = {
-      frameworks: ["Aurelia", "React", "Angular"]
+      frameworks: ['Aurelia', 'React', 'Angular']
     };
   </source-code>
   <source-code lang="JavaScript">
@@ -137,7 +137,7 @@ Your app will typically start with an initial state, which is then manipulated t
 
     // state.js
     export const initialState = {
-      frameworks: ["Aurelia", "React", "Angular"]
+      frameworks: ['Aurelia', 'React', 'Angular']
     };
   </source-code>
 </code-listing>
@@ -150,8 +150,8 @@ In order to tell Aurelia how to use the plugin, we need to register it. This is 
   <source-code lang="TypeScript">
 
     // main.ts
-    import {Aurelia} from 'aurelia-framework'
-    import {initialState} from './state';
+    import { Aurelia } from 'aurelia-framework';
+    import { initialState } from './state';
 
     export function configure(aurelia: Aurelia) {
       aurelia.use
@@ -160,7 +160,7 @@ In order to tell Aurelia how to use the plugin, we need to register it. This is 
 
       ...
 
-      aurelia.use.plugin("aurelia-store", { initialState });  // <----- REGISTER THE PLUGIN
+      aurelia.use.plugin('aurelia-store', { initialState });  // <----- REGISTER THE PLUGIN
 
       aurelia.start().then(() => aurelia.setRoot());
     }
@@ -168,8 +168,8 @@ In order to tell Aurelia how to use the plugin, we need to register it. This is 
   <source-code lang="JavaScript">
 
     // main.js
-    import {Aurelia} from 'aurelia-framework'
-    import {initialState} from './state';
+    import { Aurelia } from 'aurelia-framework';
+    import { initialState } from './state';
 
     export function configure(aurelia) {
       aurelia.use
@@ -178,7 +178,7 @@ In order to tell Aurelia how to use the plugin, we need to register it. This is 
 
       ...
 
-      aurelia.use.plugin("aurelia-store", { initialState });  // <----- REGISTER THE PLUGIN
+      aurelia.use.plugin('aurelia-store', { initialState });  // <----- REGISTER THE PLUGIN
 
       aurelia.start().then(() => aurelia.setRoot());
     }
@@ -195,10 +195,10 @@ As explained in the beginning, the Aurelia Store plugin provides a public observ
   <source-code lang="TypeScript">
 
     // app.ts
-    import { autoinject } from "aurelia-dependency-injection";
-    import { Store } from "aurelia-store";
+    import { autoinject } from 'aurelia-dependency-injection';
+    import { Store } from 'aurelia-store';
 
-    import { State } from "./state";
+    import { State } from './state';
 
     @autoinject()
     export class App {
@@ -222,10 +222,10 @@ As explained in the beginning, the Aurelia Store plugin provides a public observ
   <source-code lang="JavaScript">
 
     // app.js
-    import { inject } from "aurelia-dependency-injection";
-    import { Store } from "aurelia-store";
+    import { inject } from 'aurelia-dependency-injection';
+    import { Store } from 'aurelia-store';
 
-    import { State } from "./state";
+    import { State } from './state';
 
     @inject(Store)
     export class App {
@@ -277,9 +277,9 @@ The above ViewModel example could look like this using the `connectTo` decorator
   <source-code lang="TypeScript">
 
     // app.ts
-    import { connectTo } from "aurelia-store";
+    import { connectTo } from 'aurelia-store';
 
-    import { State } from "./state";
+    import { State } from './state';
 
     @connectTo()
     export class App {
@@ -290,9 +290,9 @@ The above ViewModel example could look like this using the `connectTo` decorator
   <source-code lang="JavaScript">
 
     // app.js
-    import { connectTo } from "aurelia-store";
+    import { connectTo } from 'aurelia-store';
 
-    import { State } from "./state";
+    import { State } from './state';
 
     @connectTo()
     export class App {
@@ -309,10 +309,10 @@ In case you want to provide a custom selector instead of subscribing to the whol
   <source-code lang="TypeScript">
 
     // app.ts
-    import { pluck } from "rxjs/operators";
+    import { pluck } from 'rxjs/operators';
     ...
 
-    @connectTo<State>((store) => store.state.pipe(pluck("frameworks")))
+    @connectTo<State>((store) => store.state.pipe(pluck('frameworks')))
     export class App {
       ...
     }
@@ -320,10 +320,10 @@ In case you want to provide a custom selector instead of subscribing to the whol
   <source-code lang="JavaScript">
 
     // app.js
-    import { pluck } from "rxjs/operators";
+    import { pluck } from 'rxjs/operators';
     ...
 
-    @connectTo((store) => store.state.pipe(pluck("frameworks")))
+    @connectTo((store) => store.state.pipe(pluck('frameworks')))
     export class App {
       ...
     }
@@ -336,12 +336,12 @@ If you need more control and for instance want to override the default target pr
   <source-code lang="TypeScript">
 
     // app.ts
-    import { pluck } from "rxjs/operators";
+    import { pluck } from 'rxjs/operators';
     ...
 
     @connectTo<State>({
-      selector: (store) => store.state.pipe(pluck("frameworks")), // same as above
-      target: "currentState" // link to currentState instead of state property
+      selector: (store) => store.state.pipe(pluck('frameworks')), // same as above
+      target: 'currentState' // link to currentState instead of state property
     })
     export class App {
       ...
@@ -350,12 +350,12 @@ If you need more control and for instance want to override the default target pr
   <source-code lang="JavaScript">
 
     // app.js
-    import { pluck } from "rxjs/operators";
+    import { pluck } from 'rxjs/operators';
     ...
 
     @connectTo({
-      selector: (store) => store.state.pipe(pluck("frameworks")), // same as above
-      target: "currentState" // link to currentState instead of state property
+      selector: (store) => store.state.pipe(pluck('frameworks')), // same as above
+      target: 'currentState' // link to currentState instead of state property
     })
     export class App {
       ...
@@ -369,13 +369,13 @@ If you want to have multiple selectors, you can pass an object to the `selector`
   <source-code lang="TypeScript">
 
     // app.ts
-    import { pluck } from "rxjs/operators";
+    import { pluck } from 'rxjs/operators';
     ...
 
     @connectTo<State>({
       selector: {
-        currentState: (store) => store.state.pipe(pluck("frameworks")), // same as above
-        databases: (store) => store.state.pluck("databases")
+        currentState: (store) => store.state.pipe(pluck('frameworks')), // same as above
+        databases: (store) => store.state.pluck('databases')
       }
     })
     export class App {
@@ -385,13 +385,13 @@ If you want to have multiple selectors, you can pass an object to the `selector`
   <source-code lang="JavaScript">
 
     // app.js
-    import { pluck } from "rxjs/operators";
+    import { pluck } from 'rxjs/operators';
     ...
 
     @connectTo({
       selector: {
-        currentState: (store) => store.state.pipe(pluck("frameworks")), // same as above
-        databases: (store) => store.state.pluck("databases")
+        currentState: (store) => store.state.pipe(pluck('frameworks')), // same as above
+        databases: (store) => store.state.pluck('databases')
       }
     })
     export class App {
@@ -406,14 +406,14 @@ You can still provide a `target` with multiple selectors, which changes the beha
   <source-code lang="TypeScript">
 
     // app.ts
-    import { pluck } from "rxjs/operators";
+    import { pluck } from 'rxjs/operators';
     ...
 
     @connectTo<State>({
       target: 'currentState',
       selector: {
-        frameworks: (store) => store.state.pipe(pluck("frameworks")),
-        databases: (store) => store.state.pipe(pluck("databases"))
+        frameworks: (store) => store.state.pipe(pluck('frameworks')),
+        databases: (store) => store.state.pipe(pluck('databases'))
       }
     })
     export class App {
@@ -426,14 +426,14 @@ You can still provide a `target` with multiple selectors, which changes the beha
   <source-code lang="JavaScript">
 
     // app.js
-    import { pluck } from "rxjs/operators";
+    import { pluck } from 'rxjs/operators';
     ...
 
     @connectTo({
       target: 'currentState',
       selector: {
-        currentState: (store) => store.state.pipe(pluck("frameworks")), // same as above
-        databases: (store) => store.state.pipe(pluck("databases"))
+        currentState: (store) => store.state.pipe(pluck('frameworks')), // same as above
+        databases: (store) => store.state.pipe(pluck('databases'))
       }
     })
     export class App {
@@ -451,13 +451,13 @@ Not only the target but also the default `setup` and `teardown` methods can be s
   <source-code lang="TypeScript">
 
     // app.ts
-    import { pluck } from "rxjs/operators";
+    import { pluck } from 'rxjs/operators';
     ...
 
     @connectTo<State>({
-      selector: (store) => store.state.pipe(pluck("frameworks")), // same as above
-      setup: "create"        // create the subscription inside the create life-cycle hook
-      teardown: "deactivate" // do the disposal in deactivate
+      selector: (store) => store.state.pipe(pluck('frameworks')), // same as above
+      setup: 'create'        // create the subscription inside the create life-cycle hook
+      teardown: 'deactivate' // do the disposal in deactivate
     })
     export class App {
       ...
@@ -466,13 +466,13 @@ Not only the target but also the default `setup` and `teardown` methods can be s
   <source-code lang="JavaScript">
 
     // app.js
-    import { pluck } from "rxjs/operators";
+    import { pluck } from 'rxjs/operators';
     ...
 
     @connectTo({
-      selector: (store) => store.state.pipe(pluck("frameworks")), // same as above
-      setup: "create"        // create the subscription inside the create life-cycle hook
-      teardown: "deactivate" // do the disposal in deactivate
+      selector: (store) => store.state.pipe(pluck('frameworks')), // same as above
+      setup: 'create'        // create the subscription inside the create life-cycle hook
+      teardown: 'deactivate' // do the disposal in deactivate
     })
     export class App {
       ...
@@ -496,17 +496,17 @@ The decorator will attempt to call `stateChanged(newState, oldState)` when no se
 
     // All of these have the same change handling
     // @connectTo<State>({
-    //   selector: (store) => store.state.pipe(pluck("frameworks")),
+    //   selector: (store) => store.state.pipe(pluck('frameworks')),
     // })
     // OR
-    // @connectTo<State>((store) => store.state.pipe(pluck("frameworks")))
+    // @connectTo<State>((store) => store.state.pipe(pluck('frameworks')))
     // OR
     @connectTo<State>()
     export class App {
       ...
 
       stateChanged(newState: State, oldState: State) {
-        console.log("The state has changed", newState);
+        console.log('The state has changed', newState);
       }
     }
   </source-code>
@@ -517,17 +517,17 @@ The decorator will attempt to call `stateChanged(newState, oldState)` when no se
 
     // All of these have the same change handling
     // @connectTo({
-    //   selector: (store) => store.state.pipe(pluck("frameworks")),
+    //   selector: (store) => store.state.pipe(pluck('frameworks')),
     // })
     // OR
-    // @connectTo((store) => store.state.pipe(pluck("frameworks")))
+    // @connectTo((store) => store.state.pipe(pluck('frameworks')))
     // OR
     @connectTo()
     export class App {
       ...
 
       stateChanged(newState, oldState) {
-        console.log("The state has changed", newState);
+        console.log('The state has changed', newState);
       }
     }
   </source-code>
@@ -542,13 +542,13 @@ Providing a target name without multiple selectors calls the`target`Changed meth
     ...
 
     @connectTo<State>({
-      target: "currentState"
+      target: 'currentState'
     })
     export class App {
       ...
 
       currentStateChanged(newState: State, oldState: State) {
-        console.log("The state has changed", newState);
+        console.log('The state has changed', newState);
       }
     }
   </source-code>
@@ -558,13 +558,13 @@ Providing a target name without multiple selectors calls the`target`Changed meth
     ...
 
     @connectTo({
-      target: "currentState"
+      target: 'currentState'
     })
     export class App {
       ...
 
       currentStateChanged(newState, oldState) {
-        console.log("The state has changed", newState);
+        console.log('The state has changed', newState);
       }
     }
   </source-code>
@@ -576,48 +576,48 @@ With multiple selectors, you get the same change handling per selector.
   <source-code lang="TypeScript">
 
     // app.ts
-    import { pluck } from "rxjs/operators";
+    import { pluck } from 'rxjs/operators';
     ...
 
     @connectTo<State>({
       selector: {
-        frameworks: (store) => store.state.pipe(pluck("frameworks")),
-        databases: (store) => store.state.pipe(pluck("databases"))
+        frameworks: (store) => store.state.pipe(pluck('frameworks')),
+        databases: (store) => store.state.pipe(pluck('databases'))
       }
     })
     export class App {
       ...
 
       frameworksChanged(newState: State, oldState: State) {
-        console.log("The state has changed", newState);
+        console.log('The state has changed', newState);
       }
 
       databasesChanged(newState: State, oldState: State) {
-        console.log("The state has changed", newState);
+        console.log('The state has changed', newState);
       }
     }
   </source-code>
   <source-code lang="JavaScript">
 
     // app.js
-    import { pluck } from "rxjs/operators";
+    import { pluck } from 'rxjs/operators';
     ...
 
     @connectTo({
       selector: {
-        frameworks: (store) => store.state.pipe(pluck("frameworks")),
-        databases: (store) => store.state.pipe(pluck("databases"))
+        frameworks: (store) => store.state.pipe(pluck('frameworks')),
+        databases: (store) => store.state.pipe(pluck('databases'))
       }
     })
     export class App {
       ...
 
       frameworksChanged(newState, oldState) {
-        console.log("The state has changed", newState);
+        console.log('The state has changed', newState);
       }
 
       databasesChanged(newState, oldState) {
-        console.log("The state has changed", newState);
+        console.log('The state has changed', newState);
       }
     }
   </source-code>
@@ -629,14 +629,14 @@ However, providing a `target` with multiple selectors changes the prior behavior
   <source-code lang="TypeScript">
 
     // app.ts
-    import { pluck } from "rxjs/operators";
+    import { pluck } from 'rxjs/operators';
     ...
 
     @connectTo<State>({
-      target: "currentState",
+      target: 'currentState',
       selector: {
-        frameworks: (store) => store.state.pipe(pluck("frameworks")),
-        databases: (store) => store.state.pipe(pluck("databases"))
+        frameworks: (store) => store.state.pipe(pluck('frameworks')),
+        databases: (store) => store.state.pipe(pluck('databases'))
       }
     })
     export class App {
@@ -644,24 +644,24 @@ However, providing a `target` with multiple selectors changes the prior behavior
 
       currentStateChanged(stateName: string, newState: State, oldState: State) {
         // this will be called twice:
-        //   once for stateName="frameworks"
-        //   once for stateName="databases"
+        //   once for stateName='frameworks'
+        //   once for stateName='databases'
 
-        console.log("The state has changed", newState);
+        console.log('The state has changed', newState);
       }
     }
   </source-code>
   <source-code lang="JavaScript">
 
     // app.js
-    import { pluck } from "rxjs/operators";
+    import { pluck } from 'rxjs/operators';
     ...
 
     @connectTo({
-      target: "currentState",
+      target: 'currentState',
       selector: {
-        frameworks: (store) => store.state.pipe(pluck("frameworks")),
-        databases: (store) => store.state.pipe(pluck("databases"))
+        frameworks: (store) => store.state.pipe(pluck('frameworks')),
+        databases: (store) => store.state.pipe(pluck('databases'))
       }
     })
     export class App {
@@ -669,10 +669,10 @@ However, providing a `target` with multiple selectors changes the prior behavior
 
       currentStateChanged(stateName, newState, oldState) {
         // this will be called twice:
-        //   once for stateName="frameworks"
-        //   once for stateName="databases"
+        //   once for stateName='frameworks'
+        //   once for stateName='databases'
 
-        console.log("The state has changed", newState);
+        console.log('The state has changed', newState);
       }
     }
   </source-code>
@@ -684,36 +684,36 @@ Last but not least you can also define a callback to be called with the next sta
   <source-code lang="TypeScript">
 
     // app.ts
-    import { pluck } from "rxjs/operators";
+    import { pluck } from 'rxjs/operators';
     ...
 
     @connectTo<State>({
-      selector: (store) => store.state.pipe(pluck("frameworks")),
-      onChanged: "changeHandler"
+      selector: (store) => store.state.pipe(pluck('frameworks')),
+      onChanged: 'changeHandler'
     })
     export class App {
       ...
 
       changeHandler(newState: State, oldState: State) {
-        console.log("The state has changed", newState);
+        console.log('The state has changed', newState);
       }
     }
   </source-code>
   <source-code lang="JavaScript">
 
     // app.js
-    import { pluck } from "rxjs/operators";
+    import { pluck } from 'rxjs/operators';
     ...
 
     @connectTo({
-      selector: (store) => store.state.pipe(pluck("frameworks")), // same as above
-      onChanged: "changeHandler"
+      selector: (store) => store.state.pipe(pluck('frameworks')), // same as above
+      onChanged: 'changeHandler'
     })
     export class App {
       ...
 
       changeHandler(newState, oldState) {
-        console.log("The state has changed", newState);
+        console.log('The state has changed', newState);
       }
     }
   </source-code>
@@ -733,7 +733,7 @@ For any one of these configuration, you can add an additional change handling fu
 
       propertyChanged(stateName: string, newState: State, oldState: State) {
         // stateName will be "state"
-        console.log("The state has changed", newState);
+        console.log('The state has changed', newState);
       }
     }
   </source-code>
@@ -748,7 +748,7 @@ For any one of these configuration, you can add an additional change handling fu
 
       propertyChanged(stateName, newState, oldState) {
         // stateName will be "state"
-        console.log("The state has changed", newState);
+        console.log('The state has changed', newState);
       }
     }
   </source-code>
@@ -799,10 +799,10 @@ Next, we need to register the created action with the store. That is done by cal
   <source-code lang="TypeScript">
 
     // app.ts
-    import { autoinject } from "aurelia-dependency-injection";
-    import { Store } from "aurelia-store";
+    import { autoinject } from 'aurelia-dependency-injection';
+    import { Store } from 'aurelia-store';
 
-    import { State } from "./state";
+    import { State } from './state';
 
     @autoinject()
     export class App {
@@ -810,7 +810,7 @@ Next, we need to register the created action with the store. That is done by cal
       public state: State;
 
       constructor(private store: Store<State>) {
-        this.store.registerAction("DemoAction", demoAction);
+        this.store.registerAction('DemoAction', demoAction);
       }
 
       ...
@@ -819,15 +819,15 @@ Next, we need to register the created action with the store. That is done by cal
   <source-code lang="JavaScript">
 
     // app.js
-    import { inject } from "aurelia-dependency-injection";
-    import { Store } from "aurelia-store";
+    import { inject } from 'aurelia-dependency-injection';
+    import { Store } from 'aurelia-store';
 
-    import { State } from "./state";
+    import { State } from './state';
 
     @inject(Store)
     export class App {
       constructor(store) {
-        this.store.registerAction("DemoAction", demoAction);
+        this.store.registerAction('DemoAction', demoAction);
       }
 
       ...
@@ -849,7 +849,7 @@ You can unregister actions whenever needed by using the store's `unregisterActio
       ...
 
       constructor(private store: Store<State>) {
-        this.store.registerAction("DemoAction", demoAction);
+        this.store.registerAction('DemoAction', demoAction);
         this.store.unregisterAction(demoAction);
       }
 
@@ -864,7 +864,7 @@ You can unregister actions whenever needed by using the store's `unregisterActio
     @inject(Store)
     export class App {
       constructor(store) {
-        this.store.registerAction("DemoAction", demoAction);
+        this.store.registerAction('DemoAction', demoAction);
         this.store.unregisterAction(demoAction);
       }
 
@@ -885,8 +885,8 @@ From the above example, imagine we'd have to validate the given name, which happ
     function validateAsync(name: string) {
       return Promise((resolve, reject) => {
         setTimeout(() => {
-          if (name === "Angular") {
-            reject(new Error("Try using a different framework"))
+          if (name === 'Angular') {
+            reject(new Error('Try using a different framework'))
           } else {
             resolve(name);
           }
@@ -908,8 +908,8 @@ From the above example, imagine we'd have to validate the given name, which happ
     function validateAsync(name) {
       return Promise((resolve, reject) => {
         setTimeout(() => {
-          if (name === "Angular") {
-            reject(new Error("Try using a different framework"))
+          if (name === 'Angular') {
+            reject(new Error('Try using a different framework'))
           } else {
             resolve(name);
           }
@@ -942,10 +942,10 @@ Alternatively we can also provide the previously registered name instead.
   <source-code lang="TypeScript">
 
     // app.ts
-    import { autoinject } from "aurelia-dependency-injection";
-    import { Store, connectTo } from "aurelia-store";
+    import { autoinject } from 'aurelia-dependency-injection';
+    import { Store, connectTo } from 'aurelia-store';
 
-    import { State } from "./state";
+    import { State } from './state';
 
     @autoinject()
     @connectTo()
@@ -954,37 +954,37 @@ Alternatively we can also provide the previously registered name instead.
       public state: State;
 
       constructor(private store: Store<State>) {
-        this.store.registerAction("DemoAction", demoAction);
+        this.store.registerAction('DemoAction', demoAction);
       }
 
       public dispatchDemo(nextFramework: string) {
         this.store.dispatch(demoAction, nextFramework);
 
         // or
-        // this.store.dispatch("DemoAction", nextFramework);
+        // this.store.dispatch('DemoAction', nextFramework);
       }
     }
   </source-code>
   <source-code lang="JavaScript">
 
     // app.js
-    import { inject } from "aurelia-dependency-injection";
-    import { Store, connectTo } from "aurelia-store";
+    import { inject } from 'aurelia-dependency-injection';
+    import { Store, connectTo } from 'aurelia-store';
 
-    import { State } from "./state";
+    import { State } from './state';
 
     @inject(Store)
     @connectTo()
     export class App {
       constructor(store) {
-        this.store.registerAction("DemoAction", demoAction);
+        this.store.registerAction('DemoAction', demoAction);
       }
 
       public dispatchDemo(nextFramework) {
         this.store.dispatch(demoAction, nextFramework);
 
         // or
-        // this.store.dispatch("DemoAction", nextFramework);
+        // this.store.dispatch('DemoAction', nextFramework);
       }
     }
   </source-code>
@@ -1009,8 +1009,8 @@ In order to do so, you can leverage the higher order function `dispatchify`. Wha
   <source-code lang="TypeScript">
 
     // framework-list.ts
-    import { inlineView } from "aurelia-framework";
-    import { dispatchify } from "aurelia-store";
+    import { inlineView } from 'aurelia-framework';
+    import { dispatchify } from 'aurelia-store';
 
     const addFramework = (state: State, frameworkName: string) => {
       const newState = Object.assign({}, state);
@@ -1030,7 +1030,7 @@ In order to do so, you can leverage the higher order function `dispatchify`. Wha
     }
 
     // framework-item.ts
-    import { bindable, inlineView } from "aurelia-framework";
+    import { bindable, inlineView } from 'aurelia-framework';
 
     @inlineView(`
       <template>
@@ -1046,8 +1046,8 @@ In order to do so, you can leverage the higher order function `dispatchify`. Wha
   <source-code lang="JavaScript">
 
     // framework-list.js
-    import { inlineView } from "aurelia-framework";
-    import { dispatchify } from "aurelia-store";
+    import { inlineView } from 'aurelia-framework';
+    import { dispatchify } from 'aurelia-store';
 
     const addFramework = (state, frameworkName) => {
       const newState = Object.assign({}, state);
@@ -1069,7 +1069,7 @@ In order to do so, you can leverage the higher order function `dispatchify`. Wha
     }
 
     // framework-item.js
-    import { bindable, inlineView } from "aurelia-framework";
+    import { bindable, inlineView } from 'aurelia-framework';
 
     @inlineView(`
       <template>
@@ -1132,7 +1132,7 @@ Yet exactly the later is what a two-way binding introduces if you bind your VM d
       public model: State;
 
       constructor(private store: Store<State>) {
-        this.store.registerAction("updateUser", updateUser);
+        this.store.registerAction('updateUser', updateUser);
       }
 
       bind() {
@@ -1173,7 +1173,7 @@ Yet exactly the later is what a two-way binding introduces if you bind your VM d
     `)
     export class App {
       constructor(private store: Store<State>) {
-        this.store.registerAction("updateUser", updateUser);
+        this.store.registerAction('updateUser', updateUser);
       }
 
       bind() {
@@ -1201,7 +1201,7 @@ Since the whole concept of this plugin is to stream states over time, it makes s
   <source-code lang="TypeScript">
 
     // main.ts
-    import {Aurelia} from 'aurelia-framework'
+    import {Aurelia} from 'aurelia-framework';
     import {initialState} from './state';
 
     export function configure(aurelia: Aurelia) {
@@ -1211,7 +1211,7 @@ Since the whole concept of this plugin is to stream states over time, it makes s
 
       ...
 
-      aurelia.use.plugin("aurelia-store", {
+      aurelia.use.plugin('aurelia-store', {
         initialState,
         history: {
           undoable: true <----- REGISTER THE PLUGIN WITH THE HISTORY FEATURE
@@ -1224,7 +1224,7 @@ Since the whole concept of this plugin is to stream states over time, it makes s
   <source-code lang="JavaScript">
 
     // main.js
-    import {Aurelia} from 'aurelia-framework'
+    import {Aurelia} from 'aurelia-framework';
     import {initialState} from './state';
 
     export function configure(aurelia) {
@@ -1234,7 +1234,7 @@ Since the whole concept of this plugin is to stream states over time, it makes s
 
       ...
 
-      aurelia.use.plugin("aurelia-store", {
+      aurelia.use.plugin('aurelia-store', {
         initialState,
         history: {
           undoable: true <----- REGISTER THE PLUGIN WITH THE HISTORY FEATURE
@@ -1261,14 +1261,14 @@ export interface StateHistory<T> {
   <source-code lang="TypeScript">
 
     // app.ts
-    import { autoinject } from "aurelia-framework";
-    import { Store, StateHistory } from "aurelia-store";
-    import { State } from "./state";
+    import { autoinject } from 'aurelia-framework';
+    import { Store, StateHistory } from 'aurelia-store';
+    import { State } from './state';
 
     @autoinject()
     export class App {
       constructor(private store: Store<StateHistory<State>>) {
-        this.store.registerAction("DemoAction", demoAction);
+        this.store.registerAction('DemoAction', demoAction);
       }
 
       attached() {
@@ -1281,14 +1281,14 @@ export interface StateHistory<T> {
   <source-code lang="JavaScript">
 
     // app.js
-    import { inject } from "aurelia-framework";
-    import { Store } from "aurelia-store";
+    import { inject } from 'aurelia-framework';
+    import { Store } from 'aurelia-store';
 
     @inject(Store)
     export class App {
       constructor(store) {
         this.store = store;
-        this.store.registerAction("DemoAction", demoAction);
+        this.store.registerAction('DemoAction', demoAction);
       }
 
       attached() {
@@ -1310,8 +1310,8 @@ You can use the `nextStateHistory` helper function to easily push your new state
   <source-code lang="TypeScript">
 
     // app.ts
-    import { nextStateHistory, StateHistory } from "aurelia-store";
-    import { State } from "./state";
+    import { nextStateHistory, StateHistory } from 'aurelia-store';
+    import { State } from './state';
 
     const demoAction = (currentState: StateHistory<State>, frameworkName: string) => {
       return nextStateHistory(currentState, {
@@ -1336,7 +1336,7 @@ You can use the `nextStateHistory` helper function to easily push your new state
   <source-code lang="JavaScript">
 
     // app.js
-    import { nextStateHistory, StateHistory } from "aurelia-store";
+    import { nextStateHistory, StateHistory } from 'aurelia-store';
 
     const demoAction = (currentState, frameworkName) => {
       return nextStateHistory(currentState, {
@@ -1369,14 +1369,14 @@ Having a history of states is great to do state time-travelling. That means defi
   <source-code lang="TypeScript">
 
     // app.ts
-    import { autoinject } from "aurelia-framework";
-    import { Store, StateHistory, jump } from "aurelia-store";
-    import { State } from "./state";
+    import { autoinject } from 'aurelia-framework';
+    import { Store, StateHistory, jump } from 'aurelia-store';
+    import { State } from './state';
 
     @autoinject()
     export class App {
       constructor(private store: Store<StateHistory<State>>) {
-        this.store.registerAction("DemoAction", demoAction);
+        this.store.registerAction('DemoAction', demoAction);
       }
 
       attached() {
@@ -1399,14 +1399,14 @@ Having a history of states is great to do state time-travelling. That means defi
   <source-code lang="JavaScript">
 
     // app.js
-    import { inject } from "aurelia-framework";
-    import { Store, jump } from "aurelia-store";
+    import { inject } from 'aurelia-framework';
+    import { Store, jump } from 'aurelia-store';
 
     @inject(Store)
     export class App {
       constructor(store) {
         this.store = store;
-        this.store.registerAction("DemoAction", demoAction);
+        this.store.registerAction('DemoAction', demoAction);
       }
 
       attached() {
@@ -1440,7 +1440,7 @@ That means your past and future arrays can hold only a maximum of the provided `
   <source-code lang="TypeScript">
 
     // main.ts
-    import {Aurelia} from 'aurelia-framework'
+    import {Aurelia} from 'aurelia-framework';
     import {initialState} from './state';
 
     export function configure(aurelia: Aurelia) {
@@ -1450,7 +1450,7 @@ That means your past and future arrays can hold only a maximum of the provided `
 
       ...
 
-      aurelia.use.plugin("aurelia-store", {
+      aurelia.use.plugin('aurelia-store', {
         initialState,
         history: {
           undoable: true,
@@ -1464,7 +1464,7 @@ That means your past and future arrays can hold only a maximum of the provided `
   <source-code lang="JavaScript">
 
     // main.js
-    import {Aurelia} from 'aurelia-framework'
+    import {Aurelia} from 'aurelia-framework';
     import {initialState} from './state';
 
     export function configure(aurelia) {
@@ -1474,7 +1474,7 @@ That means your past and future arrays can hold only a maximum of the provided `
 
       ...
 
-      aurelia.use.plugin("aurelia-store", {
+      aurelia.use.plugin('aurelia-store', {
         initialState,
         history: {
           undoable: true,
@@ -1519,8 +1519,8 @@ Middlewares are registered using `store.registerMiddleware` with the middleware'
 
     const customLogMiddleware = (currentState) => console.log(currentState);
 
-    // in JavaScript just provide the string "before" or "after"
-    store.registerMiddleware(customLogMiddleware, "after");
+    // in JavaScript just provide the string 'before' or 'after'
+    store.registerMiddleware(customLogMiddleware, 'after');
   </source-code>
 </code-listing>
 
@@ -1537,7 +1537,7 @@ When executed, a middleware might accept a second argument which reflects the cu
     // app.ts
 
     const blacklister = (currentState: TestState, originalState: TestState) => {
-      if ( currentState.newValue.indexOf("f**k") > -1 ) {
+      if ( currentState.newValue.indexOf('f**k') > -1 ) {
         return originalState;
       }
     }
@@ -1547,7 +1547,7 @@ When executed, a middleware might accept a second argument which reflects the cu
     // app.js
 
     const blacklister = (currentState, originalState) => {
-      if ( currentState.newValue.indexOf("f**k") > -1 ) {
+      if ( currentState.newValue.indexOf('f**k') > -1 ) {
         return originalState;
       }
     }
@@ -1566,7 +1566,7 @@ These are passed in as the third argument to the middleware function and are reg
 
     const customLogMiddleware = (currentState, originalState, settings) => console[settings.logType](currentState);
 
-    store.registerMiddleware(customLogMiddleware, MiddlewarePlacement.After, { logType: "debug" });
+    store.registerMiddleware(customLogMiddleware, MiddlewarePlacement.After, { logType: 'debug' });
 
 
   </source-code>
@@ -1576,7 +1576,7 @@ These are passed in as the third argument to the middleware function and are reg
 
     const customLogMiddleware = (currentState, originalState, settings) => console[settings.logType](currentState);
 
-    store.registerMiddleware(customLogMiddleware, "after", { logType: "debug" });
+    store.registerMiddleware(customLogMiddleware, 'after', { logType: 'debug' });
   </source-code>
 </code-listing>
 
@@ -1592,7 +1592,7 @@ In here you get an object containing the action's `name` and the provided `param
 
     const gateKeeperMiddleware = (currentState, originalState, _, action) => {
       // imagine a lockActive property on the state indicating that certain actions may not be executed
-      if (currentState.lockActive === true && action.name === "trespasser") {
+      if (currentState.lockActive === true && action.name === 'trespasser') {
         return originalState;
       }
     };
@@ -1605,12 +1605,12 @@ In here you get an object containing the action's `name` and the provided `param
 
     const gateKeeperMiddleware = (currentState, originalState, _, action) => {
       // imagine a lockActive property on the state indicating that certain actions may not be executed
-      if (currentState.lockActive === true && action.name === "trespasser") {
+      if (currentState.lockActive === true && action.name === 'trespasser') {
         return originalState;
       }
     };
 
-    store.registerMiddleware(gateKeeperMiddleware, "after");
+    store.registerMiddleware(gateKeeperMiddleware, 'after');
   </source-code>
 </code-listing>
 
@@ -1622,7 +1622,7 @@ By default errors thrown by middlewares will be swallowed in order to guarantee 
   <source-code lang="TypeScript">
 
     // main.ts
-    import {Aurelia} from 'aurelia-framework'
+    import {Aurelia} from 'aurelia-framework';
     import {initialState} from './state';
 
     export function configure(aurelia: Aurelia) {
@@ -1632,7 +1632,7 @@ By default errors thrown by middlewares will be swallowed in order to guarantee 
 
       ...
 
-      aurelia.use.plugin("aurelia-store", {
+      aurelia.use.plugin('aurelia-store', {
         initialState,
         propagateError: true
       });
@@ -1643,7 +1643,7 @@ By default errors thrown by middlewares will be swallowed in order to guarantee 
   <source-code lang="JavaScript">
 
     // main.js
-    import {Aurelia} from 'aurelia-framework'
+    import {Aurelia} from 'aurelia-framework';
     import {initialState} from './state';
 
     export function configure(aurelia) {
@@ -1653,7 +1653,7 @@ By default errors thrown by middlewares will be swallowed in order to guarantee 
 
       ...
 
-      aurelia.use.plugin("aurelia-store", {
+      aurelia.use.plugin('aurelia-store', {
         initialState,
         propagateError: true
       });
@@ -1677,7 +1677,7 @@ From the previous explanations of the inner workings of middlewares, you've come
 
     // app.ts
 
-    import { logMiddleware, LogLevel } from "aurelia-store";
+    import { logMiddleware, LogLevel } from 'aurelia-store';
 
     ...
 
@@ -1687,11 +1687,11 @@ From the previous explanations of the inner workings of middlewares, you've come
 
     // app.js
 
-    import { logMiddleware } from "aurelia-store";
+    import { logMiddleware } from 'aurelia-store';
 
     ...
 
-    store.registerMiddleware(logMiddleware, "after", { logType: "log" });
+    store.registerMiddleware(logMiddleware, 'after', { logType: 'log' });
   </source-code>
 </code-listing>
 
@@ -1707,21 +1707,21 @@ In order to make use of it all, all you need to do is to register the middleware
 
     // app.ts
 
-    import { localStorageMiddleware } from "aurelia-store";
+    import { localStorageMiddleware } from 'aurelia-store';
 
     ...
 
-    store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After, { key: "my-storage-key" });
+    store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After, { key: 'my-storage-key' });
   </source-code>
   <source-code lang="JavaScript">
 
     // app.js
 
-    import { localStorageMiddleware } from "aurelia-store";
+    import { localStorageMiddleware } from 'aurelia-store';
 
     ...
 
-    store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After, { key: "my-storage-key" });
+    store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After, { key: 'my-storage-key' });
   </source-code>
 </code-listing>
 
@@ -1732,23 +1732,23 @@ Now in order to rehydrate the stored state, all you need to do is to dispatch th
 
     // app.ts
 
-    import { rehydrateFromLocalStorage } from "aurelia-store";
+    import { rehydrateFromLocalStorage } from 'aurelia-store';
 
     ...
 
-    store.registerAction("Rehydrate", rehydrateFromLocalStorage);
-    store.dispatch(rehydrateFromLocalStorage, "my-storage-key");
+    store.registerAction('Rehydrate', rehydrateFromLocalStorage);
+    store.dispatch(rehydrateFromLocalStorage, 'my-storage-key');
   </source-code>
   <source-code lang="JavaScript">
 
     // app.js
 
-    import { rehydrateFromLocalStorage } from "aurelia-store";
+    import { rehydrateFromLocalStorage } from 'aurelia-store';
 
     ...
 
-    store.registerAction("Rehydrate", rehydrateFromLocalStorage);
-    store.dispatch(rehydrateFromLocalStorage, "my-storage-key");
+    store.registerAction('Rehydrate', rehydrateFromLocalStorage);
+    store.dispatch(rehydrateFromLocalStorage, 'my-storage-key');
   </source-code>
 </code-listing>
 
@@ -1771,15 +1771,15 @@ In order to get insights into total run durations to effectively calculate how l
 
     // main.ts
 
-    import { PerformanceMeasurement } from "aurelia-store";
+    import { PerformanceMeasurement } from 'aurelia-store';
     ...
-    aurelia.use.plugin("aurelia-store", { initialState, measurePerformance: PerformanceMeasurement.All });
+    aurelia.use.plugin('aurelia-store', { initialState, measurePerformance: PerformanceMeasurement.All });
   </source-code>
   <source-code lang="JavaScript">
 
     // main.js
 
-    aurelia.use.plugin("aurelia-store", { initialState, measurePerformance: "all" });
+    aurelia.use.plugin('aurelia-store', { initialState, measurePerformance: 'all' });
   </source-code>
 </code-listing>
 
@@ -1806,7 +1806,7 @@ In the following example, we set the serialize option to false. This way our sta
     // main.ts
 
     ...
-    aurelia.use.plugin("aurelia-store", {
+    aurelia.use.plugin('aurelia-store', {
       initialState,
       devToolsOptions: {
         serialize: false
@@ -1818,7 +1818,7 @@ In the following example, we set the serialize option to false. This way our sta
     // main.js
 
     ...
-    aurelia.use.plugin("aurelia-store", {
+    aurelia.use.plugin('aurelia-store', {
       initialState,
       devToolsOptions: {
         serialize: false
@@ -1836,9 +1836,9 @@ For various features, Aurelia Store can log information if logging is turned on.
 
     // main.ts
 
-    import { LogLevel } from "aurelia-store";
+    import { LogLevel } from 'aurelia-store';
     ...
-    aurelia.use.plugin("aurelia-store", {
+    aurelia.use.plugin('aurelia-store', {
       initialState,
       logDispatchedActions: true,
       logDefinitions: {
@@ -1850,11 +1850,11 @@ For various features, Aurelia Store can log information if logging is turned on.
 
     // main.js
 
-    aurelia.use.plugin("aurelia-store", {
+    aurelia.use.plugin('aurelia-store', {
       initialState,
       logDispatchedActions: true,
       logDefinitions: {
-        dispatchedActions: "debug"
+        dispatchedActions: 'debug'
       }
     });
   </source-code>
