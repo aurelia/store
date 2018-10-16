@@ -1,4 +1,5 @@
 import { StoreOptions } from "./store";
+import { Logger } from "aurelia-logging";
 
 export enum LogLevel {
   trace = "trace",
@@ -7,6 +8,10 @@ export enum LogLevel {
   log = "log",
   warn = "warn",
   error = "error"
+}
+
+export class LoggerIndexed extends Logger {
+  [key: string]: any;
 }
 
 export interface LogDefinitions {

@@ -23,4 +23,5 @@ __export(require("./test-helpers"));
 __export(require("./history"));
 __export(require("./middleware"));
 __export(require("./logging"));
+__export(require("./decorator"));
 //# sourceMappingURL=aurelia-store.js.map

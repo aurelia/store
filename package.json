@@ -1,29 +1,37 @@
 {
   "name": "aurelia-store",
-  "version": "0.18.0",
+  "version": "1.2.0",
   "description": "Aurelia single state store based on RxJS",
   "keywords": [
+    "aurelia",
     "rxjs",
     "store",
-    "behaviorsubject",
-    "aurelia"
+    "behaviorsubject"
   ],
   "main": "dist/commonjs/aurelia-store.js",
   "typings": "dist/commonjs/aurelia-store.d.ts",
   "scripts": {
     "lint": "cross-env tslint --project tsconfig.json",
     "pretest": "cross-env npm run lint",
-    "test": "cross-env jest",
-    "test-watch": "concurrently \"tsc --watch\" \"jest --watch\"",
-    "build:amd": "cross-env tsc --outDir dist/amd --module amd",
-    "build:commonjs": "cross-env tsc --outDir dist/commonjs --module commonjs",
-    "build:es2015": "cross-env tsc --outDir dist/es2015 --module es2015",
-    "build:native-modules": "cross-env tsc --outDir dist/native-modules --module es2015",
-    "build:system": "cross-env tsc --outDir dist/system --module system",
+    "test": "cross-env jest --coverage",
+    "test-ci": "cross-env jest --coverage && cat ./test/coverage-jest/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
+    "test-watch": "jest --watch",
+    "build:amd": "cross-env tsc --p tsconfig-build.json --outDir dist/amd --module amd",
+    "build:commonjs": "cross-env tsc --p tsconfig-build.json --outDir dist/commonjs --module commonjs",
+    "build:es2015": "cross-env tsc --p tsconfig-build.json --outDir dist/es2015 --module es2015",
+    "build:es2017": "cross-env tsc --p tsconfig-build.json --outDir dist/es2017 --module es2015 --target es2017",
+    "build:native-modules": "cross-env tsc --p tsconfig-build.json --outDir dist/native-modules --module es2015",
+    "build:system": "cross-env tsc --p tsconfig-build.json --outDir dist/system --module system",
     "prebuild": "cross-env rimraf dist",
-    "postbuild": "gulp",
-    "build": "concurrently \"npm run build:amd\" \"npm run build:commonjs\" \"npm run build:es2015\" \"npm run build:native-modules\" \"npm run build:system\"",
-    "prepare-release": "cross-env npm run build && semantic-release pre && npm publish && semantic-release post"
+    "build": "concurrently \"npm run build:amd\" \"npm run build:commonjs\" \"npm run build:es2015\" \"npm run build:es2017\" \"npm run build:native-modules\" \"npm run build:system\"",
+    "precommit": "npm run lint",
+    "predoc": "cross-env rimraf doc/api.json && rimraf dist/doc-temp && tsc --p tsconfig-build.json --module amd --outFile dist/doc-temp/aurelia-store.js && node doc/shape-defs && copyfiles tsconfig.json dist/doc-temp",
+    "doc": "cross-env typedoc --json doc/api.json --excludeExternals --includeDeclarations --mode modules --target ES6 --name aurelia-store-docs dist/doc-temp/",
+    "postdoc": "cross-env node doc/shape-doc && rimraf dist/doc-temp",
+    "changelog": "cross-env conventional-changelog -p angular -i doc/CHANGELOG.md -s",
+    "bump-version": "npm --no-git-tag-version version",
+    "preprepare-release": "cross-env npm run test",
+    "prepare-release": "cross-env npm run changelog && npm run build && npm run doc"
   },
   "jest": {
     "modulePaths": [
@@ -48,7 +56,7 @@
       "(test\\\\unit\\\\)aurelia-(.*)": "<rootDir>/node_modules/aurelia-$2",
       "^.+\\.(css)$": "<rootDir>/test/jest-css-stub.js"
     },
-    "collectCoverage": true,
+    "collectCoverage": false,
     "collectCoverageFrom": [
       "src/**/*.{js,ts}",
       "!**/*.spec.{js,ts}",
@@ -64,18 +72,17 @@
       "lcov",
       "text",
       "html"
-    ],
-    "mapCoverage": true
+    ]
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zewa666/aurelia-store.git"
+    "url": "git+https://github.com/aurelia/store.git"
   },
-  "author": "Vildan Softic <zewa666@gmail.com>",
+  "author": "Vildan Softic <zewa666@gmail.com> (http://pragmatic-coder.net)",
   "license": "MIT",
-  "homepage": "https://github.com/zewa666/aurelia-store#readme",
+  "homepage": "http://aurelia.io",
   "bugs": {
-    "url": "https://github.com/zewa666/aurelia-store/issues"
+    "url": "https://github.com/aurelia/store/issues"
   },
   "jspm": {
     "registry": "npm",
@@ -87,33 +94,34 @@
     }
   },
   "dependencies": {
-    "aurelia-dependency-injection": "^1.3.1",
-    "aurelia-framework": "^1.1.2",
-    "aurelia-logging": "^1.3.1",
-    "aurelia-pal": "^1.3.0",
-    "rxjs": "^5.5.2"
+    "aurelia-dependency-injection": "^1.4.1",
+    "aurelia-framework": "^1.3.0",
+    "aurelia-logging": "^1.5.0",
+    "aurelia-pal": "^1.8.0",
+    "rxjs": "^6.2.2"
   },
   "devDependencies": {
-    "@types/jest": "^21.1.9",
-    "@types/node": "^8.0.0",
-    "aurelia-bootstrapper": "^2.1.1",
+    "@types/jest": "^21.1.10",
+    "@types/node": "^8.10.26",
+    "aurelia-bootstrapper": "^2.3.0",
     "aurelia-loader-nodejs": "^1.0.1",
-    "aurelia-pal-browser": "^1.2.1",
-    "aurelia-pal-nodejs": "^1.0.0-beta.2.0.0",
-    "aurelia-polyfills": "^1.2.1",
-    "aurelia-testing": "^1.0.0-beta.3.0.1",
-    "concurrently": "^3.4.0",
-    "cross-env": "^5.0.1",
-    "gulp": "^3.9.1",
-    "gulp-sass": "^3.1.0",
-    "jest": "^22.0.4",
+    "aurelia-pal-browser": "^1.8.0",
+    "aurelia-pal-nodejs": "^1.1.1",
+    "aurelia-polyfills": "^1.3.0",
+    "aurelia-testing": "^1.0.0-beta.4.0.0",
+    "concurrently": "^3.6.1",
+    "conventional-changelog-cli": "^1.3.22",
+    "copyfiles": "^2.0.0",
+    "coveralls": "^3.0.2",
+    "cross-env": "^5.2.0",
+    "husky": "^0.14.3",
+    "jest": "^22.4.4",
     "jest-css-modules": "^1.1.0",
-    "node-sass": "^4.5.3",
     "rimraf": "^2.6.1",
-    "semantic-release": "^6.3.6",
-    "ts-jest": "^22.0.0",
-    "tslint": "^5.4.3",
-    "typescript": "^2.6.1"
+    "ts-jest": "^22.4.6",
+    "tslint": "^5.11.0",
+    "typedoc": "^0.11.1",
+    "typescript": "^3.0.1"
   },
   "aurelia": {
     "import": {
@@ -126,8 +134,15 @@
         },
         {
           "name": "rxjs",
-          "main": false,
-          "path": "../node_modules/rxjs"
+          "main": "./index.js",
+          "path": "../node_modules/rxjs",
+          "resources": []
+        },
+        {
+          "name": "rxjs/operators",
+          "main": "./index.js",
+          "path": "../node_modules/rxjs/operators",
+          "resources": []
         }
       ],
       "tutorial": [

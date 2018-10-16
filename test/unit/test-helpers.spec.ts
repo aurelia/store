@@ -10,9 +10,9 @@ describe("test helpers", () => {
     expect.assertions(3);
     const { store } = createTestStore();
 
-    const actionA = (currentState: testState) => Promise.resolve({ foo: "A" });
-    const actionB = (currentState: testState) => Promise.resolve({ foo: "B" });
-    const actionC = (currentState: testState) => Promise.resolve({ foo: "C" });
+    const actionA = (_: testState) => Promise.resolve({ foo: "A" });
+    const actionB = (_: testState) => Promise.resolve({ foo: "B" });
+    const actionC = (_: testState) => Promise.resolve({ foo: "C" });
     store.registerAction("Action A", actionA);
     store.registerAction("Action B", actionB);
     store.registerAction("Action C", actionC);
@@ -27,17 +27,40 @@ describe("test helpers", () => {
     );
   });
 
+  it("should reject with error if step fails", async () => {
+    expect.assertions(4);
+    const { store } = createTestStore();
+
+    const actionA = (_: testState) => Promise.resolve({ foo: "A" });
+    const actionB = (_: testState) => Promise.resolve({ foo: "B" });
+    const actionC = (_: testState) => Promise.resolve({ foo: "C" });
+    store.registerAction("Action A", actionA);
+    store.registerAction("Action B", actionB);
+    store.registerAction("Action C", actionC);
+
+    await executeSteps(
+      store,
+      false,
+      () => store.dispatch(actionA),
+      (res) => { expect(res.foo).toBe("A"); store.dispatch(actionB); },
+      (res) => { expect(res.foo).toBe("B"); store.dispatch(actionC); throw Error("on purpose"); },
+      (res) => expect(res.foo).toBe("C")
+    ).catch((e: Error) => {
+      expect(e.message).toBe("on purpose");
+    });
+  });
+
   it("should provide console information during executeSteps", async () => {
     expect.assertions(6);
     const { store } = createTestStore();
 
     ["log", "group", "groupEnd"].forEach((fct) => {
-      global.console[fct] = jest.fn();
+      (global.console as any)[fct] = jest.fn();
     });
 
-    const actionA = (currentState: testState) => Promise.resolve({ foo: "A" });
-    const actionB = (currentState: testState) => Promise.resolve({ foo: "B" });
-    const actionC = (currentState: testState) => Promise.resolve({ foo: "C" });
+    const actionA = (_: testState) => Promise.resolve({ foo: "A" });
+    const actionB = (_: testState) => Promise.resolve({ foo: "B" });
+    const actionC = (_: testState) => Promise.resolve({ foo: "C" });
     store.registerAction("Action A", actionA);
     store.registerAction("Action B", actionB);
     store.registerAction("Action C", actionC);
@@ -52,10 +75,10 @@ describe("test helpers", () => {
     );
 
     ["log", "group", "groupEnd"].forEach((fct) => {
-      expect(global.console[fct]).toHaveBeenCalled();
+      expect((global.console as any)[fct]).toHaveBeenCalled();
 
-      (global.console[fct] as any).mockReset();
-      (global.console[fct] as any).mockRestore();
+      ((global.console as any)[fct] as any).mockReset();
+      ((global.console as any)[fct] as any).mockRestore();
     });
   });
 })

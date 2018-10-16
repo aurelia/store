@@ -14,8 +14,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -35,9 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-require("rxjs/add/operator/skip");
-require("rxjs/add/operator/take");
-require("rxjs/add/operator/delay");
+var operators_1 = require("rxjs/operators");
 function executeSteps(store, shouldLogResults) {
     var steps = [];
     for (var _i = 2; _i < arguments.length; _i++) {
@@ -73,10 +71,10 @@ function executeSteps(store, shouldLogResults) {
             return [2 /*return*/, new Promise(function (resolve, reject) {
                     var currentStep = 0;
                     steps.slice(0, -1).forEach(function (step) {
-                        store.state.skip(currentStep).take(1).delay(0).subscribe(tryStep(logStep(step, currentStep), reject));
+                        store.state.pipe(operators_1.skip(currentStep), operators_1.take(1), operators_1.delay(0)).subscribe(tryStep(logStep(step, currentStep), reject));
                         currentStep++;
                     });
-                    store.state.skip(currentStep).take(1).subscribe(lastStep(tryStep(logStep(steps[steps.length - 1], currentStep), reject), resolve));
+                    store.state.pipe(operators_1.skip(currentStep), operators_1.take(1)).subscribe(lastStep(tryStep(logStep(steps[steps.length - 1], currentStep), reject), resolve));
                 })];
         });
     });

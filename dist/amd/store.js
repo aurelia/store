@@ -1,9 +1,3 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -19,8 +13,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -39,7 +33,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./history", "./middleware", "./logging"], function (require, exports, BehaviorSubject_1, aurelia_framework_1, history_1, middleware_1, logging_1) {
+define(["require", "exports", "rxjs", "aurelia-dependency-injection", "aurelia-logging", "aurelia-pal", "./history", "./middleware", "./logging"], function (require, exports, rxjs_1, aurelia_dependency_injection_1, aurelia_logging_1, aurelia_pal_1, history_1, middleware_1, logging_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var PerformanceMeasurement;
@@ -50,14 +44,14 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./hi
     var Store = /** @class */ (function () {
         function Store(initialState, options) {
             this.initialState = initialState;
-            this.logger = aurelia_framework_1.LogManager.getLogger("aurelia-store");
+            this.logger = aurelia_logging_1.getLogger("aurelia-store");
             this.devToolsAvailable = false;
             this.actions = new Map();
             this.middlewares = new Map();
             this.dispatchQueue = [];
             this.options = options || {};
             var isUndoable = this.options.history && this.options.history.undoable === true;
-            this._state = new BehaviorSubject_1.BehaviorSubject(initialState);
+            this._state = new rxjs_1.BehaviorSubject(initialState);
             this.state = this._state.asObservable();
             this.setupDevTools();
             if (isUndoable) {
@@ -72,16 +66,28 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./hi
                 this.middlewares.delete(reducer);
             }
         };
+        Store.prototype.isMiddlewareRegistered = function (middleware) {
+            return this.middlewares.has(middleware);
+        };
         Store.prototype.registerAction = function (name, reducer) {
             if (reducer.length === 0) {
                 throw new Error("The reducer is expected to have one or more parameters, where the first will be the present state");
             }
-            this.actions.set(reducer, { name: name });
+            this.actions.set(reducer, { type: name });
         };
         Store.prototype.unregisterAction = function (reducer) {
             if (this.actions.has(reducer)) {
                 this.actions.delete(reducer);
             }
+        };
+        Store.prototype.isActionRegistered = function (reducer) {
+            if (typeof reducer === "string") {
+                return Array.from(this.actions).find(function (action) { return action[1].type === reducer; }) !== undefined;
+            }
+            return this.actions.has(reducer);
+        };
+        Store.prototype.resetToState = function (state) {
+            this._state.next(state);
         };
         Store.prototype.dispatch = function (reducer) {
             var _this = this;
@@ -89,13 +95,23 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./hi
             for (var _i = 1; _i < arguments.length; _i++) {
                 params[_i - 1] = arguments[_i];
             }
-            var result = new Promise(function (resolve, reject) {
-                _this.dispatchQueue.push({ reducer: reducer, params: params, resolve: resolve, reject: reject });
+            var action;
+            if (typeof reducer === "string") {
+                var result = Array.from(this.actions)
+                    .find(function (val) { return val[1].type === reducer; });
+                if (result) {
+                    action = result[0];
+                }
+            }
+            else {
+                action = reducer;
+            }
+            return new Promise(function (resolve, reject) {
+                _this.dispatchQueue.push({ reducer: action, params: params, resolve: resolve, reject: reject });
                 if (_this.dispatchQueue.length === 1) {
                     _this.handleQueue();
                 }
             });
-            return result;
         };
         Store.prototype.handleQueue = function () {
             return __awaiter(this, void 0, void 0, function () {
@@ -132,75 +148,78 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./hi
                 params[_i - 1] = arguments[_i];
             }
             return __awaiter(this, void 0, void 0, function () {
-                var _this = this;
-                var action, beforeMiddleswaresResult, result, apply, _a;
-                return __generator(this, function (_b) {
-                    switch (_b.label) {
+                var action, beforeMiddleswaresResult, result, resultingState, measures, marks, totalDuration;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
                         case 0:
                             if (!this.actions.has(reducer)) {
                                 throw new Error("Tried to dispatch an unregistered action" + (reducer ? " " + reducer.name : ""));
                             }
-                            performance.mark("dispatch-start");
+                            aurelia_pal_1.PLATFORM.performance.mark("dispatch-start");
                             action = this.actions.get(reducer);
                             if (this.options.logDispatchedActions) {
-                                this.logger[logging_1.getLogType(this.options, "dispatchedActions", logging_1.LogLevel.info)]("Dispatching: " + action.name);
+                                this.logger[logging_1.getLogType(this.options, "dispatchedActions", logging_1.LogLevel.info)]("Dispatching: " + action.type);
                             }
-                            return [4 /*yield*/, this.executeMiddlewares(this._state.getValue(), middleware_1.MiddlewarePlacement.Before)];
+                            return [4 /*yield*/, this.executeMiddlewares(this._state.getValue(), middleware_1.MiddlewarePlacement.Before, {
+                                    name: action.type,
+                                    params: params
+                                })];
                         case 1:
-                            beforeMiddleswaresResult = _b.sent();
-                            result = reducer.apply(void 0, [beforeMiddleswaresResult].concat(params));
-                            performance.mark("dispatch-after-reducer-" + action.name);
+                            beforeMiddleswaresResult = _a.sent();
+                            if (beforeMiddleswaresResult === false) {
+                                aurelia_pal_1.PLATFORM.performance.clearMarks();
+                                aurelia_pal_1.PLATFORM.performance.clearMeasures();
+                                return [2 /*return*/];
+                            }
+                            return [4 /*yield*/, reducer.apply(void 0, [beforeMiddleswaresResult].concat(params))];
+                        case 2:
+                            result = _a.sent();
+                            if (result === false) {
+                                aurelia_pal_1.PLATFORM.performance.clearMarks();
+                                aurelia_pal_1.PLATFORM.performance.clearMeasures();
+                                return [2 /*return*/];
+                            }
+                            aurelia_pal_1.PLATFORM.performance.mark("dispatch-after-reducer-" + action.type);
                             if (!result && typeof result !== "object") {
                                 throw new Error("The reducer has to return a new state");
                             }
-                            apply = function (newState) { return __awaiter(_this, void 0, void 0, function () {
-                                var resultingState, measures, marks, totalDuration;
-                                return __generator(this, function (_a) {
-                                    switch (_a.label) {
-                                        case 0: return [4 /*yield*/, this.executeMiddlewares(newState, middleware_1.MiddlewarePlacement.After)];
-                                        case 1:
-                                            resultingState = _a.sent();
-                                            if (history_1.isStateHistory(resultingState) &&
-                                                this.options.history &&
-                                                this.options.history.limit) {
-                                                resultingState = history_1.applyLimits(resultingState, this.options.history.limit);
-                                            }
-                                            this._state.next(resultingState);
-                                            performance.mark("dispatch-end");
-                                            if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
-                                                performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
-                                                measures = performance.getEntriesByName("startEndDispatchDuration");
-                                                this.logger[logging_1.getLogType(this.options, "performanceLog", logging_1.LogLevel.info)]("Total duration " + measures[0].duration + " of dispatched action " + action.name + ":", measures);
-                                            }
-                                            else if (this.options.measurePerformance === PerformanceMeasurement.All) {
-                                                marks = performance.getEntriesByType("mark");
-                                                totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
-                                                this.logger[logging_1.getLogType(this.options, "performanceLog", logging_1.LogLevel.info)]("Total duration " + totalDuration + " of dispatched action " + action.name + ":", marks);
-                                            }
-                                            performance.clearMarks();
-                                            performance.clearMeasures();
-                                            this.updateDevToolsState(action.name, newState);
-                                            return [2 /*return*/];
-                                    }
-                                });
-                            }); };
-                            if (!(typeof result.then === "function")) return [3 /*break*/, 4];
-                            _a = apply;
-                            return [4 /*yield*/, result];
-                        case 2: return [4 /*yield*/, _a.apply(void 0, [_b.sent()])];
+                            return [4 /*yield*/, this.executeMiddlewares(result, middleware_1.MiddlewarePlacement.After, {
+                                    name: action.type,
+                                    params: params
+                                })];
                         case 3:
-                            _b.sent();
-                            return [3 /*break*/, 6];
-                        case 4: return [4 /*yield*/, apply(result)];
-                        case 5:
-                            _b.sent();
-                            _b.label = 6;
-                        case 6: return [2 /*return*/];
+                            resultingState = _a.sent();
+                            if (resultingState === false) {
+                                aurelia_pal_1.PLATFORM.performance.clearMarks();
+                                aurelia_pal_1.PLATFORM.performance.clearMeasures();
+                                return [2 /*return*/];
+                            }
+                            if (history_1.isStateHistory(resultingState) &&
+                                this.options.history &&
+                                this.options.history.limit) {
+                                resultingState = history_1.applyLimits(resultingState, this.options.history.limit);
+                            }
+                            this._state.next(resultingState);
+                            aurelia_pal_1.PLATFORM.performance.mark("dispatch-end");
+                            if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
+                                aurelia_pal_1.PLATFORM.performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
+                                measures = aurelia_pal_1.PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
+                                this.logger[logging_1.getLogType(this.options, "performanceLog", logging_1.LogLevel.info)]("Total duration " + measures[0].duration + " of dispatched action " + action.type + ":", measures);
+                            }
+                            else if (this.options.measurePerformance === PerformanceMeasurement.All) {
+                                marks = aurelia_pal_1.PLATFORM.performance.getEntriesByType("mark");
+                                totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
+                                this.logger[logging_1.getLogType(this.options, "performanceLog", logging_1.LogLevel.info)]("Total duration " + totalDuration + " of dispatched action " + action.type + ":", marks);
+                            }
+                            aurelia_pal_1.PLATFORM.performance.clearMarks();
+                            aurelia_pal_1.PLATFORM.performance.clearMeasures();
+                            this.updateDevToolsState(action, resultingState);
+                            return [2 /*return*/];
                     }
                 });
             });
         };
-        Store.prototype.executeMiddlewares = function (state, placement) {
+        Store.prototype.executeMiddlewares = function (state, placement, action) {
             var _this = this;
             return Array.from(this.middlewares)
                 .filter(function (middleware) { return middleware[1].placement === placement; })
@@ -212,9 +231,13 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./hi
                             _d.trys.push([0, 5, 7, 8]);
                             _b = (_a = curr)[0];
                             return [4 /*yield*/, prev];
-                        case 1: return [4 /*yield*/, _b.apply(_a, [_d.sent(), this._state.getValue(), curr[1].settings])];
+                        case 1: return [4 /*yield*/, _b.apply(_a, [_d.sent(), this._state.getValue(), curr[1].settings, action])];
                         case 2:
                             result = _d.sent();
+                            if (result === false) {
+                                _arr = [];
+                                return [2 /*return*/, false];
+                            }
                             _c = result;
                             if (_c) return [3 /*break*/, 4];
                             return [4 /*yield*/, prev];
@@ -231,7 +254,7 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./hi
                             return [4 /*yield*/, prev];
                         case 6: return [2 /*return*/, _d.sent()];
                         case 7:
-                            performance.mark("dispatch-" + placement + "-" + curr[0].name);
+                            aurelia_pal_1.PLATFORM.performance.mark("dispatch-" + placement + "-" + curr[0].name);
                             return [7 /*endfinally*/];
                         case 8: return [2 /*return*/];
                     }
@@ -240,10 +263,10 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./hi
         };
         Store.prototype.setupDevTools = function () {
             var _this = this;
-            if (window.devToolsExtension) {
+            if (aurelia_pal_1.PLATFORM.global.devToolsExtension) {
                 this.logger[logging_1.getLogType(this.options, "devToolsStatus", logging_1.LogLevel.debug)]("DevTools are available");
                 this.devToolsAvailable = true;
-                this.devTools = window.__REDUX_DEVTOOLS_EXTENSION__.connect();
+                this.devTools = aurelia_pal_1.PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
                 this.devTools.init(this.initialState);
                 this.devTools.subscribe(function (message) {
                     _this.logger[logging_1.getLogType(_this.options, "devToolsStatus", logging_1.LogLevel.debug)]("DevTools sent change " + message.type);
@@ -261,20 +284,17 @@ define(["require", "exports", "rxjs/BehaviorSubject", "aurelia-framework", "./hi
         Store.prototype.registerHistoryMethods = function () {
             this.registerAction("jump", history_1.jump);
         };
-        Store = __decorate([
-            aurelia_framework_1.autoinject()
-        ], Store);
         return Store;
     }());
     exports.Store = Store;
     function dispatchify(action) {
-        var store = aurelia_framework_1.Container.instance.get(Store);
+        var store = aurelia_dependency_injection_1.Container.instance.get(Store);
         return function () {
             var params = [];
             for (var _i = 0; _i < arguments.length; _i++) {
                 params[_i] = arguments[_i];
             }
-            store.dispatch.apply(store, [action].concat(params));
+            return store.dispatch.apply(store, [action].concat(params));
         };
     }
     exports.dispatchify = dispatchify;

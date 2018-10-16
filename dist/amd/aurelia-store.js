@@ -1,4 +1,4 @@
-define(["require", "exports", "./store", "./history", "./store", "./test-helpers", "./history", "./middleware", "./logging"], function (require, exports, store_1, history_1, store_2, test_helpers_1, history_2, middleware_1, logging_1) {
+define(["require", "exports", "./store", "./history", "./store", "./test-helpers", "./history", "./middleware", "./logging", "./decorator"], function (require, exports, store_1, history_1, store_2, test_helpers_1, history_2, middleware_1, logging_1, decorator_1) {
     "use strict";
     function __export(m) {
         for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -22,5 +22,6 @@ define(["require", "exports", "./store", "./history", "./store", "./test-helpers
     __export(history_2);
     __export(middleware_1);
     __export(logging_1);
+    __export(decorator_1);
 });
 //# sourceMappingURL=aurelia-store.js.map

@@ -1,16 +1,15 @@
-import { Observable } from "rxjs/Observable";
-import { BehaviorSubject } from "rxjs/BehaviorSubject";
+import { BehaviorSubject, Observable } from "rxjs";
 
-import {
-  autoinject,
-  Container,
-  LogManager
-} from "aurelia-framework";
+import { Container } from "aurelia-dependency-injection"
+import { getLogger } from "aurelia-logging"
+import { PLATFORM } from "aurelia-pal";
+
 import { jump, applyLimits, HistoryOptions, isStateHistory } from "./history";
-import { Middleware, MiddlewarePlacement } from "./middleware";
-import { LogDefinitions, LogLevel, getLogType } from "./logging";
+import { Middleware, MiddlewarePlacement, CallingAction } from "./middleware";
+import { LogDefinitions, LogLevel, getLogType, LoggerIndexed } from "./logging";
+import { DevToolsOptions, Action } from "./devtools";
 
-export type Reducer<T> = (state: T, ...params: any[]) => T | Promise<T>;
+export type Reducer<T, P extends any[] = any[]> = (state: T, ...params: P) => T | false | Promise<T | false>;
 
 export enum PerformanceMeasurement {
   StartEnd = "startEnd",
@@ -23,6 +22,7 @@ export interface StoreOptions {
   measurePerformance?: PerformanceMeasurement;
   propagateError?: boolean;
   logDefinitions?: LogDefinitions;
+  devToolsOptions?: DevToolsOptions;
 }
 
 interface DispatchQueueItem<T> {
@@ -32,14 +32,13 @@ interface DispatchQueueItem<T> {
   reject: any;
 }
 
-@autoinject()
 export class Store<T> {
   public readonly state: Observable<T>;
 
-  private logger = LogManager.getLogger("aurelia-store");
+  private logger = getLogger("aurelia-store") as LoggerIndexed;
   private devToolsAvailable: boolean = false;
   private devTools: any;
-  private actions: Map<Reducer<T>, { name: string }> = new Map();
+  private actions: Map<Reducer<T>, Action<string>> = new Map();
   private middlewares: Map<Middleware<T>, { placement: MiddlewarePlacement, settings?: any }> = new Map();
   private _state: BehaviorSubject<T>;
   private options: Partial<StoreOptions>;
@@ -69,12 +68,16 @@ export class Store<T> {
     }
   }
 
+  public isMiddlewareRegistered(middleware: Middleware<T>) {
+    return this.middlewares.has(middleware);
+  }
+
   public registerAction(name: string, reducer: Reducer<T>) {
     if (reducer.length === 0) {
       throw new Error("The reducer is expected to have one or more parameters, where the first will be the present state");
     }
 
-    this.actions.set(reducer, { name });
+    this.actions.set(reducer, { type: name });
   }
 
   public unregisterAction(reducer: Reducer<T>) {
@@ -83,15 +86,38 @@ export class Store<T> {
     }
   }
 
-  public dispatch(reducer: Reducer<T>, ...params: any[]) {
-    const result = new Promise((resolve, reject) => {
-      this.dispatchQueue.push({ reducer, params, resolve, reject });
+  public isActionRegistered(reducer: Reducer<T> | string) {
+    if (typeof reducer === "string") {
+      return Array.from(this.actions).find((action) => action[1].type === reducer) !== undefined;
+    }
+
+    return this.actions.has(reducer);
+  }
+
+  public resetToState(state: T) {
+    this._state.next(state);
+  }
+
+  public dispatch<P extends any[]>(reducer: Reducer<T, P> | string, ...params: P) {
+    let action: Reducer<T, P>;
+
+    if (typeof reducer === "string") {
+      const result = Array.from(this.actions)
+        .find((val) => val[1].type === reducer);
+
+      if (result) {
+        action = result[0];
+      }
+    } else {
+      action = reducer;
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      this.dispatchQueue.push({ reducer: action, params, resolve, reject } as any);
       if (this.dispatchQueue.length === 1) {
         this.handleQueue();
       }
     });
-
-    return result;
   }
 
   private async handleQueue() {
@@ -114,81 +140,108 @@ export class Store<T> {
     if (!this.actions.has(reducer)) {
       throw new Error(`Tried to dispatch an unregistered action${reducer ? " " + reducer.name : ""}`);
     }
-    performance.mark("dispatch-start");
+    PLATFORM.performance.mark("dispatch-start");
 
     const action = this.actions.get(reducer);
 
     if (this.options.logDispatchedActions) {
-      this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)](`Dispatching: ${action!.name}`);
+      this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)](`Dispatching: ${action!.type}`);
     }
 
     const beforeMiddleswaresResult = await this.executeMiddlewares(
       this._state.getValue(),
-      MiddlewarePlacement.Before
+      MiddlewarePlacement.Before,
+      {
+        name: action!.type,
+        params
+      }
     );
-    const result = reducer(beforeMiddleswaresResult, ...params);
-    performance.mark("dispatch-after-reducer-" + action!.name);
+
+    if (beforeMiddleswaresResult === false) {
+      PLATFORM.performance.clearMarks();
+      PLATFORM.performance.clearMeasures();
+
+      return;
+    }
+
+    const result = await reducer(beforeMiddleswaresResult, ...params);
+    if (result === false) {
+      PLATFORM.performance.clearMarks();
+      PLATFORM.performance.clearMeasures();
+
+      return;
+    }
+    PLATFORM.performance.mark("dispatch-after-reducer-" + action!.type);
 
     if (!result && typeof result !== "object") {
       throw new Error("The reducer has to return a new state");
     }
 
-    const apply = async (newState: T) => {
-      let resultingState = await this.executeMiddlewares(
-        newState,
-        MiddlewarePlacement.After
+    let resultingState = await this.executeMiddlewares(
+      result,
+      MiddlewarePlacement.After,
+      {
+        name: action!.type,
+        params
+      }
+    );
+
+    if (resultingState === false) {
+      PLATFORM.performance.clearMarks();
+      PLATFORM.performance.clearMeasures();
+
+      return;
+    }
+
+    if (isStateHistory(resultingState) &&
+      this.options.history &&
+      this.options.history.limit) {
+      resultingState = applyLimits(resultingState, this.options.history.limit);
+    }
+
+    this._state.next(resultingState);
+    PLATFORM.performance.mark("dispatch-end");
+
+    if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
+      PLATFORM.performance.measure(
+        "startEndDispatchDuration",
+        "dispatch-start",
+        "dispatch-end"
       );
 
-      if (isStateHistory(resultingState) &&
-        this.options.history &&
-        this.options.history.limit) {
-        resultingState = applyLimits(resultingState, this.options.history.limit);
-      }
-
-      this._state.next(resultingState);
-      performance.mark("dispatch-end");
-
-      if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
-        performance.measure(
-          "startEndDispatchDuration",
-          "dispatch-start",
-          "dispatch-end"
-        );
-
-        const measures = performance.getEntriesByName("startEndDispatchDuration");
-        this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
-          `Total duration ${measures[0].duration} of dispatched action ${action!.name}:`,
-          measures
-        );
-      } else if (this.options.measurePerformance === PerformanceMeasurement.All) {
-        const marks = performance.getEntriesByType("mark");
-        const totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
-        this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
-          `Total duration ${totalDuration} of dispatched action ${action!.name}:`,
-          marks
-        );
-      }
-
-      performance.clearMarks();
-      performance.clearMeasures();
-
-      this.updateDevToolsState(action!.name, newState);
+      const measures = PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
+      this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
+        `Total duration ${measures[0].duration} of dispatched action ${action!.type}:`,
+        measures
+      );
+    } else if (this.options.measurePerformance === PerformanceMeasurement.All) {
+      const marks = PLATFORM.performance.getEntriesByType("mark");
+      const totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
+      this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
+        `Total duration ${totalDuration} of dispatched action ${action!.type}:`,
+        marks
+      );
     }
 
-    if (typeof (result as Promise<T>).then === "function") {
-      await apply(await result);
-    } else {
-      await apply(result as T);
-    }
+    PLATFORM.performance.clearMarks();
+    PLATFORM.performance.clearMeasures();
 
+    this.updateDevToolsState(action!, resultingState);
   }
 
-  private executeMiddlewares(state: T, placement: MiddlewarePlacement): T {
+  private executeMiddlewares(state: T, placement: MiddlewarePlacement, action: CallingAction): T | false {
     return Array.from(this.middlewares)
       .filter((middleware) => middleware[1].placement === placement)
       .reduce(async (prev: any, curr, _, _arr) => {
         try {
-          const result = await curr[0](await prev, this._state.getValue(), curr[1].settings);
+          const result = await curr[0](await prev, this._state.getValue(), curr[1].settings, action);
+
+          if (result === false) {
+            _arr = [];
+
+            return false;
+          }
+
           return result || await prev;
         } catch (e) {
           if (this.options.propagateError) {
@@ -198,16 +251,16 @@ export class Store<T> {
 
           return await prev;
         } finally {
-          performance.mark(`dispatch-${placement}-${curr[0].name}`);
+          PLATFORM.performance.mark(`dispatch-${placement}-${curr[0].name}`);
         }
       }, state);
   }
 
   private setupDevTools() {
-    if ((<any>window).devToolsExtension) {
+    if (PLATFORM.global.devToolsExtension) {
       this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)]("DevTools are available");
       this.devToolsAvailable = true;
-      this.devTools = (<any>window).__REDUX_DEVTOOLS_EXTENSION__.connect();
+      this.devTools = PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
       this.devTools.init(this.initialState);
 
       this.devTools.subscribe((message: any) => {
@@ -220,7 +273,7 @@ export class Store<T> {
     }
   }
 
-  private updateDevToolsState(action: string, state: T) {
+  private updateDevToolsState(action: Action<string>, state: T) {
     if (this.devToolsAvailable) {
       this.devTools.send(action, state);
     }
@@ -231,10 +284,10 @@ export class Store<T> {
   }
 }
 
-export function dispatchify<T>(action: Reducer<T>) {
+export function dispatchify<T, P extends any[]>(action: Reducer<T, P> | string) {
   const store = Container.instance.get(Store);
 
-  return function (...params: any[]) {
-    store.dispatch(action, ...params);
+  return function (...params: P) {
+    return store.dispatch(action, ...params) as Promise<void>;
   }
 }

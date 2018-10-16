@@ -1,5 +1,3 @@
-import "rxjs/add/operator/skip";
-
 import {
   createStoreWithStateAndOptions,
   createUndoableTestStore,
@@ -150,7 +148,7 @@ describe("an undoable store", () => {
       future: Array.from(new Array(limit)).map((_, idx) => ({ foo: (limit + idx).toString() }))
     };
 
-    const fakeAction = (currentState: StateHistory<testState>) => {
+    const fakeAction = (_: StateHistory<testState>) => {
       return Promise.resolve(stateAfterInitial);
     };
 

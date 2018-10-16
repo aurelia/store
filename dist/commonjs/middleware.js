@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var aurelia_pal_1 = require("aurelia-pal");
 var MiddlewarePlacement;
 (function (MiddlewarePlacement) {
     MiddlewarePlacement["Before"] = "before";
@@ -15,19 +16,19 @@ function logMiddleware(state, _, settings) {
 }
 exports.logMiddleware = logMiddleware;
 function localStorageMiddleware(state, _, settings) {
-    if (window.localStorage) {
+    if (aurelia_pal_1.PLATFORM.global.localStorage) {
         var key = settings && settings.key && typeof settings.key === "string"
             ? settings.key
             : "aurelia-store-state";
-        window.localStorage.setItem(key, JSON.stringify(state));
+        aurelia_pal_1.PLATFORM.global.localStorage.setItem(key, JSON.stringify(state));
     }
 }
 exports.localStorageMiddleware = localStorageMiddleware;
 function rehydrateFromLocalStorage(state, key) {
-    if (!window.localStorage) {
+    if (!aurelia_pal_1.PLATFORM.global.localStorage) {
         return state;
     }
-    var storedState = window.localStorage.getItem(key || "aurelia-store-state");
+    var storedState = aurelia_pal_1.PLATFORM.global.localStorage.getItem(key || "aurelia-store-state");
     if (!storedState) {
         return state;
     }
