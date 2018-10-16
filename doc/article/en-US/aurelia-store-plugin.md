@@ -350,7 +350,7 @@ If you need more control and for instance want to override the default target pr
   <source-code lang="JavaScript">
 
     // app.js
-    import { pluck } from 'xjs/operators';
+    import { pluck } from 'rxjs/operators';
     ...
 
     @connectTo({
