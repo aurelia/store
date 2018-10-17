@@ -29,11 +29,21 @@ describe("redux devtools", () => {
     delete PAL.PLATFORM.global.devToolsExtension;
   });
 
-  it("should setup devtools on construction", () => {
+  it("should setup devtools on construction by default", () => {
     const spy = jest.spyOn(Store.prototype as any, "setupDevTools");
     new Store<testState>({ foo: "bar " });
 
     expect(spy).toHaveBeenCalled();
+    spy.mockReset();
+    spy.mockRestore();
+  });
+
+  it("should not setup devtools if disabled via opens", () => {
+    const spy = jest.spyOn(Store.prototype as any, "setupDevTools");
+    const theStore = new Store<testState>({ foo: "bar "}, { devToolsOptions: { disable: true } });
+
+    expect(spy).not.toHaveBeenCalled();
+    expect((theStore as any).devToolsAvailable).toBe(false);
     spy.mockReset();
     spy.mockRestore();
   });

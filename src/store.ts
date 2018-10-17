@@ -50,17 +50,8 @@ export class Store<T> {
     const isUndoable = this.options.history && this.options.history.undoable === true;
     this._state = new BehaviorSubject<T>(initialState);
     this.state = this._state.asObservable();
-                    
-    let enableDevTools = true;
-    
-    // Do we have options, as well as devToolsOptions and the disable option on the options object?
-    if (this.options.devToolsOptions && this.options.devToolsOptions.disable === false) {
-      if (this.options.devToolsOptions.disable === true) {
-        enableDevTools = false;
-      }
-    }
-
-    if (enableDevTools) {
+      
+    if (!this.options.devToolsOptions || this.options.devToolsOptions.disable !== true) {
       this.setupDevTools();
     }
 
