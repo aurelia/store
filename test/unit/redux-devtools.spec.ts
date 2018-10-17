@@ -38,7 +38,7 @@ describe("redux devtools", () => {
     spy.mockRestore();
   });
 
-  it("should not setup devtools if disabled via opens", () => {
+  it("should not setup devtools if disabled via options", () => {
     const spy = jest.spyOn(Store.prototype as any, "setupDevTools");
     const theStore = new Store<testState>({ foo: "bar "}, { devToolsOptions: { disable: true } });
 
