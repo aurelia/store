@@ -45,22 +45,22 @@ export class Store<T> {
 
   private dispatchQueue: DispatchQueueItem<T>[] = [];
 
-  private enableDevTools: boolean = true;
-
   constructor(private initialState: T, options?: Partial<StoreOptions>) {
     this.options = options || {};
     const isUndoable = this.options.history && this.options.history.undoable === true;
     this._state = new BehaviorSubject<T>(initialState);
     this.state = this._state.asObservable();
+                    
+    let enableDevTools = true;
     
     // Do we have options, as well as devToolsOptions and the disable option on the options object?
-    if (typeof this.options.devToolsOptions !== "undefined" && typeof this.options.devToolsOptions.disable !== "undefined") {
+    if (this.options.devToolsOptions && this.options.devToolsOptions.disable === false) {
       if (this.options.devToolsOptions.disable === true) {
-        this.enableDevTools = false;
+        enableDevTools = false;
       }
     }
 
-    if (this.enableDevTools) {
+    if (enableDevTools) {
       this.setupDevTools();
     }
 
