@@ -9,6 +9,11 @@ export interface ActionCreator<T> {
 
 export interface DevToolsOptions {
   /**
+   * If disable is true, devtools monitoring
+   * will be disabled in the browser (disallowing a user to see your state using Redux Dev Tools)
+   */
+  disable?: boolean;
+  /**
    * the instance name to be showed on the monitor page. Default value is `document.title`.
    * If not specified and there's no document title, it will consist of `tabId` and `instanceId`.
    */

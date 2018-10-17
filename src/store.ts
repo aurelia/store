@@ -50,8 +50,10 @@ export class Store<T> {
     const isUndoable = this.options.history && this.options.history.undoable === true;
     this._state = new BehaviorSubject<T>(initialState);
     this.state = this._state.asObservable();
-
-    this.setupDevTools();
+      
+    if (!this.options.devToolsOptions || this.options.devToolsOptions.disable !== true) {
+      this.setupDevTools();
+    }
 
     if (isUndoable) {
       this.registerHistoryMethods();
