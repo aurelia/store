@@ -12,6 +12,7 @@ class DevToolsMock {
   public subscriptions = [] as Function[];
   public init = jest.fn();
   public subscribe = jest.fn().mockImplementation((cb: (message: any) => void) => this.subscriptions.push(cb));
+  public send = jest.fn();
 
   constructor(public devToolsOptions: DevToolsOptions) {}
 }
@@ -95,26 +96,26 @@ describe("redux devtools", () => {
   });
 
   it("should update Redux DevTools", done => {
+    createDevToolsMock();
+
     const { store } = createTestStore();
+    const devtools = ((store as any).devTools as DevToolsMock);
 
-    const spy = jest.spyOn(store, "updateDevToolsState" as any);
-
-    const modifiedState = { foo: "bert" };
-    const fakeAction = (currentState: testState) => {
-      return Object.assign({}, currentState, modifiedState);
+    const fakeAction = (currentState: testState, foo: string) => {
+      return Object.assign({}, currentState, { foo });
     };
 
     store.registerAction("FakeAction", fakeAction);
-    store.dispatch(fakeAction);
+    store.dispatch(fakeAction, "bert");
 
     store.state.pipe(
       skip(1),
       delay(1)
     ).subscribe(() => {
-      expect(spy).toHaveBeenCalled();
+      expect(devtools.send).toHaveBeenCalled();
+      expect(devtools.send).toHaveBeenCalledWith({
+        params: ["bert"], type: "FakeAction"},  { foo: "bert" });
 
-      spy.mockReset();
-      spy.mockRestore();
       done();
     });
   });

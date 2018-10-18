@@ -144,17 +144,20 @@ export class Store<T> {
     }
     PLATFORM.performance.mark("dispatch-start");
 
-    const action = this.actions.get(reducer);
+    const action = {
+      type: this.actions.get(reducer)!.type,
+      params
+    };
 
     if (this.options.logDispatchedActions) {
-      this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)](`Dispatching: ${action!.type}`);
+      this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)](`Dispatching: ${action.type}`);
     }
 
     const beforeMiddleswaresResult = await this.executeMiddlewares(
       this._state.getValue(),
       MiddlewarePlacement.Before,
       {
-        name: action!.type,
+        name: action.type,
         params
       }
     );
@@ -173,7 +176,7 @@ export class Store<T> {
 
       return;
     }
-    PLATFORM.performance.mark("dispatch-after-reducer-" + action!.type);
+    PLATFORM.performance.mark("dispatch-after-reducer-" + action.type);
 
     if (!result && typeof result !== "object") {
       throw new Error("The reducer has to return a new state");
@@ -183,7 +186,7 @@ export class Store<T> {
       result,
       MiddlewarePlacement.After,
       {
-        name: action!.type,
+        name: action.type,
         params
       }
     );
@@ -213,14 +216,14 @@ export class Store<T> {
 
       const measures = PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
       this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
-        `Total duration ${measures[0].duration} of dispatched action ${action!.type}:`,
+        `Total duration ${measures[0].duration} of dispatched action ${action.type}:`,
         measures
       );
     } else if (this.options.measurePerformance === PerformanceMeasurement.All) {
       const marks = PLATFORM.performance.getEntriesByType("mark");
       const totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
       this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
-        `Total duration ${totalDuration} of dispatched action ${action!.type}:`,
+        `Total duration ${totalDuration} of dispatched action ${action.type}:`,
         marks
       );
     }
@@ -228,7 +231,7 @@ export class Store<T> {
     PLATFORM.performance.clearMarks();
     PLATFORM.performance.clearMeasures();
 
-    this.updateDevToolsState(action!, resultingState);
+    this.updateDevToolsState(action, resultingState);
   }
 
   private executeMiddlewares(state: T, placement: MiddlewarePlacement, action: CallingAction): T | false {
