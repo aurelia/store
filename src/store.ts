@@ -145,7 +145,7 @@ export class Store<T> {
     PLATFORM.performance.mark("dispatch-start");
 
     const action = {
-      type: this.actions.get(reducer)!.type,
+      ...this.actions.get(reducer)!,
       params
     };
 
