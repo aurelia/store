@@ -1,6 +1,6 @@
 export interface Action<T = any> {
   type: T;
-  params: any[];
+  params?: any[];
 }
 
 export interface ActionCreator<T> {
