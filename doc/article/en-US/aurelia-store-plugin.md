@@ -375,7 +375,7 @@ If you want to have multiple selectors, you can pass an object to the `selector`
     @connectTo<State>({
       selector: {
         currentState: (store) => store.state.pipe(pluck('frameworks')), // same as above
-        databases: (store) => store.state.pluck('databases')
+        databases: (store) => store.state.pipe(pluck('databases'))
       }
     })
     export class App {
@@ -391,7 +391,7 @@ If you want to have multiple selectors, you can pass an object to the `selector`
     @connectTo({
       selector: {
         currentState: (store) => store.state.pipe(pluck('frameworks')), // same as above
-        databases: (store) => store.state.pluck('databases')
+        databases: (store) => store.state.pipe(pluck('databases'))
       }
     })
     export class App {
