@@ -6,6 +6,6 @@
     "doc",
     "node_modules",
     "test",
-    "scaffold"
+    "src"
   ]
 }

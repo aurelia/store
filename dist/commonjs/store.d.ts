@@ -9,7 +9,7 @@ export declare enum PerformanceMeasurement {
     All = "all"
 }
 export interface StoreOptions {
-    history: Partial<HistoryOptions>;
+    history?: Partial<HistoryOptions>;
     logDispatchedActions?: boolean;
     measurePerformance?: PerformanceMeasurement;
     propagateError?: boolean;
