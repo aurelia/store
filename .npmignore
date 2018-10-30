@@ -1,0 +1,13 @@
+.rollupcache
+build
+node_modules
+src
+test
+.editorconfig
+.gitignore
+.npmignore
+CONTRIBUTING.md
+ISSUE_TEMPLATE.md
+tsconfig-build.json
+tsconfig.json
+tslint.json
