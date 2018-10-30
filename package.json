@@ -83,7 +83,7 @@
   "jspm": {
     "registry": "npm",
     "jspmPackage": true,
-    "main": "aurelia-store",
+    "main": "index",
     "format": "cjs",
     "directories": {
       "dist": "dist/commonjs"
@@ -127,7 +127,7 @@
       "dependencies": [
         {
           "name": "aurelia-store",
-          "main": "aurelia-store",
+          "main": "index",
           "path": "../node_modules/aurelia-store/dist/commonjs",
           "resources": []
         },

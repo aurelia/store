@@ -21,7 +21,8 @@ export function configure<T>(
 
   delete options.initialState;
 
-  aurelia.instance(Store, new Store(initState, options));
+  aurelia.container
+    .registerInstance(Store, new Store(initState, options));
 }
 
 export * from "./store";
