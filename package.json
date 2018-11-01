@@ -18,7 +18,7 @@
     "test-ci": "cross-env jest --coverage && cat ./test/coverage-jest/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "test-watch": "jest --watch",
     "prebuild": "cross-env rimraf dist",
-    "build": "node build/build.js",
+    "build": "cross-env TS_NODE_PROJECT=build/tsconfig.json ts-node build/build.ts",
     "bundle-dts": "dts-bundle-generator --project tsconfig-build.json -o dist/index.d.ts src/aurelia-store.ts --external-types []",
     "precommit": "npm run lint",
     "predoc": "cross-env rimraf doc/api.json && rimraf dist/doc-temp && tsc --p tsconfig-build.json --module amd --outFile dist/doc-temp/aurelia-store.js && node doc/shape-defs && copyfiles tsconfig.json dist/doc-temp",
@@ -99,6 +99,8 @@
   "devDependencies": {
     "@types/jest": "^21.1.10",
     "@types/node": "^8.10.26",
+    "@types/rimraf": "^2.0.2",
+    "@types/yargs": "^12.0.1",
     "aurelia-bootstrapper": "^2.3.0",
     "aurelia-loader-nodejs": "^1.0.1",
     "aurelia-pal-browser": "^1.8.0",
@@ -118,9 +120,11 @@
     "rollup": "^0.66.6",
     "rollup-plugin-typescript2": "^0.17.2",
     "ts-jest": "^22.4.6",
+    "ts-node": "^7.0.1",
     "tslint": "^5.11.0",
     "typedoc": "^0.11.1",
-    "typescript": "^3.0.1"
+    "typescript": "^3.0.1",
+    "yargs": "^12.0.2"
   },
   "aurelia": {
     "import": {
