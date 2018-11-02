@@ -42,6 +42,8 @@ To build the code, follow these steps.
   ```
 4. You will find the compiled code in the `dist` folder, available in various module formats.
 
+> In order to build for a single target, run `-- --format <<target>>`, picking the desired target such as ES2015, AMD and so on. 
+
 ## Running The Tests
 
 To run the unit tests, first ensure that you have followed the steps above in order to install all dependencies and successfully build the library. Once you have done that, proceed with these additional steps:
