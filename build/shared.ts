@@ -1,10 +1,10 @@
-import * as rollup from 'rollup';
-import typescript from 'rollup-plugin-typescript2';
-import rimraf from 'rimraf';
-import ChildProcess from 'child_process';
+import * as rollup from "rollup";
+import typescript from "rollup-plugin-typescript2";
+import rimraf from "rimraf";
+import ChildProcess from "child_process";
 
 
-export type IBuildTargetFormat = 'es5' | 'es2015' | 'es2017';
+export type IBuildTargetFormat = "es5" | "es2015" | "es2017";
 
 export async function build(
   target: IBuildTargetFormat,
@@ -21,7 +21,7 @@ export async function build(
               target: target
             }
           },
-          cacheRoot: '.rollupcache'
+          cacheRoot: ".rollupcache"
         }) as rollup.Plugin,
         ...(options.plugins || []),
       ]
@@ -33,9 +33,9 @@ export async function build(
 }
 
 export async function clean(): Promise<void> {
-  console.log('\n==============\nCleaning dist folder...\n==============');
+  console.log("\n==============\nCleaning dist folder...\n==============");
   return new Promise<void>(resolve => {
-    rimraf('dist', (error) => {
+    rimraf("dist", (error) => {
       if (error) {
         throw error;
       }
@@ -45,14 +45,14 @@ export async function clean(): Promise<void> {
 }
 
 export async function generateDts(): Promise<void> {
-  console.log('\n==============\nGenerating dts bundle...\n==============');
+  console.log("\n==============\nGenerating dts bundle...\n==============");
   return new Promise<void>(resolve => {
-    ChildProcess.exec('npm run bundle-dts', (err, stdout, stderr) => {
+    ChildProcess.exec("npm run bundle-dts", (err, stdout, stderr) => {
       if (err || stderr) {
-        console.log('Generating dts error:');
+        console.log("Generating dts error:");
         console.log(stderr);
       } else {
-        console.log('Generated dts bundle successfully');
+        console.log("Generated dts bundle successfully");
         console.log(stdout);
       }
       resolve();
