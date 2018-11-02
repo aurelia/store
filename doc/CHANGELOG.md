@@ -1,3 +1,24 @@
+<a name="1.3.0"></a>
+# [1.3.0](https://github.com/aurelia/store/compare/1.2.0...1.3.0) (2018-11-02)
+
+
+### Bug Fixes
+
+* **build:** adjust build scripts ([bafb8af](https://github.com/aurelia/store/commit/bafb8af))
+* **devtools:** action params are optional ([64fb9e4](https://github.com/aurelia/store/commit/64fb9e4))
+* **doc:** fix html5 syntax ([8c8ff5f](https://github.com/aurelia/store/commit/8c8ff5f))
+* **npm:** keep ability to build in dist ([b8fbd87](https://github.com/aurelia/store/commit/b8fbd87))
+* **options:** history is optional ([4171917](https://github.com/aurelia/store/commit/4171917))
+* **store:** revert instance registration, jspm pointer fix ([cc8eff2](https://github.com/aurelia/store/commit/cc8eff2))
+
+
+### Features
+
+* **devtools:** Add action params to the devtools Action view ([c8a3277](https://github.com/aurelia/store/commit/c8a3277)), closes [#75](https://github.com/aurelia/store/issues/75)
+* **store:** allow devtools to be disabled ([fac79a0](https://github.com/aurelia/store/commit/fac79a0))
+
+
+
 <a name="1.2.0"></a>
 # [1.2.0](https://github.com/aurelia/store/compare/1.1.0...1.2.0) (2018-10-08)
 
