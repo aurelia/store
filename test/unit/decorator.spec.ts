@@ -480,19 +480,20 @@ describe("using decorators", () => {
       expect(sut.stateChanged).toHaveBeenCalledWith(initialState, undefined);
     });
 
-    it("should be called before assigning the new state, so there is still access to the previous state", () => {
+    it("should be called after assigning the new state", () => {
       const { initialState } = arrange();
+      const oldState = { foo: "foo", bar: "bar" };
 
       @connectTo<DemoState>({
         onChanged: "stateChanged",
         selector: (store) => store.state,
       })
       class DemoStoreConsumer {
-        state: DemoState;
+        state: DemoState = oldState;
 
-        stateChanged(state: DemoState) {
-          expect(sut.state).toEqual(undefined);
-          expect(state).toEqual(initialState);
+        stateChanged(newState: DemoState, oldState: DemoState) {
+          expect(sut.state).toBe(newState);
+          expect(newState).not.toBe(oldState);
         }
       }
 
@@ -502,7 +503,6 @@ describe("using decorators", () => {
 
     it("should call the targetChanged handler on the VM, if existing, with the new and old state", () => {
       const { initialState } = arrange();
-      let targetValOnChange = null;
 
       @connectTo<DemoState>({
         selector: {
@@ -514,7 +514,6 @@ describe("using decorators", () => {
         targetProp = "foobar"
 
         targetPropChanged() {
-          targetValOnChange = sut.targetProp;
         }
       }
 
@@ -522,8 +521,7 @@ describe("using decorators", () => {
       spyOn(sut, "targetPropChanged").and.callThrough();
       (sut as any).bind();
 
-      expect(targetValOnChange).toEqual("foobar");
-      expect(sut.targetProp).toEqual(initialState);
+      expect(sut.targetProp).toBe(initialState);
       expect(sut.targetPropChanged.calls.count()).toEqual(1);
       expect(sut.targetPropChanged).toHaveBeenCalledWith(initialState, "foobar");
       expect(sut.targetPropChanged.calls.argsFor(0)[0]).toBe(initialState);
@@ -531,7 +529,6 @@ describe("using decorators", () => {
 
     it("should call the propertyChanged handler on the VM, if existing, with the new and old state", () => {
       const { initialState } = arrange();
-      let targetValOnChange = null;
 
       @connectTo<DemoState>({
         selector: {
@@ -543,7 +540,6 @@ describe("using decorators", () => {
         targetProp = "foobar"
 
         propertyChanged() {
-          targetValOnChange = sut.targetProp;
         }
       }
 
@@ -551,9 +547,10 @@ describe("using decorators", () => {
       spyOn(sut, "propertyChanged").and.callThrough();
       (sut as any).bind();
 
-      expect(targetValOnChange).toEqual("foobar");
-      expect(sut.targetProp).toEqual(initialState);
+      expect(sut.targetProp).toBe(initialState);
+      expect(sut.propertyChanged.calls.count()).toEqual(1);
       expect(sut.propertyChanged).toHaveBeenCalledWith("targetProp", initialState, "foobar");
+      expect(sut.propertyChanged.calls.argsFor(0)[1]).toBe(initialState);
     });
 
     it("should call all change handlers on the VM, if existing, in order and with the correct args", () => {
@@ -593,7 +590,6 @@ describe("using decorators", () => {
 
     it("should call the targetOnChanged handler and not each multiple selector, if existing, with the 3 args", () => {
       const { initialState } = arrange();
-      let targetValOnChange = null;
 
       @connectTo<DemoState>({
         target: "foo",
@@ -611,7 +607,6 @@ describe("using decorators", () => {
         }
 
         fooChanged() {
-          targetValOnChange = sut.foo.targetProp;
         }
       }
 
@@ -620,7 +615,6 @@ describe("using decorators", () => {
       spyOn(sut, "targetPropChanged");
       (sut as any).bind();
 
-      expect(targetValOnChange).toEqual("foobar");
       expect(sut.foo.targetProp).toEqual(initialState);
       expect(sut.targetPropChanged.calls.count()).toEqual(0);
       expect(sut.fooChanged.calls.count()).toEqual(1);
