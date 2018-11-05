@@ -8,9 +8,9 @@
     "store",
     "behaviorsubject"
   ],
-  "main": "dist/commonjs/index.js",
-  "module": "dist/es2015/index.js",
-  "typings": "dist/index.d.ts",
+  "main": "dist/commonjs/aurelia-store.js",
+  "module": "dist/es2015/aurelia-store.js",
+  "typings": "dist/aurelia-store.d.ts",
   "scripts": {
     "lint": "cross-env tslint --project tsconfig.json",
     "pretest": "cross-env npm run lint",
@@ -19,7 +19,7 @@
     "test-watch": "jest --watch",
     "prebuild": "cross-env rimraf dist",
     "build": "cross-env TS_NODE_PROJECT=build/tsconfig.json ts-node build/build.ts",
-    "bundle-dts": "dts-bundle-generator --project tsconfig-build.json -o dist/index.d.ts src/aurelia-store.ts --external-types []",
+    "bundle-dts": "dts-bundle-generator --project tsconfig-build.json -o dist/aurelia-store.d.ts src/aurelia-store.ts --external-types []",
     "precommit": "npm run lint",
     "predoc": "cross-env rimraf doc/api.json && rimraf dist/doc-temp && tsc --p tsconfig-build.json --module amd --outFile dist/doc-temp/aurelia-store.js && node doc/shape-defs && copyfiles tsconfig.json dist/doc-temp",
     "doc": "cross-env typedoc --json doc/api.json --excludeExternals --includeDeclarations --mode modules --target ES6 --name aurelia-store-docs dist/doc-temp/",
@@ -83,7 +83,7 @@
   "jspm": {
     "registry": "npm",
     "jspmPackage": true,
-    "main": "index",
+    "main": "aurelia-store",
     "format": "cjs",
     "directories": {
       "dist": "dist/commonjs"
@@ -131,7 +131,7 @@
       "dependencies": [
         {
           "name": "aurelia-store",
-          "main": "index",
+          "main": "aurelia-store",
           "path": "../node_modules/aurelia-store/dist/commonjs",
           "resources": []
         },
