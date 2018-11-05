@@ -15,21 +15,21 @@ const configs = {
   es2017: {
     input: ENTRY_PATH,
     outputs: [
-      { file: "dist/es2017/index.js", format: "es" }
+      { file: "dist/es2017/aurelia-store.js", format: "es" }
     ]
   },
   es2015: {
     input: ENTRY_PATH,
     outputs: [
-      { file: "dist/es2015/index.js", format: "es" }
+      { file: "dist/es2015/aurelia-store.js", format: "es" }
     ]
   },
   es5: {
     input: ENTRY_PATH,
     outputs: [
-      { file: "dist/commonjs/index.js", format: "cjs" },
-      { file: "dist/amd/index.js", format: "amd", amd: { id: LIB_NAME } },
-      { file: "dist/native-modules/index.js", format: "es" }
+      { file: "dist/commonjs/aurelia-store.js", format: "cjs" },
+      { file: "dist/amd/aurelia-store.js", format: "amd", amd: { id: LIB_NAME } },
+      { file: "dist/native-modules/aurelia-store.js", format: "es" }
     ]
   }
 }
