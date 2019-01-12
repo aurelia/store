@@ -58,7 +58,7 @@ Promise
       target === 'umd'
         ? 'es2015'
         : target,
-      { ...options, external: EXTERNAL_LIBS }, outputs as rollup.OutputOptionsFile[]
+      { ...options, external: EXTERNAL_LIBS }, outputs as rollup.OutputOptions[]
     );
   }))
   .then(() => generateDts())

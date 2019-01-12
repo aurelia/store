@@ -8,8 +8,8 @@ export type IBuildTargetFormat = "es5" | "es2015" | "es2017" | "umd";
 
 export async function build(
   target: IBuildTargetFormat,
-  options: rollup.RollupFileOptions,
-  outputs: rollup.OutputOptionsFile[]
+  options: rollup.InputOptions,
+  outputs: rollup.OutputOptions[]
 ): Promise<void> {
   return rollup
     .rollup({
