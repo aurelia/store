@@ -21,7 +21,20 @@ const configs = {
   es2015: {
     input: ENTRY_PATH,
     outputs: [
-      { file: "dist/es2015/aurelia-store.js", format: "es" }
+      { file: "dist/es2015/aurelia-store.js", format: "es" },
+      {
+        file: 'dist/umd/aurelia-store.js',
+        format: 'umd',
+        name: 'au.store',
+        globals: {
+          'aurelia-framework': 'au',
+          'aurelia-dependency-injection': 'au',
+          'aurelia-logging': 'au.LogManager',
+          'aurelia-pal': 'au',
+          'rxjs': 'rxjs',
+          'rxjs/operators': 'rxjs'
+        }
+      }
     ]
   },
   es5: {
@@ -31,33 +44,15 @@ const configs = {
       { file: "dist/amd/aurelia-store.js", format: "amd", amd: { id: LIB_NAME } },
       { file: "dist/native-modules/aurelia-store.js", format: "es" }
     ]
-  },
-  umd: {
-    input: ENTRY_PATH,
-    outputs: [{
-      file: 'dist/umd/aurelia-store.js',
-      format: 'umd',
-      name: 'au.store',
-      globals: {
-        'aurelia-framework': 'au',
-        'aurelia-dependency-injection': 'au',
-        'aurelia-logging': 'au.LogManager',
-        'aurelia-pal': 'au',
-        'rxjs': 'rxjs',
-        'rxjs/operators': 'rxjs'
-      }
-    }]
   }
 }
 
-const targetFormats: IBuildTargetFormat[] = args.format || ["es2015", "es2017", "es5", "umd"];
+const targetFormats: IBuildTargetFormat[] = args.format || ["es2015", "es2017", "es5"];
 Promise
   .all(targetFormats.map(target => {
     const { outputs, ...options } = (configs as any)[target];
     return build(
-      target === 'umd'
-        ? 'es2015'
-        : target,
+      target,
       { ...options, external: EXTERNAL_LIBS }, outputs as rollup.OutputOptions[]
     );
   }))
