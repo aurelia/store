@@ -4,7 +4,7 @@ import rimraf from "rimraf";
 import ChildProcess from "child_process";
 
 
-export type IBuildTargetFormat = "es5" | "es2015" | "es2017";
+export type IBuildTargetFormat = "es5" | "es2015" | "es2017" | "umd";
 
 export async function build(
   target: IBuildTargetFormat,
