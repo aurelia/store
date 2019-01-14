@@ -31,8 +31,8 @@ const configs = {
           'aurelia-dependency-injection': 'au',
           'aurelia-logging': 'au.LogManager',
           'aurelia-pal': 'au',
-          'rxjs': 'rxse',
-          'rxjs/operators': 'rxse'
+          'rxjs': 'rxjs',
+          'rxjs/operators': 'rxjs'
         }
       }
     ]
