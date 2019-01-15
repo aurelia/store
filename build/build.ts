@@ -21,7 +21,20 @@ const configs = {
   es2015: {
     input: ENTRY_PATH,
     outputs: [
-      { file: "dist/es2015/aurelia-store.js", format: "es" }
+      { file: "dist/es2015/aurelia-store.js", format: "es" },
+      {
+        file: 'dist/umd/aurelia-store.js',
+        format: 'umd',
+        name: 'au.store',
+        globals: {
+          'aurelia-framework': 'au',
+          'aurelia-dependency-injection': 'au',
+          'aurelia-logging': 'au.LogManager',
+          'aurelia-pal': 'au',
+          'rxjs': 'rxjs',
+          'rxjs/operators': 'rxjs'
+        }
+      }
     ]
   },
   es5: {
@@ -34,11 +47,14 @@ const configs = {
   }
 }
 
-const targetFormats: IBuildTargetFormat[] = args.format || ["es5", "es2015", "es2017"];
+const targetFormats: IBuildTargetFormat[] = args.format || ["es2015", "es2017", "es5"];
 Promise
   .all(targetFormats.map(target => {
-    const { outputs, ...options } = configs[target];
-    return build(target, { ...options, external: EXTERNAL_LIBS }, outputs as rollup.OutputOptionsFile[]);
+    const { outputs, ...options } = (configs as any)[target];
+    return build(
+      target,
+      { ...options, external: EXTERNAL_LIBS }, outputs as rollup.OutputOptions[]
+    );
   }))
   .then(() => generateDts())
   .catch(ex => {
