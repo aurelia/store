@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var aureliaPal = require('aurelia-pal');
-var aureliaLogging = require('aurelia-logging');
 var rxjs = require('rxjs');
 var aureliaDependencyInjection = require('aurelia-dependency-injection');
+var aureliaLogging = require('aurelia-logging');
+var aureliaPal = require('aurelia-pal');
 var operators = require('rxjs/operators');
 
 /*! *****************************************************************************

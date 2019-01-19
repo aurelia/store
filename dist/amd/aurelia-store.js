@@ -1,4 +1,4 @@
-define('aurelia-store', ['exports', 'aurelia-pal', 'aurelia-logging', 'rxjs', 'aurelia-dependency-injection', 'rxjs/operators'], function (exports, aureliaPal, aureliaLogging, rxjs, aureliaDependencyInjection, operators) { 'use strict';
+define('aurelia-store', ['exports', 'rxjs', 'aurelia-dependency-injection', 'aurelia-logging', 'aurelia-pal', 'rxjs/operators'], function (exports, rxjs, aureliaDependencyInjection, aureliaLogging, aureliaPal, operators) { 'use strict';
 
     /*! *****************************************************************************
     Copyright (c) Microsoft Corporation. All rights reserved.

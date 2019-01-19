@@ -23,16 +23,16 @@ const configs = {
     outputs: [
       { file: "dist/es2015/aurelia-store.js", format: "es" },
       {
-        file: 'dist/umd/aurelia-store.js',
-        format: 'umd',
-        name: 'au.store',
+        file: "dist/umd/aurelia-store.js",
+        format: "umd",
+        name: "au.store",
         globals: {
-          'aurelia-framework': 'au',
-          'aurelia-dependency-injection': 'au',
-          'aurelia-logging': 'au.LogManager',
-          'aurelia-pal': 'au',
-          'rxjs': 'rxjs',
-          'rxjs/operators': 'rxjs'
+          "aurelia-framework": "au",
+          "aurelia-dependency-injection": "au",
+          "aurelia-logging": "au.LogManager",
+          "aurelia-pal": "au",
+          "rxjs": "rxjs",
+          "rxjs/operators": "rxjs"
         }
       }
     ]

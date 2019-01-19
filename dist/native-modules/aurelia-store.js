@@ -1,8 +1,8 @@
-import { PLATFORM } from 'aurelia-pal';
-import { Logger, getLogger } from 'aurelia-logging';
-import { BehaviorSubject, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, Subscription, Observable } from 'rxjs';
 import { Container } from 'aurelia-dependency-injection';
-import { delay, skip, take } from 'rxjs/operators';
+import { Logger, getLogger } from 'aurelia-logging';
+import { PLATFORM } from 'aurelia-pal';
+import { skip, take, delay } from 'rxjs/operators';
 
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.

@@ -1,3 +1,14 @@
+<a name="1.3.2"></a>
+## [1.3.2](https://github.com/aurelia/store/compare/1.3.1...1.3.2) (2019-01-19)
+
+
+### Bug Fixes
+
+* **build:** adjust global namespace of rxjs ([b8da685](https://github.com/aurelia/store/commit/b8da685))
+* **build:** revert rxjs namespace ([44a7ba9](https://github.com/aurelia/store/commit/44a7ba9))
+
+
+
 <a name="1.3.0"></a>
 # [1.3.0](https://github.com/aurelia/store/compare/1.2.0...1.3.0) (2018-11-02)
 
