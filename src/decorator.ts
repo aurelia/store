@@ -1,4 +1,5 @@
 import { Container } from "aurelia-dependency-injection";
+import { View } from "aurelia-templating";
 import { Observable, Subscription } from "rxjs";
 
 import { Store } from "./store";
@@ -22,13 +23,21 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
     throw new Error("You need a polyfill for Object.entries for browsers like Internet Explorer. Example: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries#Polyfill")
   }
 
-  const store = Container.instance.get(Store) as Store<T>;
+  let $store: Store<T>;
+
+  // const store = Container.instance.get(Store) as Store<T>;
   const _settings: ConnectToSettings<T, any> = {
     selector: typeof settings === "function" ? settings : defaultSelector,
     ...settings
   };
 
   function getSource(selector: (((store: Store<T>) => Observable<R>))): Observable<any> {
+    // if for some reason getSource is invoked before setup (bind lifecycle, typically)
+    // then we have no choice but to get the store instance from global container instance
+    // otherwise, assume that $store variable in the closure would be already assigned the right
+    // value from created callback
+    // Could also be in situation where it doesn't come from custom element, or some exotic setups/scenarios
+    const store = $store || ($store = Container.instance.get(Store));
     const source = selector(store);
 
       if (source instanceof Observable) {
@@ -60,12 +69,25 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
   }
 
   return function (target: any) {
+    const originalCreated = target.prototype.created;
     const originalSetup = typeof settings === "object" && settings.setup
       ? target.prototype[settings.setup]
       : target.prototype.bind
     const originalTeardown = typeof settings === "object" && settings.teardown
       ? target.prototype[settings.teardown]
       : target.prototype.unbind;
+
+    // only override if prototype callback is a function
+    if (typeof originalCreated === "function") {
+      target.prototype.created = function created(_: View, view: View) {
+        // here we relies on the fact that the class Store
+        // has not been registered somewhere in one of child containers, instead of root container
+        // if there is any issue with this approach, needs to walk all the way up to resolve from root
+        // typically like invoking from global Container.instance
+        $store = view.container.get(Store);
+        return originalCreated.call(this, _, view);
+      }
+    }
 
     target.prototype[typeof settings === "object" && settings.setup ? settings.setup : "bind"] = function () {
       if (typeof settings == "object" &&
