@@ -78,7 +78,7 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
       : target.prototype.unbind;
 
     // only override if prototype callback is a function
-    if (typeof originalCreated === "function") {
+    if (typeof originalCreated === "function" || originalCreated === undefined) {
       target.prototype.created = function created(_: View, view: View) {
         // here we relies on the fact that the class Store
         // has not been registered somewhere in one of child containers, instead of root container
