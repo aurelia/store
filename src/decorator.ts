@@ -85,7 +85,9 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
         // if there is any issue with this approach, needs to walk all the way up to resolve from root
         // typically like invoking from global Container.instance
         $store = view.container.get(Store);
-        return originalCreated.call(this, _, view);
+        if (originalCreated !== undefined) {
+          return originalCreated.call(this, _, view);
+        }
       }
     }
 
