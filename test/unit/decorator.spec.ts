@@ -5,6 +5,7 @@ import { pluck, distinctUntilChanged } from "rxjs/operators";
 import { Store } from "../../src/store";
 import { connectTo } from "../../src/decorator";
 import { Spied } from "./helpers";
+import { ConnectToVm } from "../fixture/connect-to-vm";
 
 interface DemoState {
   foo: string;
@@ -21,6 +22,13 @@ function arrange() {
 }
 
 describe("using decorators", () => {
+  it("should lazy load the store inside the decorator", () => {
+    arrange();
+    
+    const component = new ConnectToVm();
+    expect(typeof (component as any).bind).toBe("function");
+  });
+
   it("should throw an descriptive error if Object.entries is not available", () => {
     const originalEntries = (Object as any).entries;
 

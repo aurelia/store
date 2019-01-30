@@ -1,6 +1,10 @@
-import { FrameworkConfiguration } from "aurelia-framework";
 import { Store, StoreOptions } from "./store";
 import { isStateHistory } from "./history";
+import { Container } from "aurelia-dependency-injection";
+
+export interface FrameworkConfiguration {
+  container: Container;
+}
 
 export interface StorePluginOptions<T> extends StoreOptions {
   initialState: T;
