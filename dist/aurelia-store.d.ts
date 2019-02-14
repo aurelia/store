@@ -1,4 +1,4 @@
-import { FrameworkConfiguration } from 'aurelia-framework';
+import { Container } from 'aurelia-dependency-injection';
 import { Logger } from 'aurelia-logging';
 import { Observable } from 'rxjs';
 
@@ -267,6 +267,9 @@ export interface MultipleSelector<T, R = T | any> {
 	[key: string]: ((store: Store<T>) => Observable<R>);
 }
 export declare function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observable<R>) | ConnectToSettings<T, R>): (target: any) => void;
+export interface FrameworkConfiguration {
+	container: Container;
+}
 export interface StorePluginOptions<T> extends StoreOptions {
 	initialState: T;
 }

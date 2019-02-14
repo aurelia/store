@@ -382,9 +382,16 @@
         if (!Object.entries) {
             throw new Error("You need a polyfill for Object.entries for browsers like Internet Explorer. Example: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries#Polyfill");
         }
-        const store = aureliaDependencyInjection.Container.instance.get(Store);
+        let $store;
+        // const store = Container.instance.get(Store) as Store<T>;
         const _settings = Object.assign({ selector: typeof settings === "function" ? settings : defaultSelector }, settings);
         function getSource(selector) {
+            // if for some reason getSource is invoked before setup (bind lifecycle, typically)
+            // then we have no choice but to get the store instance from global container instance
+            // otherwise, assume that $store variable in the closure would be already assigned the right
+            // value from created callback
+            // Could also be in situation where it doesn't come from custom element, or some exotic setups/scenarios
+            const store = $store || ($store = aureliaDependencyInjection.Container.instance.get(Store));
             const source = selector(store);
             if (source instanceof rxjs.Observable) {
                 return source;
@@ -409,12 +416,26 @@
             }));
         }
         return function (target) {
+            const originalCreated = target.prototype.created;
             const originalSetup = typeof settings === "object" && settings.setup
                 ? target.prototype[settings.setup]
                 : target.prototype.bind;
             const originalTeardown = typeof settings === "object" && settings.teardown
                 ? target.prototype[settings.teardown]
                 : target.prototype.unbind;
+            // only override if prototype callback is a function
+            if (typeof originalCreated === "function" || originalCreated === undefined) {
+                target.prototype.created = function created(_, view) {
+                    // here we relies on the fact that the class Store
+                    // has not been registered somewhere in one of child containers, instead of root container
+                    // if there is any issue with this approach, needs to walk all the way up to resolve from root
+                    // typically like invoking from global Container.instance
+                    $store = view.container.get(Store);
+                    if (originalCreated !== undefined) {
+                        return originalCreated.call(this, _, view);
+                    }
+                };
+            }
             target.prototype[typeof settings === "object" && settings.setup ? settings.setup : "bind"] = function () {
                 if (typeof settings == "object" &&
                     typeof settings.onChanged === "string" &&
