@@ -11,7 +11,7 @@
   "main": "dist/commonjs/aurelia-store.js",
   "module": "dist/es2015/aurelia-store.js",
   "browser": "dist/umd/aurelia-store.js",
-  "unpkg": "dist/umd/aurelia-store.js",
+  "unpkg": "dist/umd-es2015/aurelia-store.js",
   "typings": "dist/aurelia-store.d.ts",
   "scripts": {
     "lint": "cross-env tslint --project tsconfig.json",
