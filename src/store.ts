@@ -50,7 +50,7 @@ export class Store<T> {
     const isUndoable = this.options.history && this.options.history.undoable === true;
     this._state = new BehaviorSubject<T>(initialState);
     this.state = this._state.asObservable();
-      
+
     if (!this.options.devToolsOptions || this.options.devToolsOptions.disable !== true) {
       this.setupDevTools();
     }
@@ -60,17 +60,19 @@ export class Store<T> {
     }
   }
 
-  public registerMiddleware(reducer: Middleware<T>, placement: MiddlewarePlacement, settings?: any) {
+  public registerMiddleware<S extends undefined>(reducer: Middleware<T, undefined>, placement: MiddlewarePlacement): void;
+  public registerMiddleware<S extends NonNullable<any>>(reducer: Middleware<T, S>, placement: MiddlewarePlacement, settings: S): void;
+  public registerMiddleware<S>(reducer: Middleware<T, S>, placement: MiddlewarePlacement, settings?: S) {
     this.middlewares.set(reducer, { placement, settings });
   }
 
-  public unregisterMiddleware(reducer: Middleware<T>) {
+  public unregisterMiddleware(reducer: Middleware<T, any>) {
     if (this.middlewares.has(reducer)) {
       this.middlewares.delete(reducer);
     }
   }
 
-  public isMiddlewareRegistered(middleware: Middleware<T>) {
+  public isMiddlewareRegistered(middleware: Middleware<T, any>) {
     return this.middlewares.has(middleware);
   }
 
