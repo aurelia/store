@@ -1,3 +1,13 @@
+<a name="1.3.4"></a>
+## [1.3.4](https://github.com/aurelia/store/compare/1.3.3...1.3.4) (2019-04-15)
+
+
+### Bug Fixes
+
+* **dist:** add umd-es2015, adjust unpkg field, umd build to es5 ([741026c](https://github.com/aurelia/store/commit/741026c))
+
+
+
 <a name="1.3.3"></a>
 ## [1.3.3](https://github.com/aurelia/store/compare/1.3.2...1.3.3) (2019-02-14)
 

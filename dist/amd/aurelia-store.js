@@ -138,12 +138,8 @@ define('aurelia-store', ['exports', 'rxjs', 'aurelia-dependency-injection', 'aur
         MiddlewarePlacement["After"] = "after";
     })(exports.MiddlewarePlacement || (exports.MiddlewarePlacement = {}));
     function logMiddleware(state, _, settings) {
-        if (settings && settings.logType && console.hasOwnProperty(settings.logType)) {
-            console[settings.logType]("New state: ", state);
-        }
-        else {
-            console.log("New state: ", state);
-        }
+        var logType = settings && settings.logType && console.hasOwnProperty(settings.logType) ? settings.logType : "log";
+        console[logType]("New state: ", state);
     }
     function localStorageMiddleware(state, _, settings) {
         if (aureliaPal.PLATFORM.global.localStorage) {

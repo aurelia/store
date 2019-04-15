@@ -90,12 +90,8 @@ var MiddlewarePlacement;
     MiddlewarePlacement["After"] = "after";
 })(MiddlewarePlacement || (MiddlewarePlacement = {}));
 function logMiddleware(state, _, settings) {
-    if (settings && settings.logType && console.hasOwnProperty(settings.logType)) {
-        console[settings.logType]("New state: ", state);
-    }
-    else {
-        console.log("New state: ", state);
-    }
+    const logType = settings && settings.logType && console.hasOwnProperty(settings.logType) ? settings.logType : "log";
+    console[logType]("New state: ", state);
 }
 function localStorageMiddleware(state, _, settings) {
     if (PLATFORM.global.localStorage) {

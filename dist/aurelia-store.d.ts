@@ -19,12 +19,14 @@ export interface CallingAction {
 	name: string;
 	params?: any[];
 }
-export declare type Middleware<T> = (state: T, originalState?: T, settings?: any, action?: CallingAction) => T | Promise<T | undefined | false> | void | false;
+export declare type Middleware<T, S = any> = (state: T, originalState: T | undefined, settings: S, action?: CallingAction) => T | Promise<T | undefined | false> | void | false;
 export declare enum MiddlewarePlacement {
 	Before = "before",
 	After = "after"
 }
-export declare function logMiddleware<T>(state: T, _: T, settings?: any): void;
+export declare function logMiddleware(state: unknown, _: unknown, settings?: {
+	logType: "debug" | "error" | "info" | "log" | "trace" | "warn";
+}): void;
 export declare function localStorageMiddleware<T>(state: T, _: T, settings?: any): void;
 export declare function rehydrateFromLocalStorage<T>(state: T, key?: string): any;
 export declare enum LogLevel {
@@ -238,9 +240,10 @@ export declare class Store<T> {
 	private options;
 	private dispatchQueue;
 	constructor(initialState: T, options?: Partial<StoreOptions>);
-	registerMiddleware(reducer: Middleware<T>, placement: MiddlewarePlacement, settings?: any): void;
-	unregisterMiddleware(reducer: Middleware<T>): void;
-	isMiddlewareRegistered(middleware: Middleware<T>): boolean;
+	registerMiddleware<S extends undefined>(reducer: Middleware<T, undefined>, placement: MiddlewarePlacement): void;
+	registerMiddleware<S extends NonNullable<any>>(reducer: Middleware<T, S>, placement: MiddlewarePlacement, settings: S): void;
+	unregisterMiddleware(reducer: Middleware<T, any>): void;
+	isMiddlewareRegistered(middleware: Middleware<T, any>): boolean;
 	registerAction(name: string, reducer: Reducer<T>): void;
 	unregisterAction(reducer: Reducer<T>): void;
 	isActionRegistered(reducer: Reducer<T> | string): boolean;
