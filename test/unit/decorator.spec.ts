@@ -222,6 +222,34 @@ describe("using decorators", () => {
     expect(sut.test).toEqual("foobar");
   });
 
+  it("should patch original created method to obtain the store from DI", () => {
+    arrange();
+
+    const mockedView = {
+      container: {
+        get: jest.fn()
+      }
+    };
+
+    @connectTo()
+    class DemoStoreConsumer {
+      state: DemoState;
+      test = "";
+
+      public created() {
+        this.test = "foobar";
+      }
+    }
+
+    const sut = new DemoStoreConsumer();
+
+    (sut as any).created(undefined, mockedView);
+    (sut as any).bind();
+
+    expect(mockedView.container.get).toHaveBeenCalledWith(Store);
+    expect(sut.test).toEqual("foobar");
+  });
+
   describe("the unbind lifecycle-method", () => {
     it("should apply original unbind method after patch", () => {
       const { initialState } = arrange();

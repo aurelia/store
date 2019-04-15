@@ -49,7 +49,7 @@ describe("middlewares", () => {
   it("should allow registering middlewares with additional settings", async () => {
     const store = createStoreWithState(initialState);
     const fakeSettings = { foo: "bar" };
-    const settingsMiddleware: Middleware<TestState> = (_, __, settings) => {
+    const settingsMiddleware = (_: TestState, __: TestState | undefined, settings: typeof fakeSettings) => {
       try {
         expect(settings.foo).toBeDefined();
         expect(settings.foo).toEqual(fakeSettings.foo);
