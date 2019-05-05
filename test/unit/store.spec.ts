@@ -87,7 +87,7 @@ describe("store", () => {
     const { store } = createTestStore();
     const fakeAction = (currentState: testState) => currentState;
 
-    expect( () => store.unregisterAction(fakeAction)).not.toThrow();
+    expect(() => store.unregisterAction(fakeAction)).not.toThrow();
   });
 
   it("should allow checking for already registered functions via Reducer", () => {
@@ -330,6 +330,296 @@ describe("store", () => {
       expect(state.foo).toBe(initialState.foo);
 
       done();
+    });
+  });
+
+  describe("piped dispatch", () => {
+    it("should fail when dispatching unknown actions", async () => {
+      const { store } = createTestStore();
+      const unregisteredAction = (currentState: testState, param1: string) => {
+        return Object.assign({}, currentState, { foo: param1 });
+      };
+
+      expect(() => store.pipe(unregisteredAction, "foo")).toThrowError();
+    });
+
+    it("should fail when at least one action is unknown", async () => {
+      const { store } = createTestStore();
+      const fakeAction = (currentState: testState) => Object.assign({}, currentState);
+      store.registerAction("FakeAction", fakeAction);
+      const unregisteredAction = (currentState: testState, param1: string) => Object.assign({}, currentState, { foo: param1 });
+
+      const pipedDispatch = store.pipe(fakeAction);
+
+      expect(() => pipedDispatch.pipe(unregisteredAction, "foo")).toThrowError();
+    });
+
+    it("should fail when dispatching non actions", async () => {
+      const { store } = createTestStore();
+
+      expect(() => store.pipe(undefined as any)).toThrowError();
+    });
+
+    it("should fail when at least one action is no action", async () => {
+      const { store } = createTestStore();
+      const fakeAction = (currentState: testState) => Object.assign({}, currentState);
+      store.registerAction("FakeAction", fakeAction);
+
+      const pipedDispatch = store.pipe(fakeAction);
+
+      expect(() => pipedDispatch.pipe(undefined as any)).toThrowError();
+    });
+
+    it("should force reducer to return a new state", async () => {
+      const { store } = createTestStore();
+      const fakeAction = (_: testState) => { };
+
+      store.registerAction("FakeAction", fakeAction as any);
+      expect(store.pipe(fakeAction as any).dispatch()).rejects.toBeDefined();
+    });
+
+    it("should force all reducers to return a new state", async () => {
+      const { store } = createTestStore();
+      const fakeActionOk = (currentState: testState) => Object.assign({}, currentState);
+      const fakeActionNok = (_: testState) => { };
+      store.registerAction("FakeActionOk", fakeActionOk);
+      store.registerAction("FakeActionNok", fakeActionNok as any);
+
+      expect(store.pipe(fakeActionNok as any).pipe(fakeActionOk).dispatch()).rejects.toThrowError();
+    });
+
+    it("should also accept false and stop queue", async () => {
+      const { store } = createTestStore();
+      const nextSpy = spyOn((store as any)._state, "next").and.callThrough();
+      const fakeAction = (_: testState): false => false;
+
+      store.registerAction("FakeAction", fakeAction);
+      store.pipe(fakeAction).dispatch();
+
+      expect(nextSpy).toHaveBeenCalledTimes(0);
+    });
+
+    it("should also accept async false and stop queue", async () => {
+      const { store } = createTestStore();
+      const nextSpy = spyOn((store as any)._state, "next").and.callThrough();
+      const fakeAction = (_: testState): Promise<false> => Promise.resolve<false>(false);
+
+      store.registerAction("FakeAction", fakeAction);
+      store.pipe(fakeAction).dispatch();
+
+      expect(nextSpy).toHaveBeenCalledTimes(0);
+    });
+
+    it("should accept reducers taking multiple parameters", done => {
+      const { store } = createTestStore();
+      const fakeAction = (currentState: testState, param1: string, param2: string) => {
+        return Object.assign({}, currentState, { foo: param1 + param2 })
+      };
+
+      store.registerAction("FakeAction", fakeAction as any);
+      store.pipe(fakeAction, "A", "B").dispatch();
+
+      store.state.pipe(
+        skip(1)
+      ).subscribe((state) => {
+        expect(state.foo).toEqual("AB");
+        done();
+      });
+    });
+
+    it("should queue the next state after dispatching an action", done => {
+      const { store } = createTestStore();
+      const modifiedState = { foo: "bert" };
+      const fakeAction = (currentState: testState) => {
+        return Object.assign({}, currentState, modifiedState);
+      };
+
+      store.registerAction("FakeAction", fakeAction);
+      store.pipe(fakeAction).dispatch();
+
+      store.state.pipe(
+        skip(1)
+      ).subscribe((state) => {
+        expect(state).toEqual(modifiedState);
+        done();
+      });
+    });
+
+    it("should accept the previously registered action name as pipe argument", done => {
+      const { store } = createTestStore();
+      const modifiedState = { foo: "bert" };
+      const fakeAction = (_: testState) => Promise.resolve(modifiedState);
+      const fakeActionRegisteredName = "FakeAction";
+
+      store.registerAction(fakeActionRegisteredName, fakeAction);
+      store.pipe(fakeActionRegisteredName).dispatch();
+
+      // since the async action is coming at a later time we need to skip the initial state
+      store.state.pipe(
+        skip(1)
+      ).subscribe((state) => {
+        expect(state).toEqual(modifiedState);
+        done();
+      });
+    });
+
+    it("should not accept an unregistered action name as pipe argument", () => {
+      const { store } = createTestStore();
+
+      expect(() => store.pipe("UnregisteredAction")).toThrowError();
+    });
+
+    it("should support promised actions", done => {
+      const { store } = createTestStore();
+      const modifiedState = { foo: "bert" };
+      const fakeAction = (_: testState) => Promise.resolve(modifiedState);
+
+      store.registerAction("FakeAction", fakeAction);
+      store.pipe(fakeAction).dispatch();
+
+      // since the async action is coming at a later time we need to skip the initial state
+      store.state.pipe(
+        skip(1)
+      ).subscribe((state) => {
+        expect(state).toEqual(modifiedState);
+        done();
+      });
+    });
+
+    it("should dispatch actions one after another", (done) => {
+      const { store } = createTestStore();
+
+      const actionA = (currentState: testState) => Promise.resolve({ foo: currentState.foo + "A" });
+      const actionB = (currentState: testState) => Promise.resolve({ foo: currentState.foo + "B" });
+
+      store.registerAction("Action A", actionA);
+      store.registerAction("Action B", actionB);
+      store.pipe(actionA).dispatch();
+      store.pipe(actionB).dispatch();
+
+      store.state.pipe(
+        skip(2)
+      ).subscribe((state) => {
+        expect(state.foo).toEqual("barAB");
+        done();
+      });
+    });
+
+    it("should maintain queue of execution in concurrency constraints", () => {
+      const { store } = createTestStore();
+      spyOn((store as any).dispatchQueue, "push");
+      const handleQueueSpy = spyOn(store, "handleQueue");
+
+      const actionA = (_: testState) => Promise.resolve({ foo: "A" });
+
+      store.registerAction("Action A", actionA);
+      store.pipe(actionA).dispatch();
+
+      expect(handleQueueSpy).not.toHaveBeenCalled();
+    });
+
+    it("should log info about dispatched action if turned on via options", () => {
+      const initialState: testState = {
+        foo: "bar"
+      };
+
+      const store = createStoreWithStateAndOptions<testState>(initialState, { logDispatchedActions: true });
+      const loggerSpy = spyOn((store as any).logger, "info");
+
+      const actionA = (_: testState) => Promise.resolve({ foo: "A" });
+
+      store.registerAction("Action A", actionA);
+      store.pipe(actionA).dispatch();
+
+      expect(loggerSpy).toHaveBeenCalled();
+    });
+
+    it("should log info about dispatched action if turned on via options via custom loglevel", () => {
+      const initialState: testState = {
+        foo: "bar"
+      };
+
+      const store = createStoreWithStateAndOptions<testState>(initialState, {
+        logDispatchedActions: true,
+        logDefinitions: {
+          dispatchedActions: LogLevel.debug
+        }
+      });
+      const loggerSpy = spyOn((store as any).logger, LogLevel.debug);
+
+      const actionA = (_: testState) => Promise.resolve({ foo: "A" });
+
+      store.registerAction("Action A", actionA);
+      store.pipe(actionA).dispatch();
+
+      expect(loggerSpy).toHaveBeenCalled();
+    });
+
+    it("should log info about dispatched action and return to default log level if wrong one provided", () => {
+      const initialState: testState = {
+        foo: "bar"
+      };
+
+      const store = createStoreWithStateAndOptions<testState>(initialState, {
+        logDispatchedActions: true,
+        logDefinitions: {
+          dispatchedActions: "foo" as any
+        }
+      });
+      const loggerSpy = spyOn((store as any).logger, "info");
+
+      const actionA = (_: testState) => Promise.resolve({ foo: "A" });
+
+      store.registerAction("Action A", actionA);
+      store.pipe(actionA).dispatch();
+
+      expect(loggerSpy).toHaveBeenCalled();
+    });
+
+    it("should log start-end dispatch duration if turned on via options", async () => {
+      const initialState: testState = {
+        foo: "bar"
+      };
+
+      const store = createStoreWithStateAndOptions<testState>(
+        initialState,
+        { measurePerformance: PerformanceMeasurement.StartEnd }
+      );
+      const loggerSpy = spyOn((store as any).logger, "info");
+
+      const actionA = (_: testState) => {
+        return new Promise<testState>((resolve) => {
+          setTimeout(() => resolve({ foo: "A" }), 1);
+        });
+      };
+
+      store.registerAction("Action A", actionA);
+      await store.pipe(actionA).dispatch();
+
+      expect(loggerSpy).toHaveBeenCalledWith(expect.any(String), expect.any(Array));
+    });
+
+    it("should log all dispatch durations if turned on via options", async () => {
+      const initialState: testState = {
+        foo: "bar"
+      };
+
+      const store = createStoreWithStateAndOptions<testState>(
+        initialState,
+        { measurePerformance: PerformanceMeasurement.All }
+      );
+      const loggerSpy = spyOn((store as any).logger, "info");
+
+      const actionA = (_: testState) => {
+        return new Promise<testState>((resolve) => {
+          setTimeout(() => resolve({ foo: "A" }), 1);
+        });
+      };
+
+      store.registerAction("Action A", actionA);
+      await store.pipe(actionA).dispatch();
+
+      expect(loggerSpy).toHaveBeenCalledWith(expect.any(String), expect.any(Array));
     });
   });
 });

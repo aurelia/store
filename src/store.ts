@@ -25,6 +25,11 @@ export interface StoreOptions {
   devToolsOptions?: DevToolsOptions;
 }
 
+export interface PipedDispatch<T> {
+  pipe: <P extends any[]>(reducer: Reducer<T, P> | string, ...params: P) => PipedDispatch<T>;
+  dispatch: () => Promise<void>;
+}
+
 interface DispatchAction<T> {
   reducer: Reducer<T>;
   params: any[];
@@ -118,6 +123,24 @@ export class Store<T> {
       reducer: action,
       params
     }]);
+  }
+
+  public pipe<P extends any[]>(reducer: Reducer<T, P> | string, ...params: P): PipedDispatch<T> {
+    const pipeline: DispatchAction<T>[] = [];
+
+    const dispatchPipe: PipedDispatch<T> = {
+      dispatch: () => this.queueDispatch(pipeline),
+      pipe: <NextP extends any[]>(nextReducer: Reducer<T, NextP> | string, ...nextParams: NextP) => {
+        const action = this.lookupAction(nextReducer as Reducer<T> | string);
+        if (!action) {
+          throw new Error(`Tried to dispatch an unregistered action ${reducer && (typeof reducer === "string" ? reducer : reducer.name)}`);
+        }
+        pipeline.push({ reducer: action, params: nextParams });
+        return dispatchPipe;
+      }
+    };
+
+    return dispatchPipe.pipe(reducer, ...params);
   }
 
   private lookupAction(reducer: Reducer<T> | string): Reducer<T> | undefined {

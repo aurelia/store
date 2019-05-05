@@ -144,6 +144,39 @@ describe("middlewares", () => {
     );
   });
 
+  it("should have a reference all piped actions", async () => {
+    const store = createStoreWithStateAndOptions<TestState>(initialState, { propagateError: true });
+    const expectedActionName1 = "FirstActionObservedByMiddleware";
+    const expectedActionName2 = "SecondActionObservedByMiddleware";
+
+    const firstActionObservedByMiddleware = (state: TestState, _foo: string) => state;
+    const secondActionObservedByMiddleware = (state: TestState, _bar: string) => state;
+
+    const actionAwareMiddleware: Middleware<TestState> = (_, __, ___, action) => {
+      expect(action).toBeDefined();
+      expect(action!.name).toBe(`${expectedActionName1}->${expectedActionName2}`);
+      expect(action!.params).toBeDefined();
+      expect(action!.params).toEqual(["A", "B"]);
+      expect(action!.pipedActions).toEqual([
+        { name: expectedActionName1, params: ["A"] },
+        { name: expectedActionName2, params: ["B"] }
+      ]);
+    }
+
+    store.registerAction(expectedActionName1, firstActionObservedByMiddleware);
+    store.registerAction(expectedActionName2, secondActionObservedByMiddleware);
+    store.registerMiddleware(actionAwareMiddleware, MiddlewarePlacement.After);
+
+    await executeSteps(
+      store,
+      false,
+      () => store
+        .pipe(firstActionObservedByMiddleware, "A")
+        .pipe(secondActionObservedByMiddleware, "B")
+        .dispatch()
+    );
+  });
+
   describe("which are applied before action dispatches", () => {
     it("should synchronously change the provided present state", done => {
       const store = createStoreWithState(initialState);
@@ -265,7 +298,7 @@ describe("middlewares", () => {
     it("should get additionally the original state, before prev modifications passed in", done => {
       const store = createStoreWithState(initialState);
 
-      const decreaseAfter = (currentState: TestState, originalState: TestState | undefined) => {
+      const decreaseAfter = (currentState: TestState, originalState: TestState | undefined) => {
         const newState = Object.assign({}, currentState);
         newState.counter = originalState!.counter;
 
