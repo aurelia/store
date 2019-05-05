@@ -3,6 +3,10 @@ import { PLATFORM } from "aurelia-pal";
 export interface CallingAction {
   name: string;
   params?: any[];
+  pipedActions?: {
+    name: string;
+    params?: any[];
+  }[];
 }
 
 export type Middleware<T, S = any> = (state: T, originalState: T | undefined, settings: S, action?: CallingAction) => T | Promise<T | undefined | false> | void | false;

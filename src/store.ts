@@ -25,9 +25,13 @@ export interface StoreOptions {
   devToolsOptions?: DevToolsOptions;
 }
 
-interface DispatchQueueItem<T> {
+interface DispatchAction<T> {
   reducer: Reducer<T>;
   params: any[];
+}
+
+interface DispatchQueueItem<T> {
+  actions: DispatchAction<T>[];
   resolve: any;
   reject: any;
 }
@@ -102,22 +106,36 @@ export class Store<T> {
     this._state.next(state);
   }
 
-  public dispatch<P extends any[]>(reducer: Reducer<T, P> | string, ...params: P) {
-    let action: Reducer<T, P>;
-
-    if (typeof reducer === "string") {
-      const result = Array.from(this.actions)
-        .find((val) => val[1].type === reducer);
-
-      if (result) {
-        action = result[0];
-      }
-    } else {
-      action = reducer;
+  public dispatch<P extends any[]>(reducer: Reducer<T, P> | string, ...params: P): Promise<void> {
+    const action = this.lookupAction(reducer as Reducer<T> | string);
+    if (!action) {
+      return Promise.reject(new Error(
+        `Tried to dispatch an unregistered action ${reducer && (typeof reducer === "string" ? reducer : reducer.name)}`
+      ));
     }
 
+    return this.queueDispatch([{
+      reducer: action,
+      params
+    }]);
+  }
+
+  private lookupAction(reducer: Reducer<T> | string): Reducer<T> | undefined {
+    if (typeof reducer === "string") {
+      const result = Array.from(this.actions).find(([_, action]) => action.type === reducer);
+      if (result) {
+        return result[0];
+      }
+    } else if (this.actions.has(reducer)) {
+      return reducer;
+    }
+
+    return undefined;
+  }
+
+  private queueDispatch(actions: DispatchAction<T>[]) {
     return new Promise<void>((resolve, reject) => {
-      this.dispatchQueue.push({ reducer: action, params, resolve, reject } as any);
+      this.dispatchQueue.push({ actions, resolve, reject });
       if (this.dispatchQueue.length === 1) {
         this.handleQueue();
       }
@@ -129,7 +147,7 @@ export class Store<T> {
       const queueItem = this.dispatchQueue[0];
 
       try {
-        await this.internalDispatch(queueItem.reducer, ...queueItem.params);
+        await this.internalDispatch(queueItem.actions);
         queueItem.resolve();
       } catch (e) {
         queueItem.reject(e);
@@ -140,28 +158,37 @@ export class Store<T> {
     }
   }
 
-  private async internalDispatch(reducer: Reducer<T>, ...params: any[]) {
-    if (!this.actions.has(reducer)) {
-      throw new Error(`Tried to dispatch an unregistered action${reducer ? " " + reducer.name : ""}`);
+  private async internalDispatch(actions: DispatchAction<T>[]) {
+    const unregisteredAction = actions.find((a) => !this.actions.has(a.reducer));
+    if (unregisteredAction) {
+      throw new Error(`Tried to dispatch an unregistered action ${unregisteredAction.reducer && unregisteredAction.reducer.name}`);
     }
+
     PLATFORM.performance.mark("dispatch-start");
 
-    const action = {
-      ...this.actions.get(reducer)!,
-      params
+    const pipedActions = actions.map((a) => ({
+      type: this.actions.get(a.reducer)!.type,
+      params: a.params,
+      reducer: a.reducer
+    }));
+
+    const callingAction: CallingAction = {
+      name: pipedActions.map((a) => a.type).join("->"),
+      params: pipedActions.reduce<any[]>((p, a) => p.concat(a.params), []),
+      pipedActions: pipedActions.map((a) => ({
+        name: a.type,
+        params: a.params
+      }))
     };
 
     if (this.options.logDispatchedActions) {
-      this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)](`Dispatching: ${action.type}`);
+      this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)](`Dispatching: ${callingAction.name}`);
     }
 
     const beforeMiddleswaresResult = await this.executeMiddlewares(
       this._state.getValue(),
       MiddlewarePlacement.Before,
-      {
-        name: action.type,
-        params
-      }
+      callingAction
     );
 
     if (beforeMiddleswaresResult === false) {
@@ -171,26 +198,27 @@ export class Store<T> {
       return;
     }
 
-    const result = await reducer(beforeMiddleswaresResult, ...params);
-    if (result === false) {
-      PLATFORM.performance.clearMarks();
-      PLATFORM.performance.clearMeasures();
+    let result: T | false = beforeMiddleswaresResult;
+    for (const action of pipedActions) {
+      result = await action.reducer(result, ...action.params);
+      if (result === false) {
+        PLATFORM.performance.clearMarks();
+        PLATFORM.performance.clearMeasures();
 
-      return;
-    }
-    PLATFORM.performance.mark("dispatch-after-reducer-" + action.type);
+        return;
+      }
 
-    if (!result && typeof result !== "object") {
-      throw new Error("The reducer has to return a new state");
+      PLATFORM.performance.mark("dispatch-after-reducer-" + action.type);
+
+      if (!result && typeof result !== "object") {
+        throw new Error("The reducer has to return a new state");
+      }
     }
 
     let resultingState = await this.executeMiddlewares(
       result,
       MiddlewarePlacement.After,
-      {
-        name: action.type,
-        params
-      }
+      callingAction
     );
 
     if (resultingState === false) {
@@ -218,14 +246,14 @@ export class Store<T> {
 
       const measures = PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
       this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
-        `Total duration ${measures[0].duration} of dispatched action ${action.type}:`,
+        `Total duration ${measures[0].duration} of dispatched action ${callingAction.name}:`,
         measures
       );
     } else if (this.options.measurePerformance === PerformanceMeasurement.All) {
       const marks = PLATFORM.performance.getEntriesByType("mark");
       const totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
       this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
-        `Total duration ${totalDuration} of dispatched action ${action.type}:`,
+        `Total duration ${totalDuration} of dispatched action ${callingAction.name}:`,
         marks
       );
     }
@@ -233,7 +261,7 @@ export class Store<T> {
     PLATFORM.performance.clearMarks();
     PLATFORM.performance.clearMeasures();
 
-    this.updateDevToolsState(action, resultingState);
+    this.updateDevToolsState({ type: callingAction.name, params: callingAction.params }, resultingState);
   }
 
   private executeMiddlewares(state: T, placement: MiddlewarePlacement, action: CallingAction): T | false {
