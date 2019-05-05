@@ -287,14 +287,14 @@ export class Store<T> {
   }
 
   private registerHistoryMethods() {
-    this.registerAction("jump", jump as any as Reducer<T>);
+    this.registerAction("jump", jump as Reducer<T>);
   }
 }
 
 export function dispatchify<T, P extends any[]>(action: Reducer<T, P> | string) {
-  const store = Container.instance.get(Store);
+  const store: Store<T> = Container.instance.get(Store);
 
   return function (...params: P) {
-    return store.dispatch(action, ...params) as Promise<void>;
+    return store.dispatch(action, ...params);
   }
 }
