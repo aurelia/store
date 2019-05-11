@@ -35,7 +35,7 @@ export function rehydrateFromLocalStorage<T>(state: T, key?: string) {
   }
 
   try {
-    return JSON.parse(storedState!);
+    return JSON.parse(storedState);
   } catch (e) { }
 
   return state;
