@@ -1,6 +1,6 @@
 import { PLATFORM } from "aurelia-pal";
 
-const DEFAULT_LOCAL_STORAGE_KEY = "aurelia-store-state";
+export const DEFAULT_LOCAL_STORAGE_KEY = "aurelia-store-state";
 
 export interface CallingAction {
   name: string;
