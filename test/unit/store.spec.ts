@@ -627,4 +627,43 @@ describe("store", () => {
       expect(loggerSpy).toHaveBeenCalledWith(expect.any(String), expect.any(Array));
     });
   });
+
+  describe("internalDispatch", () => {
+    it("should throw an error when called with unregistered actions", () => {
+      const { store } = createTestStore();
+      const unregisteredAction = (currentState: testState, param1: string) => {
+        return Object.assign({}, currentState, { foo: param1 });
+      };
+
+      expect((store as any).internalDispatch([{ reducer: unregisteredAction, params: ["foo"] }])).rejects.toThrowError(UNREGISTERED_ACTION_ERROR_PREFIX + "unregisteredAction");
+    });
+
+    it("should throw an error when one action of multiple actions is unregistered", () => {
+      const { store } = createTestStore();
+      const registeredAction = (currentState: testState) => currentState;
+      const unregisteredAction = (currentState: testState) => currentState;
+      store.registerAction("RegisteredAction", registeredAction);
+
+
+      expect((store as any).internalDispatch([
+        { reducer: registeredAction, params: [] },
+        { reducer: unregisteredAction, params: [] }
+      ])).rejects.toThrowError(UNREGISTERED_ACTION_ERROR_PREFIX + "unregisteredAction");
+    });
+
+    it("should throw an error about the first of many unregistered actions", () => {
+      const { store } = createTestStore();
+      const registeredAction = (currentState: testState) => currentState;
+      const firstUnregisteredAction = (currentState: testState) => currentState;
+      const secondUnregisteredAction = (currentState: testState) => currentState;
+      store.registerAction("RegisteredAction", registeredAction);
+
+
+      expect((store as any).internalDispatch([
+        { reducer: registeredAction, params: [] },
+        { reducer: firstUnregisteredAction, params: [] },
+        { reducer: secondUnregisteredAction, params: [] }
+      ])).rejects.toThrowError(UNREGISTERED_ACTION_ERROR_PREFIX + "firstUnregisteredAction");
+    });
+  });
 });
