@@ -41,6 +41,12 @@ interface DispatchQueueItem<T> {
   reject: any;
 }
 
+export class UnregisteredActionError<T, P extends any[]> extends Error {
+  constructor(reducer?: string | Reducer<T, P>) {
+    super(`Tried to dispatch an unregistered action ${reducer && (typeof reducer === "string" ? reducer : reducer.name)}`);
+  }
+}
+
 export class Store<T> {
   public readonly state: Observable<T>;
 
@@ -114,9 +120,7 @@ export class Store<T> {
   public dispatch<P extends any[]>(reducer: Reducer<T, P> | string, ...params: P): Promise<void> {
     const action = this.lookupAction(reducer as Reducer<T> | string);
     if (!action) {
-      return Promise.reject(new Error(
-        `Tried to dispatch an unregistered action ${reducer && (typeof reducer === "string" ? reducer : reducer.name)}`
-      ));
+      return Promise.reject(new UnregisteredActionError(reducer));
     }
 
     return this.queueDispatch([{
@@ -133,7 +137,7 @@ export class Store<T> {
       pipe: <NextP extends any[]>(nextReducer: Reducer<T, NextP> | string, ...nextParams: NextP) => {
         const action = this.lookupAction(nextReducer as Reducer<T> | string);
         if (!action) {
-          throw new Error(`Tried to dispatch an unregistered action ${reducer && (typeof reducer === "string" ? reducer : reducer.name)}`);
+          throw new UnregisteredActionError(reducer);
         }
         pipeline.push({ reducer: action, params: nextParams });
         return dispatchPipe;
@@ -184,7 +188,7 @@ export class Store<T> {
   private async internalDispatch(actions: DispatchAction<T>[]) {
     const unregisteredAction = actions.find((a) => !this.actions.has(a.reducer));
     if (unregisteredAction) {
-      throw new Error(`Tried to dispatch an unregistered action ${unregisteredAction.reducer && unregisteredAction.reducer.name}`);
+      throw new UnregisteredActionError(unregisteredAction.reducer);
     }
 
     PLATFORM.performance.mark("dispatch-start");
