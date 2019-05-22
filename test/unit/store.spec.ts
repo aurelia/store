@@ -9,6 +9,10 @@ import {
 } from "./helpers";
 
 describe("store", () => {
+  const UNREGISTERED_ACTION_ERROR_PREFIX = "Tried to dispatch an unregistered action ";
+  const MINIMUM_ONE_PARAMETER_ERROR_PREFIX = "The reducer is expected to have one or more parameters";
+  const NOT_RETURNING_NEW_STATE_ERROR = "The reducer has to return a new state";
+
   it("should accept an initial state", done => {
     const { initialState, store } = createTestStore();
 
@@ -24,13 +28,13 @@ describe("store", () => {
       return Object.assign({}, currentState, { foo: param1 + param2 })
     };
 
-    expect((store.dispatch as any)(unregisteredAction)).rejects.toThrowError();
+    expect((store.dispatch as any)(unregisteredAction)).rejects.toThrowError(UNREGISTERED_ACTION_ERROR_PREFIX + "unregisteredAction");
   })
 
   it("should fail when dispatching non actions", async () => {
     const { store } = createTestStore();
 
-    expect(store.dispatch(undefined as any)).rejects.toThrowError();
+    expect(store.dispatch(undefined as any)).rejects.toThrowError(UNREGISTERED_ACTION_ERROR_PREFIX + "undefined");
   })
 
   it("should only accept reducers taking at least one parameter", () => {
@@ -39,7 +43,7 @@ describe("store", () => {
 
     expect(() => {
       store.registerAction("FakeAction", fakeAction as any);
-    }).toThrowError();
+    }).toThrowError(MINIMUM_ONE_PARAMETER_ERROR_PREFIX);
   });
 
   it("should force reducers to return a new state", async () => {
@@ -47,7 +51,7 @@ describe("store", () => {
     const fakeAction = (_: testState) => { };
 
     store.registerAction("FakeAction", fakeAction as any);
-    expect(store.dispatch(fakeAction as any)).rejects.toBeDefined();
+    expect(store.dispatch(fakeAction as any)).rejects.toThrowError(NOT_RETURNING_NEW_STATE_ERROR);
   });
 
   it("should also accept false and stop queue", async () => {
@@ -80,7 +84,7 @@ describe("store", () => {
     expect(store.dispatch(fakeAction)).resolves;
 
     store.unregisterAction(fakeAction);
-    expect(store.dispatch(fakeAction)).rejects.toThrowError();
+    expect(store.dispatch(fakeAction)).rejects.toThrowError(UNREGISTERED_ACTION_ERROR_PREFIX + "fakeAction");
   });
 
   it("should not try to unregister previously unregistered actions", async () => {
@@ -340,7 +344,7 @@ describe("store", () => {
         return Object.assign({}, currentState, { foo: param1 });
       };
 
-      expect(() => store.pipe(unregisteredAction, "foo")).toThrowError();
+      expect(() => store.pipe(unregisteredAction, "foo")).toThrowError(UNREGISTERED_ACTION_ERROR_PREFIX + "unregisteredAction");
     });
 
     it("should fail when at least one action is unknown", async () => {
@@ -351,13 +355,13 @@ describe("store", () => {
 
       const pipedDispatch = store.pipe(fakeAction);
 
-      expect(() => pipedDispatch.pipe(unregisteredAction, "foo")).toThrowError();
+      expect(() => pipedDispatch.pipe(unregisteredAction, "foo")).toThrowError(UNREGISTERED_ACTION_ERROR_PREFIX + "fakeAction");
     });
 
     it("should fail when dispatching non actions", async () => {
       const { store } = createTestStore();
 
-      expect(() => store.pipe(undefined as any)).toThrowError();
+      expect(() => store.pipe(undefined as any)).toThrowError(UNREGISTERED_ACTION_ERROR_PREFIX + "undefined");
     });
 
     it("should fail when at least one action is no action", async () => {
@@ -367,7 +371,7 @@ describe("store", () => {
 
       const pipedDispatch = store.pipe(fakeAction);
 
-      expect(() => pipedDispatch.pipe(undefined as any)).toThrowError();
+      expect(() => pipedDispatch.pipe(undefined as any)).toThrowError(UNREGISTERED_ACTION_ERROR_PREFIX + "fakeAction");
     });
 
     it("should force reducer to return a new state", async () => {
@@ -375,7 +379,7 @@ describe("store", () => {
       const fakeAction = (_: testState) => { };
 
       store.registerAction("FakeAction", fakeAction as any);
-      expect(store.pipe(fakeAction as any).dispatch()).rejects.toBeDefined();
+      expect(store.pipe(fakeAction as any).dispatch()).rejects.toThrowError(NOT_RETURNING_NEW_STATE_ERROR);
     });
 
     it("should force all reducers to return a new state", async () => {
@@ -385,7 +389,7 @@ describe("store", () => {
       store.registerAction("FakeActionOk", fakeActionOk);
       store.registerAction("FakeActionNok", fakeActionNok as any);
 
-      expect(store.pipe(fakeActionNok as any).pipe(fakeActionOk).dispatch()).rejects.toThrowError();
+      expect(store.pipe(fakeActionNok as any).pipe(fakeActionOk).dispatch()).rejects.toThrowError(NOT_RETURNING_NEW_STATE_ERROR);
     });
 
     it("should also accept false and stop queue", async () => {
@@ -465,8 +469,9 @@ describe("store", () => {
 
     it("should not accept an unregistered action name as pipe argument", () => {
       const { store } = createTestStore();
+      const unregisteredActionId = "UnregisteredAction";
 
-      expect(() => store.pipe("UnregisteredAction")).toThrowError();
+      expect(() => store.pipe(unregisteredActionId)).toThrowError(UNREGISTERED_ACTION_ERROR_PREFIX + unregisteredActionId);
     });
 
     it("should support promised actions", done => {
