@@ -60,6 +60,7 @@ function isStateHistory(history) {
         Array.isArray(history.past);
 }
 
+const DEFAULT_LOCAL_STORAGE_KEY = "aurelia-store-state";
 var MiddlewarePlacement;
 (function (MiddlewarePlacement) {
     MiddlewarePlacement["Before"] = "before";
@@ -71,9 +72,7 @@ function logMiddleware(state, _, settings) {
 }
 function localStorageMiddleware(state, _, settings) {
     if (PLATFORM.global.localStorage) {
-        const key = settings && settings.key && typeof settings.key === "string"
-            ? settings.key
-            : "aurelia-store-state";
+        const key = settings && settings.key || DEFAULT_LOCAL_STORAGE_KEY;
         PLATFORM.global.localStorage.setItem(key, JSON.stringify(state));
     }
 }
@@ -81,7 +80,7 @@ function rehydrateFromLocalStorage(state, key) {
     if (!PLATFORM.global.localStorage) {
         return state;
     }
-    const storedState = PLATFORM.global.localStorage.getItem(key || "aurelia-store-state");
+    const storedState = PLATFORM.global.localStorage.getItem(key || DEFAULT_LOCAL_STORAGE_KEY);
     if (!storedState) {
         return state;
     }
@@ -456,4 +455,4 @@ function configure(aurelia, options) {
         .registerInstance(Store, new Store(initState, options));
 }
 
-export { configure, PerformanceMeasurement, Store, dispatchify, executeSteps, jump, nextStateHistory, applyLimits, isStateHistory, MiddlewarePlacement, logMiddleware, localStorageMiddleware, rehydrateFromLocalStorage, LogLevel, LoggerIndexed, getLogType, connectTo };
+export { configure, PerformanceMeasurement, Store, dispatchify, executeSteps, jump, nextStateHistory, applyLimits, isStateHistory, DEFAULT_LOCAL_STORAGE_KEY, MiddlewarePlacement, logMiddleware, localStorageMiddleware, rehydrateFromLocalStorage, LogLevel, LoggerIndexed, getLogType, connectTo };

@@ -84,6 +84,7 @@
             Array.isArray(history.past);
     }
 
+    const DEFAULT_LOCAL_STORAGE_KEY = "aurelia-store-state";
     (function (MiddlewarePlacement) {
         MiddlewarePlacement["Before"] = "before";
         MiddlewarePlacement["After"] = "after";
@@ -94,9 +95,7 @@
     }
     function localStorageMiddleware(state, _, settings) {
         if (aureliaPal.PLATFORM.global.localStorage) {
-            const key = settings && settings.key && typeof settings.key === "string"
-                ? settings.key
-                : "aurelia-store-state";
+            const key = settings && settings.key || DEFAULT_LOCAL_STORAGE_KEY;
             aureliaPal.PLATFORM.global.localStorage.setItem(key, JSON.stringify(state));
         }
     }
@@ -104,7 +103,7 @@
         if (!aureliaPal.PLATFORM.global.localStorage) {
             return state;
         }
-        const storedState = aureliaPal.PLATFORM.global.localStorage.getItem(key || "aurelia-store-state");
+        const storedState = aureliaPal.PLATFORM.global.localStorage.getItem(key || DEFAULT_LOCAL_STORAGE_KEY);
         if (!storedState) {
             return state;
         }
@@ -491,6 +490,7 @@
     exports.nextStateHistory = nextStateHistory;
     exports.applyLimits = applyLimits;
     exports.isStateHistory = isStateHistory;
+    exports.DEFAULT_LOCAL_STORAGE_KEY = DEFAULT_LOCAL_STORAGE_KEY;
     exports.logMiddleware = logMiddleware;
     exports.localStorageMiddleware = localStorageMiddleware;
     exports.rehydrateFromLocalStorage = rehydrateFromLocalStorage;

@@ -1,3 +1,10 @@
+<a name="1.3.5"></a>
+## [1.3.5](https://github.com/aurelia/store/compare/1.3.4...1.3.5) (2019-05-29)
+
+### Bug Fixes
+
+* Add additional type-safety for the optional settings parameter of the localStorageMiddleware.
+
 <a name="1.3.4"></a>
 ## [1.3.4](https://github.com/aurelia/store/compare/1.3.3...1.3.4) (2019-04-15)
 

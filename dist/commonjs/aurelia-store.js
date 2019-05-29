@@ -141,6 +141,7 @@ function isStateHistory(history) {
         Array.isArray(history.past);
 }
 
+var DEFAULT_LOCAL_STORAGE_KEY = "aurelia-store-state";
 (function (MiddlewarePlacement) {
     MiddlewarePlacement["Before"] = "before";
     MiddlewarePlacement["After"] = "after";
@@ -151,9 +152,7 @@ function logMiddleware(state, _, settings) {
 }
 function localStorageMiddleware(state, _, settings) {
     if (aureliaPal.PLATFORM.global.localStorage) {
-        var key = settings && settings.key && typeof settings.key === "string"
-            ? settings.key
-            : "aurelia-store-state";
+        var key = settings && settings.key || DEFAULT_LOCAL_STORAGE_KEY;
         aureliaPal.PLATFORM.global.localStorage.setItem(key, JSON.stringify(state));
     }
 }
@@ -161,7 +160,7 @@ function rehydrateFromLocalStorage(state, key) {
     if (!aureliaPal.PLATFORM.global.localStorage) {
         return state;
     }
-    var storedState = aureliaPal.PLATFORM.global.localStorage.getItem(key || "aurelia-store-state");
+    var storedState = aureliaPal.PLATFORM.global.localStorage.getItem(key || DEFAULT_LOCAL_STORAGE_KEY);
     if (!storedState) {
         return state;
     }
@@ -632,6 +631,7 @@ exports.jump = jump;
 exports.nextStateHistory = nextStateHistory;
 exports.applyLimits = applyLimits;
 exports.isStateHistory = isStateHistory;
+exports.DEFAULT_LOCAL_STORAGE_KEY = DEFAULT_LOCAL_STORAGE_KEY;
 exports.logMiddleware = logMiddleware;
 exports.localStorageMiddleware = localStorageMiddleware;
 exports.rehydrateFromLocalStorage = rehydrateFromLocalStorage;

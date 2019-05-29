@@ -15,6 +15,7 @@ export declare function jump<T>(state: T, n: number): T | StateHistory<any>;
 export declare function nextStateHistory<T>(presentStateHistory: StateHistory<T>, nextPresent: T): StateHistory<T>;
 export declare function applyLimits<T>(state: T, limit: number): T;
 export declare function isStateHistory(history: any): history is StateHistory<any>;
+export declare const DEFAULT_LOCAL_STORAGE_KEY = "aurelia-store-state";
 export interface CallingAction {
 	name: string;
 	params?: any[];
@@ -27,7 +28,9 @@ export declare enum MiddlewarePlacement {
 export declare function logMiddleware(state: unknown, _: unknown, settings?: {
 	logType: "debug" | "error" | "info" | "log" | "trace" | "warn";
 }): void;
-export declare function localStorageMiddleware<T>(state: T, _: T, settings?: any): void;
+export declare function localStorageMiddleware(state: unknown, _: unknown, settings?: {
+	key: string;
+}): void;
 export declare function rehydrateFromLocalStorage<T>(state: T, key?: string): any;
 export declare enum LogLevel {
 	trace = "trace",
