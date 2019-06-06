@@ -6,7 +6,8 @@ import {
 import { StateHistory } from "../../src/history";
 
 export type testState = {
-  foo: string
+  foo: string,
+  bar?: string;
 };
 
 export function createTestStore() {

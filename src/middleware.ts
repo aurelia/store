@@ -5,6 +5,10 @@ export const DEFAULT_LOCAL_STORAGE_KEY = "aurelia-store-state";
 export interface CallingAction {
   name: string;
   params?: any[];
+  pipedActions?: {
+    name: string;
+    params?: any[];
+  }[];
 }
 
 export type Middleware<T, S = any> = (state: T, originalState: T | undefined, settings: S, action?: CallingAction) => T | Promise<T | undefined | false> | void | false;
