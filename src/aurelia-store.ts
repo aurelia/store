@@ -1,3 +1,4 @@
+import "./polyfills";
 import { Store, StoreOptions } from "./store";
 import { isStateHistory } from "./history";
 import { Container } from "aurelia-dependency-injection";

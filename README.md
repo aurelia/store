@@ -17,9 +17,13 @@ You can find complete documentation on setup and usage in the official [Aurelia 
 
 * [RxJS v6](https://github.com/ReactiveX/rxjs)
 * aurelia-dependency-injection
-* aurelia-framework
+* aurelia-templating
 * aurelia-logging
 * aurelia-pal
+
+## Polyfills
+
+* Object.entries ([MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries#Polyfill))
 
 ## Platform Support
 

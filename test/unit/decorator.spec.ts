@@ -29,18 +29,6 @@ describe("using decorators", () => {
     expect(typeof (component as any).bind).toBe("function");
   });
 
-  it("should throw an descriptive error if Object.entries is not available", () => {
-    const originalEntries = (Object as any).entries;
-
-    (Object as any).entries = undefined;
-
-    expect(() => {
-      connectTo();
-    }).toThrowError(/Object.entries/);
-
-    (Object as any).entries = originalEntries;
-  });
-
   it("should be possible to decorate a class and assign the subscribed result to the state property", () => {
     const { initialState } = arrange();
 

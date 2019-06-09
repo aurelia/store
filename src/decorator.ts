@@ -19,10 +19,6 @@ export interface MultipleSelector<T, R = T | any> {
 const defaultSelector = <T>(store: Store<T>) => store.state;
 
 export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observable<R>) | ConnectToSettings<T, R>) {
-  if (!Object.entries) {
-    throw new Error("You need a polyfill for Object.entries for browsers like Internet Explorer. Example: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries#Polyfill")
-  }
-
   let $store: Store<T>;
 
   // const store = Container.instance.get(Store) as Store<T>;
