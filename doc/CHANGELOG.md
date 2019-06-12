@@ -1,3 +1,14 @@
+<a name="1.4.0"></a>
+# [1.4.0](https://github.com/aurelia/store/compare/1.3.5...1.4.0) (2019-06-12)
+
+
+### Features
+
+* **dispatch:** piped dispatch ([4a78ad5](https://github.com/aurelia/store/commit/4a78ad5))
+* **polyfills:** ship with object.entries polyfill ([8ee1156](https://github.com/aurelia/store/commit/8ee1156))
+
+
+
 <a name="1.3.5"></a>
 ## [1.3.5](https://github.com/aurelia/store/compare/1.3.4...1.3.5) (2019-05-29)
 

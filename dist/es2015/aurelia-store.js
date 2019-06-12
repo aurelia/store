@@ -4,6 +4,18 @@ import { Logger, getLogger } from 'aurelia-logging';
 import { PLATFORM } from 'aurelia-pal';
 import { skip, take, delay } from 'rxjs/operators';
 
+/* istanbul ignore next */
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries#Polyfill
+if (!Object.entries) {
+    Object.entries = function (obj) {
+        var ownProps = Object.keys(obj), i = ownProps.length, resArray = new Array(i); // preallocate the Array
+        while (i--) {
+            resArray[i] = [ownProps[i], obj[ownProps[i]]];
+        }
+        return resArray;
+    };
+}
+
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
@@ -142,6 +154,11 @@ var PerformanceMeasurement;
     PerformanceMeasurement["StartEnd"] = "startEnd";
     PerformanceMeasurement["All"] = "all";
 })(PerformanceMeasurement || (PerformanceMeasurement = {}));
+class UnregisteredActionError extends Error {
+    constructor(reducer) {
+        super(`Tried to dispatch an unregistered action ${reducer && (typeof reducer === "string" ? reducer : reducer.name)}`);
+    }
+}
 class Store {
     constructor(initialState, options) {
         this.initialState = initialState;
@@ -193,19 +210,45 @@ class Store {
         this._state.next(state);
     }
     dispatch(reducer, ...params) {
-        let action;
+        const action = this.lookupAction(reducer);
+        if (!action) {
+            return Promise.reject(new UnregisteredActionError(reducer));
+        }
+        return this.queueDispatch([{
+                reducer: action,
+                params
+            }]);
+    }
+    pipe(reducer, ...params) {
+        const pipeline = [];
+        const dispatchPipe = {
+            dispatch: () => this.queueDispatch(pipeline),
+            pipe: (nextReducer, ...nextParams) => {
+                const action = this.lookupAction(nextReducer);
+                if (!action) {
+                    throw new UnregisteredActionError(reducer);
+                }
+                pipeline.push({ reducer: action, params: nextParams });
+                return dispatchPipe;
+            }
+        };
+        return dispatchPipe.pipe(reducer, ...params);
+    }
+    lookupAction(reducer) {
         if (typeof reducer === "string") {
-            const result = Array.from(this.actions)
-                .find((val) => val[1].type === reducer);
+            const result = Array.from(this.actions).find(([_, action]) => action.type === reducer);
             if (result) {
-                action = result[0];
+                return result[0];
             }
         }
-        else {
-            action = reducer;
+        else if (this.actions.has(reducer)) {
+            return reducer;
         }
+        return undefined;
+    }
+    queueDispatch(actions) {
         return new Promise((resolve, reject) => {
-            this.dispatchQueue.push({ reducer: action, params, resolve, reject });
+            this.dispatchQueue.push({ actions, resolve, reject });
             if (this.dispatchQueue.length === 1) {
                 this.handleQueue();
             }
@@ -216,7 +259,7 @@ class Store {
             if (this.dispatchQueue.length > 0) {
                 const queueItem = this.dispatchQueue[0];
                 try {
-                    yield this.internalDispatch(queueItem.reducer, ...queueItem.params);
+                    yield this.internalDispatch(queueItem.actions);
                     queueItem.resolve();
                 }
                 catch (e) {
@@ -227,39 +270,49 @@ class Store {
             }
         });
     }
-    internalDispatch(reducer, ...params) {
+    internalDispatch(actions) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!this.actions.has(reducer)) {
-                throw new Error(`Tried to dispatch an unregistered action${reducer ? " " + reducer.name : ""}`);
+            const unregisteredAction = actions.find((a) => !this.actions.has(a.reducer));
+            if (unregisteredAction) {
+                throw new UnregisteredActionError(unregisteredAction.reducer);
             }
             PLATFORM.performance.mark("dispatch-start");
-            const action = Object.assign({}, this.actions.get(reducer), { params });
+            const pipedActions = actions.map((a) => ({
+                type: this.actions.get(a.reducer).type,
+                params: a.params,
+                reducer: a.reducer
+            }));
+            const callingAction = {
+                name: pipedActions.map((a) => a.type).join("->"),
+                params: pipedActions.reduce((p, a) => p.concat(a.params), []),
+                pipedActions: pipedActions.map((a) => ({
+                    name: a.type,
+                    params: a.params
+                }))
+            };
             if (this.options.logDispatchedActions) {
-                this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)](`Dispatching: ${action.type}`);
+                this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)](`Dispatching: ${callingAction.name}`);
             }
-            const beforeMiddleswaresResult = yield this.executeMiddlewares(this._state.getValue(), MiddlewarePlacement.Before, {
-                name: action.type,
-                params
-            });
+            const beforeMiddleswaresResult = yield this.executeMiddlewares(this._state.getValue(), MiddlewarePlacement.Before, callingAction);
             if (beforeMiddleswaresResult === false) {
                 PLATFORM.performance.clearMarks();
                 PLATFORM.performance.clearMeasures();
                 return;
             }
-            const result = yield reducer(beforeMiddleswaresResult, ...params);
-            if (result === false) {
-                PLATFORM.performance.clearMarks();
-                PLATFORM.performance.clearMeasures();
-                return;
+            let result = beforeMiddleswaresResult;
+            for (const action of pipedActions) {
+                result = yield action.reducer(result, ...action.params);
+                if (result === false) {
+                    PLATFORM.performance.clearMarks();
+                    PLATFORM.performance.clearMeasures();
+                    return;
+                }
+                PLATFORM.performance.mark("dispatch-after-reducer-" + action.type);
+                if (!result && typeof result !== "object") {
+                    throw new Error("The reducer has to return a new state");
+                }
             }
-            PLATFORM.performance.mark("dispatch-after-reducer-" + action.type);
-            if (!result && typeof result !== "object") {
-                throw new Error("The reducer has to return a new state");
-            }
-            let resultingState = yield this.executeMiddlewares(result, MiddlewarePlacement.After, {
-                name: action.type,
-                params
-            });
+            let resultingState = yield this.executeMiddlewares(result, MiddlewarePlacement.After, callingAction);
             if (resultingState === false) {
                 PLATFORM.performance.clearMarks();
                 PLATFORM.performance.clearMeasures();
@@ -275,16 +328,16 @@ class Store {
             if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
                 PLATFORM.performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
                 const measures = PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
-                this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](`Total duration ${measures[0].duration} of dispatched action ${action.type}:`, measures);
+                this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](`Total duration ${measures[0].duration} of dispatched action ${callingAction.name}:`, measures);
             }
             else if (this.options.measurePerformance === PerformanceMeasurement.All) {
                 const marks = PLATFORM.performance.getEntriesByType("mark");
                 const totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
-                this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](`Total duration ${totalDuration} of dispatched action ${action.type}:`, marks);
+                this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](`Total duration ${totalDuration} of dispatched action ${callingAction.name}:`, marks);
             }
             PLATFORM.performance.clearMarks();
             PLATFORM.performance.clearMeasures();
-            this.updateDevToolsState(action, resultingState);
+            this.updateDevToolsState({ type: callingAction.name, params: callingAction.params }, resultingState);
         });
     }
     executeMiddlewares(state, placement, action) {
@@ -377,9 +430,6 @@ function executeSteps(store, shouldLogResults, ...steps) {
 
 const defaultSelector = (store) => store.state;
 function connectTo(settings) {
-    if (!Object.entries) {
-        throw new Error("You need a polyfill for Object.entries for browsers like Internet Explorer. Example: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries#Polyfill");
-    }
     let $store;
     // const store = Container.instance.get(Store) as Store<T>;
     const _settings = Object.assign({ selector: typeof settings === "function" ? settings : defaultSelector }, settings);
@@ -485,4 +535,4 @@ function configure(aurelia, options) {
         .registerInstance(Store, new Store(initState, options));
 }
 
-export { configure, PerformanceMeasurement, Store, dispatchify, executeSteps, jump, nextStateHistory, applyLimits, isStateHistory, DEFAULT_LOCAL_STORAGE_KEY, MiddlewarePlacement, logMiddleware, localStorageMiddleware, rehydrateFromLocalStorage, LogLevel, LoggerIndexed, getLogType, connectTo };
+export { configure, PerformanceMeasurement, UnregisteredActionError, Store, dispatchify, executeSteps, jump, nextStateHistory, applyLimits, isStateHistory, DEFAULT_LOCAL_STORAGE_KEY, MiddlewarePlacement, logMiddleware, localStorageMiddleware, rehydrateFromLocalStorage, LogLevel, LoggerIndexed, getLogType, connectTo };

@@ -19,6 +19,10 @@ export declare const DEFAULT_LOCAL_STORAGE_KEY = "aurelia-store-state";
 export interface CallingAction {
 	name: string;
 	params?: any[];
+	pipedActions?: {
+		name: string;
+		params?: any[];
+	}[];
 }
 export declare type Middleware<T, S = any> = (state: T, originalState: T | undefined, settings: S, action?: CallingAction) => T | Promise<T | undefined | false> | void | false;
 export declare enum MiddlewarePlacement {
@@ -231,6 +235,13 @@ export interface StoreOptions {
 	logDefinitions?: LogDefinitions;
 	devToolsOptions?: DevToolsOptions;
 }
+export interface PipedDispatch<T> {
+	pipe: <P extends any[]>(reducer: Reducer<T, P> | string, ...params: P) => PipedDispatch<T>;
+	dispatch: () => Promise<void>;
+}
+export declare class UnregisteredActionError<T, P extends any[]> extends Error {
+	constructor(reducer?: string | Reducer<T, P>);
+}
 export declare class Store<T> {
 	private initialState;
 	readonly state: Observable<T>;
@@ -252,6 +263,9 @@ export declare class Store<T> {
 	isActionRegistered(reducer: Reducer<T> | string): boolean;
 	resetToState(state: T): void;
 	dispatch<P extends any[]>(reducer: Reducer<T, P> | string, ...params: P): Promise<void>;
+	pipe<P extends any[]>(reducer: Reducer<T, P> | string, ...params: P): PipedDispatch<T>;
+	private lookupAction;
+	private queueDispatch;
 	private handleQueue;
 	private internalDispatch;
 	private executeMiddlewares;

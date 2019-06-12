@@ -4,6 +4,18 @@ import { Logger, getLogger } from 'aurelia-logging';
 import { PLATFORM } from 'aurelia-pal';
 import { skip, take, delay } from 'rxjs/operators';
 
+/* istanbul ignore next */
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries#Polyfill
+if (!Object.entries) {
+    Object.entries = function (obj) {
+        var ownProps = Object.keys(obj), i = ownProps.length, resArray = new Array(i); // preallocate the Array
+        while (i--) {
+            resArray[i] = [ownProps[i], obj[ownProps[i]]];
+        }
+        return resArray;
+    };
+}
+
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
@@ -200,6 +212,13 @@ var PerformanceMeasurement;
     PerformanceMeasurement["StartEnd"] = "startEnd";
     PerformanceMeasurement["All"] = "all";
 })(PerformanceMeasurement || (PerformanceMeasurement = {}));
+var UnregisteredActionError = /** @class */ (function (_super) {
+    __extends(UnregisteredActionError, _super);
+    function UnregisteredActionError(reducer) {
+        return _super.call(this, "Tried to dispatch an unregistered action " + (reducer && (typeof reducer === "string" ? reducer : reducer.name))) || this;
+    }
+    return UnregisteredActionError;
+}(Error));
 var Store = /** @class */ (function () {
     function Store(initialState, options) {
         this.initialState = initialState;
@@ -251,24 +270,62 @@ var Store = /** @class */ (function () {
         this._state.next(state);
     };
     Store.prototype.dispatch = function (reducer) {
+        var params = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            params[_i - 1] = arguments[_i];
+        }
+        var action = this.lookupAction(reducer);
+        if (!action) {
+            return Promise.reject(new UnregisteredActionError(reducer));
+        }
+        return this.queueDispatch([{
+                reducer: action,
+                params: params
+            }]);
+    };
+    Store.prototype.pipe = function (reducer) {
         var _this = this;
         var params = [];
         for (var _i = 1; _i < arguments.length; _i++) {
             params[_i - 1] = arguments[_i];
         }
-        var action;
+        var pipeline = [];
+        var dispatchPipe = {
+            dispatch: function () { return _this.queueDispatch(pipeline); },
+            pipe: function (nextReducer) {
+                var nextParams = [];
+                for (var _i = 1; _i < arguments.length; _i++) {
+                    nextParams[_i - 1] = arguments[_i];
+                }
+                var action = _this.lookupAction(nextReducer);
+                if (!action) {
+                    throw new UnregisteredActionError(reducer);
+                }
+                pipeline.push({ reducer: action, params: nextParams });
+                return dispatchPipe;
+            }
+        };
+        return dispatchPipe.pipe.apply(dispatchPipe, [reducer].concat(params));
+    };
+    Store.prototype.lookupAction = function (reducer) {
         if (typeof reducer === "string") {
-            var result = Array.from(this.actions)
-                .find(function (val) { return val[1].type === reducer; });
+            var result = Array.from(this.actions).find(function (_a) {
+                var _ = _a[0], action = _a[1];
+                return action.type === reducer;
+            });
             if (result) {
-                action = result[0];
+                return result[0];
             }
         }
-        else {
-            action = reducer;
+        else if (this.actions.has(reducer)) {
+            return reducer;
         }
+        return undefined;
+    };
+    Store.prototype.queueDispatch = function (actions) {
+        var _this = this;
         return new Promise(function (resolve, reject) {
-            _this.dispatchQueue.push({ reducer: action, params: params, resolve: resolve, reject: reject });
+            _this.dispatchQueue.push({ actions: actions, resolve: resolve, reject: reject });
             if (_this.dispatchQueue.length === 1) {
                 _this.handleQueue();
             }
@@ -285,7 +342,7 @@ var Store = /** @class */ (function () {
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, this.internalDispatch.apply(this, [queueItem.reducer].concat(queueItem.params))];
+                        return [4 /*yield*/, this.internalDispatch(queueItem.actions)];
                     case 2:
                         _a.sent();
                         queueItem.resolve();
@@ -303,28 +360,35 @@ var Store = /** @class */ (function () {
             });
         });
     };
-    Store.prototype.internalDispatch = function (reducer) {
-        var params = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            params[_i - 1] = arguments[_i];
-        }
+    Store.prototype.internalDispatch = function (actions) {
         return __awaiter(this, void 0, void 0, function () {
-            var action, beforeMiddleswaresResult, result, resultingState, measures, marks, totalDuration;
+            var unregisteredAction, pipedActions, callingAction, beforeMiddleswaresResult, result, _i, pipedActions_1, action, resultingState, measures, marks, totalDuration;
+            var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!this.actions.has(reducer)) {
-                            throw new Error("Tried to dispatch an unregistered action" + (reducer ? " " + reducer.name : ""));
+                        unregisteredAction = actions.find(function (a) { return !_this.actions.has(a.reducer); });
+                        if (unregisteredAction) {
+                            throw new UnregisteredActionError(unregisteredAction.reducer);
                         }
                         PLATFORM.performance.mark("dispatch-start");
-                        action = __assign({}, this.actions.get(reducer), { params: params });
+                        pipedActions = actions.map(function (a) { return ({
+                            type: _this.actions.get(a.reducer).type,
+                            params: a.params,
+                            reducer: a.reducer
+                        }); });
+                        callingAction = {
+                            name: pipedActions.map(function (a) { return a.type; }).join("->"),
+                            params: pipedActions.reduce(function (p, a) { return p.concat(a.params); }, []),
+                            pipedActions: pipedActions.map(function (a) { return ({
+                                name: a.type,
+                                params: a.params
+                            }); })
+                        };
                         if (this.options.logDispatchedActions) {
-                            this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)]("Dispatching: " + action.type);
+                            this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)]("Dispatching: " + callingAction.name);
                         }
-                        return [4 /*yield*/, this.executeMiddlewares(this._state.getValue(), MiddlewarePlacement.Before, {
-                                name: action.type,
-                                params: params
-                            })];
+                        return [4 /*yield*/, this.executeMiddlewares(this._state.getValue(), MiddlewarePlacement.Before, callingAction)];
                     case 1:
                         beforeMiddleswaresResult = _a.sent();
                         if (beforeMiddleswaresResult === false) {
@@ -332,8 +396,14 @@ var Store = /** @class */ (function () {
                             PLATFORM.performance.clearMeasures();
                             return [2 /*return*/];
                         }
-                        return [4 /*yield*/, reducer.apply(void 0, [beforeMiddleswaresResult].concat(params))];
+                        result = beforeMiddleswaresResult;
+                        _i = 0, pipedActions_1 = pipedActions;
+                        _a.label = 2;
                     case 2:
+                        if (!(_i < pipedActions_1.length)) return [3 /*break*/, 5];
+                        action = pipedActions_1[_i];
+                        return [4 /*yield*/, action.reducer.apply(action, [result].concat(action.params))];
+                    case 3:
                         result = _a.sent();
                         if (result === false) {
                             PLATFORM.performance.clearMarks();
@@ -344,11 +414,12 @@ var Store = /** @class */ (function () {
                         if (!result && typeof result !== "object") {
                             throw new Error("The reducer has to return a new state");
                         }
-                        return [4 /*yield*/, this.executeMiddlewares(result, MiddlewarePlacement.After, {
-                                name: action.type,
-                                params: params
-                            })];
-                    case 3:
+                        _a.label = 4;
+                    case 4:
+                        _i++;
+                        return [3 /*break*/, 2];
+                    case 5: return [4 /*yield*/, this.executeMiddlewares(result, MiddlewarePlacement.After, callingAction)];
+                    case 6:
                         resultingState = _a.sent();
                         if (resultingState === false) {
                             PLATFORM.performance.clearMarks();
@@ -365,16 +436,16 @@ var Store = /** @class */ (function () {
                         if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
                             PLATFORM.performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
                             measures = PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
-                            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)]("Total duration " + measures[0].duration + " of dispatched action " + action.type + ":", measures);
+                            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)]("Total duration " + measures[0].duration + " of dispatched action " + callingAction.name + ":", measures);
                         }
                         else if (this.options.measurePerformance === PerformanceMeasurement.All) {
                             marks = PLATFORM.performance.getEntriesByType("mark");
                             totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
-                            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)]("Total duration " + totalDuration + " of dispatched action " + action.type + ":", marks);
+                            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)]("Total duration " + totalDuration + " of dispatched action " + callingAction.name + ":", marks);
                         }
                         PLATFORM.performance.clearMarks();
                         PLATFORM.performance.clearMeasures();
-                        this.updateDevToolsState(action, resultingState);
+                        this.updateDevToolsState({ type: callingAction.name, params: callingAction.params }, resultingState);
                         return [2 /*return*/];
                 }
             });
@@ -504,9 +575,6 @@ function executeSteps(store, shouldLogResults) {
 
 var defaultSelector = function (store) { return store.state; };
 function connectTo(settings) {
-    if (!Object.entries) {
-        throw new Error("You need a polyfill for Object.entries for browsers like Internet Explorer. Example: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries#Polyfill");
-    }
     var $store;
     // const store = Container.instance.get(Store) as Store<T>;
     var _settings = __assign({ selector: typeof settings === "function" ? settings : defaultSelector }, settings);
@@ -622,4 +690,4 @@ function configure(aurelia, options) {
         .registerInstance(Store, new Store(initState, options));
 }
 
-export { configure, PerformanceMeasurement, Store, dispatchify, executeSteps, jump, nextStateHistory, applyLimits, isStateHistory, DEFAULT_LOCAL_STORAGE_KEY, MiddlewarePlacement, logMiddleware, localStorageMiddleware, rehydrateFromLocalStorage, LogLevel, LoggerIndexed, getLogType, connectTo };
+export { configure, PerformanceMeasurement, UnregisteredActionError, Store, dispatchify, executeSteps, jump, nextStateHistory, applyLimits, isStateHistory, DEFAULT_LOCAL_STORAGE_KEY, MiddlewarePlacement, logMiddleware, localStorageMiddleware, rehydrateFromLocalStorage, LogLevel, LoggerIndexed, getLogType, connectTo };
