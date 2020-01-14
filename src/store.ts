@@ -328,8 +328,26 @@ export class Store<T> {
       this.devTools.subscribe((message: any) => {
         this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)](`DevTools sent change ${message.type}`);
 
-        if (message.type === "DISPATCH") {
-          this._state.next(JSON.parse(message.state));
+        if (message.type === "DISPATCH" && message.payload) {
+          switch (message.payload.type) {
+            case "JUMP_TO_STATE":
+            case "JUMP_TO_ACTION":
+              this._state.next(JSON.parse(message.state));
+              return;
+            case "COMMIT":
+              this.devTools.init(this._state.getValue());
+              return;
+            case "RESET":
+              this.devTools.init(this.initialState);
+              this.resetToState(this.initialState);
+              return;
+            case "ROLLBACK":
+              const parsedState = JSON.parse(message.state);
+
+              this.resetToState(parsedState);  
+              this.devTools.init(parsedState);
+              return;
+          }
         }
       });
     }
