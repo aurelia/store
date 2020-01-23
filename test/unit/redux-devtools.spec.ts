@@ -14,7 +14,7 @@ class DevToolsMock {
   public subscribe = jest.fn().mockImplementation((cb: (message: any) => void) => this.subscriptions.push(cb));
   public send = jest.fn();
 
-  constructor(public devToolsOptions: DevToolsOptions) {}
+  constructor(public devToolsOptions: DevToolsOptions) { }
 }
 
 function createDevToolsMock() {
@@ -41,7 +41,7 @@ describe("redux devtools", () => {
 
   it("should not setup devtools if disabled via options", () => {
     const spy = jest.spyOn(Store.prototype as any, "setupDevTools");
-    const theStore = new Store<testState>({ foo: "bar "}, { devToolsOptions: { disable: true } });
+    const theStore = new Store<testState>({ foo: "bar " }, { devToolsOptions: { disable: true } });
 
     expect(spy).not.toHaveBeenCalled();
     expect((theStore as any).devToolsAvailable).toBe(false);
@@ -78,7 +78,7 @@ describe("redux devtools", () => {
     expect(devtools.subscribe).toHaveBeenCalled();
   });
 
-  it("should update state when receiving DISPATCH message", (done) => {
+  it("should update state when receiving JUMP_TO_STATE message", (done) => {
     createDevToolsMock();
 
     const store = new Store<testState>({ foo: "bar " });
@@ -87,10 +87,90 @@ describe("redux devtools", () => {
 
     expect(devtools.subscriptions.length).toBe(1);
 
-    devtools.subscriptions[0]({ type: "DISPATCH", state: JSON.stringify({ foo: expectedStateChange }) });
+    devtools.subscriptions[0]({ type: "DISPATCH", payload: { type: "JUMP_TO_STATE" }, state: JSON.stringify({ foo: expectedStateChange }) });
 
     store.state.subscribe((timeTravelledState) => {
       expect(timeTravelledState.foo).toBe(expectedStateChange);
+      done();
+    });
+  });
+
+  it("should update state when receiving JUMP_TO_ACTION message", (done) => {
+    createDevToolsMock();
+
+    const store = new Store<testState>({ foo: "bar " });
+    const devtools = ((store as any).devTools as DevToolsMock);
+    const expectedStateChange = "from-redux-devtools";
+
+    expect(devtools.subscriptions.length).toBe(1);
+
+    devtools.subscriptions[0]({ type: "DISPATCH", payload: { type: "JUMP_TO_ACTION" }, state: JSON.stringify({ foo: expectedStateChange }) });
+
+    store.state.subscribe((timeTravelledState) => {
+      expect(timeTravelledState.foo).toBe(expectedStateChange);
+      done();
+    });
+  });
+
+  it("should not update state when receiving COMMIT payload but re-init devtools with current state", () => {
+    createDevToolsMock();
+
+    const store = new Store<testState>({ foo: "bar " });
+    const nextSpy = jest.spyOn((store as any)._state, "next").mockImplementation(() => console.log("foo"));
+    const devtools = ((store as any).devTools as DevToolsMock);
+
+    expect(devtools.subscriptions.length).toBe(1);
+
+    devtools.subscriptions[0]({
+      type: "DISPATCH",
+      state: undefined,
+      payload: { type: "COMMIT", timestamp: 1578982516267 }
+    });
+
+    expect(nextSpy).not.toHaveBeenCalledWith((store as any)._state.getValue());
+    expect(devtools.init).toHaveBeenCalledTimes(2);
+  });
+
+  it("should reset initial state when receiving RESET and re-init devtools", () => {
+    createDevToolsMock();
+
+    const initialState = { foo: "bar " };
+    const store = new Store<testState>(initialState);
+    const resetSpy = jest.spyOn(store, "resetToState");
+    const devtools = ((store as any).devTools as DevToolsMock);
+
+    expect(devtools.subscriptions.length).toBe(1);
+
+    devtools.subscriptions[0]({
+      type: "DISPATCH",
+      state: undefined,
+      payload: { type: "RESET", timestamp: 1578982516267 }
+    });
+
+    expect(devtools.init).nthCalledWith(2, initialState);
+    expect(resetSpy).toHaveBeenCalledWith(initialState);
+  });
+
+  it("should rollback to provided state when receiving ROLLBACK and re-init devtools", (done) => {
+    createDevToolsMock();
+
+    const rolledBackState = { foo: "pustekuchen" };
+    const store = new Store<testState>({ foo: "bar " });
+    const resetSpy = jest.spyOn(store, "resetToState");
+    const devtools = ((store as any).devTools as DevToolsMock);
+
+    expect(devtools.subscriptions.length).toBe(1);
+
+    devtools.subscriptions[0]({
+      type: "DISPATCH",
+      state: JSON.stringify(rolledBackState),
+      payload: { type: "ROLLBACK", timestamp: 1578982516267 }
+    });
+
+    store.state.subscribe((state) => {
+      expect(state.foo).toBe(rolledBackState.foo);
+      expect(devtools.init).nthCalledWith(2, rolledBackState);
+      expect(resetSpy).toHaveBeenCalledWith(rolledBackState);
       done();
     });
   });
@@ -114,7 +194,8 @@ describe("redux devtools", () => {
     ).subscribe(() => {
       expect(devtools.send).toHaveBeenCalled();
       expect(devtools.send).toHaveBeenCalledWith({
-        params: ["bert"], type: "FakeAction"},  { foo: "bert" });
+        params: ["bert"], type: "FakeAction"
+      }, { foo: "bert" });
 
       done();
     });
