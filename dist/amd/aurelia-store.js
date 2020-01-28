@@ -495,8 +495,25 @@ define('aurelia-store', ['exports', 'rxjs', 'aurelia-dependency-injection', 'aur
               this.devTools.init(this.initialState);
               this.devTools.subscribe(function (message) {
                   _this.logger[getLogType(_this.options, "devToolsStatus", exports.LogLevel.debug)]("DevTools sent change " + message.type);
-                  if (message.type === "DISPATCH") {
-                      _this._state.next(JSON.parse(message.state));
+                  if (message.type === "DISPATCH" && message.payload) {
+                      switch (message.payload.type) {
+                          case "JUMP_TO_STATE":
+                          case "JUMP_TO_ACTION":
+                              _this._state.next(JSON.parse(message.state));
+                              return;
+                          case "COMMIT":
+                              _this.devTools.init(_this._state.getValue());
+                              return;
+                          case "RESET":
+                              _this.devTools.init(_this.initialState);
+                              _this.resetToState(_this.initialState);
+                              return;
+                          case "ROLLBACK":
+                              var parsedState = JSON.parse(message.state);
+                              _this.resetToState(parsedState);
+                              _this.devTools.init(parsedState);
+                              return;
+                      }
                   }
               });
           }

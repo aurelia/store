@@ -1,3 +1,13 @@
+<a name="1.5.0"></a>
+# [1.5.0](https://github.com/aurelia/store/compare/1.4.0...1.5.0) (2020-01-28)
+
+
+### Features
+
+* **devtools:** implement redux devtools button handling ([#104](https://github.com/aurelia/store/issues/104)) ([86b7eda](https://github.com/aurelia/store/commit/86b7eda))
+
+
+
 <a name="1.4.0"></a>
 # [1.4.0](https://github.com/aurelia/store/compare/1.3.5...1.4.0) (2019-06-12)
 
