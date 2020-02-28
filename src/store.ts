@@ -328,6 +328,20 @@ export class Store<T> {
       this.devTools.subscribe((message: any) => {
         this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)](`DevTools sent change ${message.type}`);
 
+        if (message.type === "ACTION" && message.payload) {
+          const byName = Array.from(this.actions).find(function (_a) {
+            return _a[0].name === message.payload.name;
+          });
+          const action = this.lookupAction(message.payload.name) || byName && byName[0];
+
+          if (!action) {
+            throw new Error("Tried to remotely dispatch an unregistered action");
+          }
+
+          this.dispatch(action, ...message.payload.args.slice(1));
+          return;
+        }
+
         if (message.type === "DISPATCH" && message.payload) {
           switch (message.payload.type) {
             case "JUMP_TO_STATE":
