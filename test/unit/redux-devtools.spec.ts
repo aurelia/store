@@ -225,4 +225,127 @@ describe("redux devtools", () => {
       done();
     });
   });
+
+  describe("dispatching actions", () => {
+    it("should react to the ACTION type and execute the intended action", (done) => {
+      const devToolsValue = "dispatched value by devtools";
+
+      createDevToolsMock();
+
+      const fakeAction = (currentState: testState, newValue: string) => {
+        return Object.assign({}, currentState, { foo: newValue });
+      };
+
+      const store = new Store<testState>({ foo: "bar " }, {
+        devToolsOptions: {
+          actionCreators: { "FakeAction": fakeAction }
+        }
+      });
+
+      store.registerAction("FakeAction", fakeAction);
+
+      const devtools = ((store as any).devTools as DevToolsMock);
+
+      expect(devtools.subscriptions.length).toBe(1);
+
+      devtools.subscriptions[0]({
+        type: "ACTION",
+        state: null,
+        payload: { name: "FakeAction", args: [null, devToolsValue].map((arg) => JSON.stringify(arg)) }
+      });
+
+      store.state.pipe(skip(1)).subscribe((state) => {
+        expect(state.foo).toBe(devToolsValue);
+        done();
+      });
+    });
+
+    it("should detect action by function name if not found via registered type", (done) => {
+      const devToolsValue = "dispatched value by devtools";
+
+      createDevToolsMock();
+
+      const fakeAction = (currentState: testState, newValue: string) => {
+        return Object.assign({}, currentState, { foo: newValue });
+      };
+
+      const store = new Store<testState>({ foo: "bar " }, {
+        devToolsOptions: {
+          actionCreators: { "Foobert": fakeAction }
+        }
+      });
+
+      store.registerAction("FakeAction", fakeAction);
+
+      const devtools = ((store as any).devTools as DevToolsMock);
+
+      expect(devtools.subscriptions.length).toBe(1);
+
+      devtools.subscriptions[0]({
+        type: "ACTION",
+        state: null,
+        payload: { name: "fakeAction", args: [null, devToolsValue].map((arg) => JSON.stringify(arg)) }
+      });
+
+      store.state.pipe(skip(1)).subscribe((state) => {
+        expect(state.foo).toBe(devToolsValue);
+        done();
+      });
+    });
+
+    it("should throw when dispatching an unregistered action", async () => {
+      createDevToolsMock();
+
+      const fakeAction = (currentState: testState, newValue: string) => {
+        return Object.assign({}, currentState, { foo: newValue });
+      };
+
+      const store = new Store<testState>({ foo: "bar " }, {
+        devToolsOptions: {
+          actionCreators: { "FakeAction": fakeAction }
+        }
+      });
+
+
+      const devtools = ((store as any).devTools as DevToolsMock);
+
+      expect(devtools.subscriptions.length).toBe(1);
+
+      expect(() => {
+        devtools.subscriptions[0]({
+          type: "ACTION",
+          state: null,
+          payload: { name: "FakeAction", args: [null, "foobar"].map((arg) => JSON.stringify(arg)) }
+        });
+      }).toThrowError(expect.objectContaining({ message: expect.stringContaining("unregistered")}));
+    });
+
+    it("should throw when no arguments are provided", async () => {
+      createDevToolsMock();
+
+      const fakeAction = (currentState: testState, newValue: string) => {
+        return Object.assign({}, currentState, { foo: newValue });
+      };
+
+      const store = new Store<testState>({ foo: "bar " }, {
+        devToolsOptions: {
+          actionCreators: { "FakeAction": fakeAction }
+        }
+      });
+
+      store.registerAction("FakeAction", fakeAction);
+
+      const devtools = ((store as any).devTools as DevToolsMock);
+
+      expect(devtools.subscriptions.length).toBe(1);
+
+      expect(() => {
+        devtools.subscriptions[0]({
+          type: "ACTION",
+          state: null,
+          payload: { name: "FakeAction", args: [] }
+        });
+      }).toThrowError(expect.objectContaining({ message: expect.stringContaining("arguments")}));
+    });
+  });
 });
