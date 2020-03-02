@@ -329,8 +329,8 @@ export class Store<T> {
         this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)](`DevTools sent change ${message.type}`);
 
         if (message.type === "ACTION" && message.payload) {
-          const byName = Array.from(this.actions).find(function (_a) {
-            return _a[0].name === message.payload.name;
+          const byName = Array.from(this.actions).find(function ([reducer]) {
+            return reducer.name === message.payload.name;
           });
           const action = this.lookupAction(message.payload.name) || byName && byName[0];
 
@@ -338,7 +338,11 @@ export class Store<T> {
             throw new Error("Tried to remotely dispatch an unregistered action");
           }
 
-          this.dispatch(action, ...message.payload.args.slice(1));
+          if (!message.payload.args || message.payload.args.length < 1) {
+            throw new Error("No action arguments provided");
+          }
+
+          this.dispatch(action, ...message.payload.args.slice(1).map((arg: string) => JSON.parse(arg)));
           return;
         }
 
@@ -358,7 +362,7 @@ export class Store<T> {
             case "ROLLBACK":
               const parsedState = JSON.parse(message.state);
 
-              this.resetToState(parsedState);  
+              this.resetToState(parsedState);
               this.devTools.init(parsedState);
               return;
           }
