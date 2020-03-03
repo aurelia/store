@@ -1,3 +1,12 @@
+<a name="1.6.0"></a>
+# [1.6.0](https://github.com/aurelia/store/compare/1.5.0...1.6.0) (2020-03-03)
+
+
+### Features
+
+* **devtools:** basic dispatcher support ([ca97e85](https://github.com/aurelia/store/commit/ca97e85))
+
+
 <a name="1.5.0"></a>
 # [1.5.0](https://github.com/aurelia/store/compare/1.4.0...1.5.0) (2020-01-28)
 

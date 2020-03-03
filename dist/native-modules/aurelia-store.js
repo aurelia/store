@@ -502,6 +502,21 @@ var Store = /** @class */ (function () {
             this.devTools.init(this.initialState);
             this.devTools.subscribe(function (message) {
                 _this.logger[getLogType(_this.options, "devToolsStatus", LogLevel.debug)]("DevTools sent change " + message.type);
+                if (message.type === "ACTION" && message.payload) {
+                    var byName = Array.from(_this.actions).find(function (_a) {
+                        var reducer = _a[0];
+                        return reducer.name === message.payload.name;
+                    });
+                    var action = _this.lookupAction(message.payload.name) || byName && byName[0];
+                    if (!action) {
+                        throw new Error("Tried to remotely dispatch an unregistered action");
+                    }
+                    if (!message.payload.args || message.payload.args.length < 1) {
+                        throw new Error("No action arguments provided");
+                    }
+                    _this.dispatch.apply(_this, [action].concat(message.payload.args.slice(1).map(function (arg) { return JSON.parse(arg); })));
+                    return;
+                }
                 if (message.type === "DISPATCH" && message.payload) {
                     switch (message.payload.type) {
                         case "JUMP_TO_STATE":
