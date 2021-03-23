@@ -246,6 +246,38 @@ describe("middlewares", () => {
         done();
       });
     });
+
+    it("should log all dispatch durations", done => {
+      spyOn(PLATFORM.performance, "mark").and.callThrough();
+      const store = createStoreWithState(initialState);
+
+      const decreaseBefore = (currentState: TestState, originalState?: TestState) => {
+        const newState = Object.assign({}, currentState);
+        newState.counter = originalState!.counter;
+
+        return newState;
+      }
+      store.registerMiddleware(decreaseBefore, MiddlewarePlacement.Before);
+
+      const resetBefore = (currentState: TestState, originalState?: TestState) => {
+        expect(currentState.counter).toBe(0);
+        return originalState;
+      }
+      store.registerMiddleware(resetBefore, MiddlewarePlacement.Before);
+
+      store.registerAction("IncrementAction", incrementAction);
+      store.dispatch(incrementAction);
+
+      store.state.pipe(
+        skip(1),
+        take(1)
+      ).subscribe(() => {
+        expect(PLATFORM.performance.mark).toHaveBeenNthCalledWith(2, "dispatch-before-decreaseBefore");
+        expect(PLATFORM.performance.mark).toHaveBeenNthCalledWith(3, "dispatch-before-resetBefore");
+        expect(PLATFORM.performance.mark).toHaveBeenNthCalledWith(4, "dispatch-after-reducer-IncrementAction");
+        done();
+      });
+    });
   });
 
   describe("which are applied after the action dispatches", () => {
@@ -314,6 +346,31 @@ describe("middlewares", () => {
         take(1)
       ).subscribe((state) => {
         expect(state.counter).toEqual(1);
+        done();
+      });
+    });
+
+    it("should log all dispatch durations", done => {
+      spyOn(PLATFORM.performance, "mark").and.callThrough();
+      const store = createStoreWithState(initialState);
+
+      const decreaseAfter = (currentState: TestState, originalState: TestState | undefined) => {
+        const newState = Object.assign({}, currentState);
+        newState.counter = originalState!.counter;
+
+        return newState;
+      }
+      store.registerMiddleware(decreaseAfter, MiddlewarePlacement.After);
+
+      store.registerAction("IncrementAction", incrementAction);
+      store.dispatch(incrementAction);
+
+      store.state.pipe(
+        skip(1),
+        take(1)
+      ).subscribe(() => {
+        expect(PLATFORM.performance.mark).toHaveBeenNthCalledWith(2, "dispatch-after-reducer-IncrementAction");
+        expect(PLATFORM.performance.mark).toHaveBeenNthCalledWith(3, "dispatch-after-decreaseAfter");
         done();
       });
     });
