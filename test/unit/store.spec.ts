@@ -1,4 +1,5 @@
 import { skip } from "rxjs/operators";
+import { PLATFORM } from "aurelia-pal";
 
 import { PerformanceMeasurement } from "../../src/store";
 import { LogLevel } from "../../src/aurelia-store";
@@ -279,6 +280,13 @@ describe("store", () => {
       initialState,
       { measurePerformance: PerformanceMeasurement.StartEnd }
     );
+    const expectedMeasures = [
+      { duration: 1 },
+      { duration: 2 }
+    ];
+    spyOn(PLATFORM.performance, "mark").and.callThrough();
+    spyOn(PLATFORM.performance, "measure").and.callThrough();
+    spyOn(PLATFORM.performance, "getEntriesByName").and.returnValue(expectedMeasures);
     const loggerSpy = spyOn((store as any).logger, "info");
 
     const actionA = (_: testState) => {
@@ -290,7 +298,16 @@ describe("store", () => {
     store.registerAction("Action A", actionA);
     await store.dispatch(actionA);
 
-    expect(loggerSpy).toHaveBeenCalledWith(expect.any(String), expect.any(Array));
+    expect(PLATFORM.performance.mark).toHaveBeenNthCalledWith(1, "dispatch-start");
+    expect(PLATFORM.performance.mark).toHaveBeenNthCalledWith(2, "dispatch-after-reducer-Action A");
+    expect(PLATFORM.performance.mark).toHaveBeenNthCalledWith(3, "dispatch-end");
+    expect(PLATFORM.performance.measure).toHaveBeenCalledWith(
+      "startEndDispatchDuration",
+      "dispatch-start",
+      "dispatch-end"
+    );
+    expect(PLATFORM.performance.getEntriesByName).toHaveBeenCalledWith("startEndDispatchDuration", "measure");
+    expect(loggerSpy).toHaveBeenCalledWith("Total duration 1 of dispatched action Action A:", expectedMeasures);
   });
 
   it("should log all dispatch durations if turned on via options", async () => {
@@ -302,6 +319,14 @@ describe("store", () => {
       initialState,
       { measurePerformance: PerformanceMeasurement.All }
     );
+    const expectedMarks = [
+      { startTime: 1 },
+      { startTime: 10 },
+      { startTime: 100 },
+    ];
+    const expectedDuration = expectedMarks[2].startTime - expectedMarks[0].startTime;
+    spyOn(PLATFORM.performance, "mark").and.callThrough();
+    spyOn(PLATFORM.performance, "getEntriesByType").and.returnValue(expectedMarks);
     const loggerSpy = spyOn((store as any).logger, "info");
 
     const actionA = (_: testState) => {
@@ -313,7 +338,79 @@ describe("store", () => {
     store.registerAction("Action A", actionA);
     await store.dispatch(actionA);
 
-    expect(loggerSpy).toHaveBeenCalledWith(expect.any(String), expect.any(Array));
+    expect(PLATFORM.performance.mark).toHaveBeenNthCalledWith(1, "dispatch-start");
+    expect(PLATFORM.performance.mark).toHaveBeenNthCalledWith(2, "dispatch-after-reducer-Action A");
+    expect(PLATFORM.performance.mark).toHaveBeenNthCalledWith(3, "dispatch-end");
+    expect(PLATFORM.performance.getEntriesByType).toHaveBeenCalledWith("mark");
+    expect(loggerSpy).toHaveBeenCalledWith(
+      `Total duration ${expectedDuration} of dispatched action Action A:`,
+      expectedMarks
+    );
+  });
+
+  it("should clear only store marks and measures if log start-end dispatch duration turned on via options", async () => {
+    const initialState: testState = {
+      foo: "bar"
+    };
+
+    const store = createStoreWithStateAndOptions<testState>(
+      initialState,
+      { measurePerformance: PerformanceMeasurement.StartEnd }
+    );
+    PLATFORM.performance.mark("user mark 1");
+    PLATFORM.performance.mark("user mark 2");
+    PLATFORM.performance.measure("user measure", "user mark 1", "user mark 2");
+    spyOn(PLATFORM.performance, "clearMarks").and.callThrough();
+    spyOn(PLATFORM.performance, "clearMeasures").and.callThrough();
+
+    const actionA = (_: testState) => {
+      return new Promise<testState>((resolve) => {
+        setTimeout(() => resolve({ foo: "A" }), 1);
+      });
+    };
+
+    store.registerAction("Action A", actionA);
+    await store.dispatch(actionA);
+
+    expect(PLATFORM.performance.clearMarks).toHaveBeenCalledWith("dispatch-start");
+    expect(PLATFORM.performance.clearMarks).toHaveBeenCalledWith("dispatch-after-reducer-Action A");
+    expect(PLATFORM.performance.clearMarks).toHaveBeenCalledWith("dispatch-end");
+    expect(PLATFORM.performance.clearMeasures).toHaveBeenCalledWith("startEndDispatchDuration");
+    expect(PLATFORM.performance.clearMarks).not.toHaveBeenCalledWith("user mark 1");
+    expect(PLATFORM.performance.clearMarks).not.toHaveBeenCalledWith("user mark 2");
+    expect(PLATFORM.performance.clearMeasures).not.toHaveBeenCalledWith("user measure");
+  });
+
+  it("should clear only store marks and measures if log all dispatch duration turned on via options", async () => {
+    const initialState: testState = {
+      foo: "bar"
+    };
+
+    const store = createStoreWithStateAndOptions<testState>(
+      initialState,
+      { measurePerformance: PerformanceMeasurement.All }
+    );
+    PLATFORM.performance.mark("user mark 1");
+    PLATFORM.performance.mark("user mark 2");
+    PLATFORM.performance.measure("user measure", "user mark 1", "user mark 2");
+    spyOn(PLATFORM.performance, "clearMarks").and.callThrough();
+    spyOn(PLATFORM.performance, "clearMeasures").and.callThrough();
+
+    const actionA = (_: testState) => {
+      return new Promise<testState>((resolve) => {
+        setTimeout(() => resolve({ foo: "A" }), 1);
+      });
+    };
+
+    store.registerAction("Action A", actionA);
+    await store.dispatch(actionA);
+
+    expect(PLATFORM.performance.clearMarks).toHaveBeenCalledWith("dispatch-start");
+    expect(PLATFORM.performance.clearMarks).toHaveBeenCalledWith("dispatch-after-reducer-Action A");
+    expect(PLATFORM.performance.clearMarks).toHaveBeenCalledWith("dispatch-end");
+    expect(PLATFORM.performance.clearMarks).not.toHaveBeenCalledWith("user mark 1");
+    expect(PLATFORM.performance.clearMarks).not.toHaveBeenCalledWith("user mark 2");
+    expect(PLATFORM.performance.clearMeasures).not.toHaveBeenCalledWith("user measure");
   });
 
   it("should reset the state without going through the internal dispatch queue", async (done) => {
@@ -590,6 +687,13 @@ describe("store", () => {
         initialState,
         { measurePerformance: PerformanceMeasurement.StartEnd }
       );
+      const expectedMeasures = [
+        { duration: 1 },
+        { duration: 2 }
+      ];
+      spyOn(PLATFORM.performance, "mark").and.callThrough();
+      spyOn(PLATFORM.performance, "measure").and.callThrough();
+      spyOn(PLATFORM.performance, "getEntriesByName").and.returnValue(expectedMeasures);
       const loggerSpy = spyOn((store as any).logger, "info");
 
       const actionA = (_: testState) => {
@@ -601,7 +705,16 @@ describe("store", () => {
       store.registerAction("Action A", actionA);
       await store.pipe(actionA).dispatch();
 
-      expect(loggerSpy).toHaveBeenCalledWith(expect.any(String), expect.any(Array));
+      expect(PLATFORM.performance.mark).toHaveBeenNthCalledWith(1, "dispatch-start");
+      expect(PLATFORM.performance.mark).toHaveBeenNthCalledWith(2, "dispatch-after-reducer-Action A");
+      expect(PLATFORM.performance.mark).toHaveBeenNthCalledWith(3, "dispatch-end");
+      expect(PLATFORM.performance.measure).toHaveBeenCalledWith(
+        "startEndDispatchDuration",
+        "dispatch-start",
+        "dispatch-end"
+      );
+      expect(PLATFORM.performance.getEntriesByName).toHaveBeenCalledWith("startEndDispatchDuration", "measure");
+      expect(loggerSpy).toHaveBeenCalledWith("Total duration 1 of dispatched action Action A:", expectedMeasures);
     });
 
     it("should log all dispatch durations if turned on via options", async () => {
@@ -613,6 +726,14 @@ describe("store", () => {
         initialState,
         { measurePerformance: PerformanceMeasurement.All }
       );
+      const expectedMarks = [
+        { startTime: 1 },
+        { startTime: 10 },
+        { startTime: 100 },
+      ];
+      const expectedDuration = expectedMarks[2].startTime - expectedMarks[0].startTime;
+      spyOn(PLATFORM.performance, "mark").and.callThrough();
+      spyOn(PLATFORM.performance, "getEntriesByType").and.returnValue(expectedMarks);
       const loggerSpy = spyOn((store as any).logger, "info");
 
       const actionA = (_: testState) => {
@@ -624,7 +745,79 @@ describe("store", () => {
       store.registerAction("Action A", actionA);
       await store.pipe(actionA).dispatch();
 
-      expect(loggerSpy).toHaveBeenCalledWith(expect.any(String), expect.any(Array));
+      expect(PLATFORM.performance.mark).toHaveBeenNthCalledWith(1, "dispatch-start");
+      expect(PLATFORM.performance.mark).toHaveBeenNthCalledWith(2, "dispatch-after-reducer-Action A");
+      expect(PLATFORM.performance.mark).toHaveBeenNthCalledWith(3, "dispatch-end");
+      expect(PLATFORM.performance.getEntriesByType).toHaveBeenCalledWith("mark");
+      expect(loggerSpy).toHaveBeenCalledWith(
+        `Total duration ${expectedDuration} of dispatched action Action A:`,
+        expectedMarks
+      );
+    });
+
+    it("should clear only store marks and measures if log start-end dispatch duration turned on via options", async () => {
+      const initialState: testState = {
+        foo: "bar"
+      };
+  
+      const store = createStoreWithStateAndOptions<testState>(
+        initialState,
+        { measurePerformance: PerformanceMeasurement.StartEnd }
+      );
+      PLATFORM.performance.mark("user mark 1");
+      PLATFORM.performance.mark("user mark 2");
+      PLATFORM.performance.measure("user measure", "user mark 1", "user mark 2");
+      spyOn(PLATFORM.performance, "clearMarks").and.callThrough();
+      spyOn(PLATFORM.performance, "clearMeasures").and.callThrough();
+  
+      const actionA = (_: testState) => {
+        return new Promise<testState>((resolve) => {
+          setTimeout(() => resolve({ foo: "A" }), 1);
+        });
+      };
+  
+      store.registerAction("Action A", actionA);
+      await store.pipe(actionA).dispatch();
+  
+      expect(PLATFORM.performance.clearMarks).toHaveBeenCalledWith("dispatch-start");
+      expect(PLATFORM.performance.clearMarks).toHaveBeenCalledWith("dispatch-after-reducer-Action A");
+      expect(PLATFORM.performance.clearMarks).toHaveBeenCalledWith("dispatch-end");
+      expect(PLATFORM.performance.clearMeasures).toHaveBeenCalledWith("startEndDispatchDuration");
+      expect(PLATFORM.performance.clearMarks).not.toHaveBeenCalledWith("user mark 1");
+      expect(PLATFORM.performance.clearMarks).not.toHaveBeenCalledWith("user mark 2");
+      expect(PLATFORM.performance.clearMeasures).not.toHaveBeenCalledWith("user measure");
+    });
+  
+    it("should clear only store marks and measures if log all dispatch duration turned on via options", async () => {
+      const initialState: testState = {
+        foo: "bar"
+      };
+  
+      const store = createStoreWithStateAndOptions<testState>(
+        initialState,
+        { measurePerformance: PerformanceMeasurement.All }
+      );
+      PLATFORM.performance.mark("user mark 1");
+      PLATFORM.performance.mark("user mark 2");
+      PLATFORM.performance.measure("user measure", "user mark 1", "user mark 2");
+      spyOn(PLATFORM.performance, "clearMarks").and.callThrough();
+      spyOn(PLATFORM.performance, "clearMeasures").and.callThrough();
+  
+      const actionA = (_: testState) => {
+        return new Promise<testState>((resolve) => {
+          setTimeout(() => resolve({ foo: "A" }), 1);
+        });
+      };
+  
+      store.registerAction("Action A", actionA);
+      await store.pipe(actionA).dispatch();
+  
+      expect(PLATFORM.performance.clearMarks).toHaveBeenCalledWith("dispatch-start");
+      expect(PLATFORM.performance.clearMarks).toHaveBeenCalledWith("dispatch-after-reducer-Action A");
+      expect(PLATFORM.performance.clearMarks).toHaveBeenCalledWith("dispatch-end");
+      expect(PLATFORM.performance.clearMarks).not.toHaveBeenCalledWith("user mark 1");
+      expect(PLATFORM.performance.clearMarks).not.toHaveBeenCalledWith("user mark 2");
+      expect(PLATFORM.performance.clearMeasures).not.toHaveBeenCalledWith("user measure");
     });
   });
 

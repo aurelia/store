@@ -57,6 +57,8 @@ export class Store<T> {
   private middlewares: Map<Middleware<T>, { placement: MiddlewarePlacement, settings?: any }> = new Map();
   private _state: BehaviorSubject<T>;
   private options: Partial<StoreOptions>;
+  private _markNames: Set<string> = new Set<string>();
+  private _measureNames: Set<string> = new Set<string>();
 
   private dispatchQueue: DispatchQueueItem<T>[] = [];
 
@@ -191,7 +193,7 @@ export class Store<T> {
       throw new UnregisteredActionError(unregisteredAction.reducer);
     }
 
-    PLATFORM.performance.mark("dispatch-start");
+    this.mark("dispatch-start");
 
     const pipedActions = actions.map((a) => ({
       type: this.actions.get(a.reducer)!.type,
@@ -219,8 +221,8 @@ export class Store<T> {
     );
 
     if (beforeMiddleswaresResult === false) {
-      PLATFORM.performance.clearMarks();
-      PLATFORM.performance.clearMeasures();
+      this.clearMarks();
+      this.clearMeasures();
 
       return;
     }
@@ -229,13 +231,13 @@ export class Store<T> {
     for (const action of pipedActions) {
       result = await action.reducer(result, ...action.params);
       if (result === false) {
-        PLATFORM.performance.clearMarks();
-        PLATFORM.performance.clearMeasures();
+        this.clearMarks();
+        this.clearMeasures();
 
         return;
       }
 
-      PLATFORM.performance.mark("dispatch-after-reducer-" + action.type);
+      this.mark("dispatch-after-reducer-" + action.type);
 
       if (!result && typeof result !== "object") {
         throw new Error("The reducer has to return a new state");
@@ -249,8 +251,8 @@ export class Store<T> {
     );
 
     if (resultingState === false) {
-      PLATFORM.performance.clearMarks();
-      PLATFORM.performance.clearMeasures();
+      this.clearMarks();
+      this.clearMeasures();
 
       return;
     }
@@ -262,16 +264,16 @@ export class Store<T> {
     }
 
     this._state.next(resultingState);
-    PLATFORM.performance.mark("dispatch-end");
+    this.mark("dispatch-end");
 
     if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
-      PLATFORM.performance.measure(
+      this.measure(
         "startEndDispatchDuration",
         "dispatch-start",
         "dispatch-end"
       );
 
-      const measures = PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
+      const measures = PLATFORM.performance.getEntriesByName("startEndDispatchDuration", "measure");
       this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
         `Total duration ${measures[0].duration} of dispatched action ${callingAction.name}:`,
         measures
@@ -285,8 +287,8 @@ export class Store<T> {
       );
     }
 
-    PLATFORM.performance.clearMarks();
-    PLATFORM.performance.clearMeasures();
+    this.clearMarks();
+    this.clearMeasures();
 
     this.updateDevToolsState({ type: callingAction.name, params: callingAction.params }, resultingState);
   }
@@ -313,7 +315,7 @@ export class Store<T> {
 
           return await prev;
         } finally {
-          PLATFORM.performance.mark(`dispatch-${placement}-${curr[0].name}`);
+          this.mark(`dispatch-${placement}-${curr[0].name}`);
         }
       }, state);
   }
@@ -379,6 +381,28 @@ export class Store<T> {
 
   private registerHistoryMethods() {
     this.registerAction("jump", jump as Reducer<T>);
+  }
+
+  private mark(markName: string) {
+    this._markNames.add(markName);
+    PLATFORM.performance.mark(markName);
+  }
+
+  private clearMarks() {
+    this._markNames.forEach((markName: string) =>
+      PLATFORM.performance.clearMarks(markName));
+    this._markNames.clear();
+  }
+
+  private measure(measureName: string, startMarkName: string, endMarkName: string) {
+    this._measureNames.add(measureName);
+    PLATFORM.performance.measure(measureName, startMarkName, endMarkName)
+  }
+
+  private clearMeasures() {
+    this._measureNames.forEach((measureName: string) =>
+      PLATFORM.performance.clearMeasures(measureName));
+    this._measureNames.clear();
   }
 }
 
