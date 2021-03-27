@@ -163,6 +163,8 @@
           this.devToolsAvailable = false;
           this.actions = new Map();
           this.middlewares = new Map();
+          this._markNames = new Set();
+          this._measureNames = new Set();
           this.dispatchQueue = [];
           this.options = options || {};
           const isUndoable = this.options.history && this.options.history.undoable === true;
@@ -273,7 +275,7 @@
               if (unregisteredAction) {
                   throw new UnregisteredActionError(unregisteredAction.reducer);
               }
-              aureliaPal.PLATFORM.performance.mark("dispatch-start");
+              this.mark("dispatch-start");
               const pipedActions = actions.map((a) => ({
                   type: this.actions.get(a.reducer).type,
                   params: a.params,
@@ -292,27 +294,27 @@
               }
               const beforeMiddleswaresResult = yield this.executeMiddlewares(this._state.getValue(), exports.MiddlewarePlacement.Before, callingAction);
               if (beforeMiddleswaresResult === false) {
-                  aureliaPal.PLATFORM.performance.clearMarks();
-                  aureliaPal.PLATFORM.performance.clearMeasures();
+                  this.clearMarks();
+                  this.clearMeasures();
                   return;
               }
               let result = beforeMiddleswaresResult;
               for (const action of pipedActions) {
                   result = yield action.reducer(result, ...action.params);
                   if (result === false) {
-                      aureliaPal.PLATFORM.performance.clearMarks();
-                      aureliaPal.PLATFORM.performance.clearMeasures();
+                      this.clearMarks();
+                      this.clearMeasures();
                       return;
                   }
-                  aureliaPal.PLATFORM.performance.mark("dispatch-after-reducer-" + action.type);
+                  this.mark("dispatch-after-reducer-" + action.type);
                   if (!result && typeof result !== "object") {
                       throw new Error("The reducer has to return a new state");
                   }
               }
               let resultingState = yield this.executeMiddlewares(result, exports.MiddlewarePlacement.After, callingAction);
               if (resultingState === false) {
-                  aureliaPal.PLATFORM.performance.clearMarks();
-                  aureliaPal.PLATFORM.performance.clearMeasures();
+                  this.clearMarks();
+                  this.clearMeasures();
                   return;
               }
               if (isStateHistory(resultingState) &&
@@ -321,10 +323,10 @@
                   resultingState = applyLimits(resultingState, this.options.history.limit);
               }
               this._state.next(resultingState);
-              aureliaPal.PLATFORM.performance.mark("dispatch-end");
+              this.mark("dispatch-end");
               if (this.options.measurePerformance === exports.PerformanceMeasurement.StartEnd) {
-                  aureliaPal.PLATFORM.performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
-                  const measures = aureliaPal.PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
+                  this.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
+                  const measures = aureliaPal.PLATFORM.performance.getEntriesByName("startEndDispatchDuration", "measure");
                   this.logger[getLogType(this.options, "performanceLog", exports.LogLevel.info)](`Total duration ${measures[0].duration} of dispatched action ${callingAction.name}:`, measures);
               }
               else if (this.options.measurePerformance === exports.PerformanceMeasurement.All) {
@@ -332,8 +334,8 @@
                   const totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
                   this.logger[getLogType(this.options, "performanceLog", exports.LogLevel.info)](`Total duration ${totalDuration} of dispatched action ${callingAction.name}:`, marks);
               }
-              aureliaPal.PLATFORM.performance.clearMarks();
-              aureliaPal.PLATFORM.performance.clearMeasures();
+              this.clearMarks();
+              this.clearMeasures();
               this.updateDevToolsState({ type: callingAction.name, params: callingAction.params }, resultingState);
           });
       }
@@ -357,7 +359,7 @@
                   return yield prev;
               }
               finally {
-                  aureliaPal.PLATFORM.performance.mark(`dispatch-${placement}-${curr[0].name}`);
+                  this.mark(`dispatch-${placement}-${curr[0].name}`);
               }
           }), state);
       }
@@ -413,6 +415,22 @@
       }
       registerHistoryMethods() {
           this.registerAction("jump", jump);
+      }
+      mark(markName) {
+          this._markNames.add(markName);
+          aureliaPal.PLATFORM.performance.mark(markName);
+      }
+      clearMarks() {
+          this._markNames.forEach((markName) => aureliaPal.PLATFORM.performance.clearMarks(markName));
+          this._markNames.clear();
+      }
+      measure(measureName, startMarkName, endMarkName) {
+          this._measureNames.add(measureName);
+          aureliaPal.PLATFORM.performance.measure(measureName, startMarkName, endMarkName);
+      }
+      clearMeasures() {
+          this._measureNames.forEach((measureName) => aureliaPal.PLATFORM.performance.clearMeasures(measureName));
+          this._measureNames.clear();
       }
   }
   function dispatchify(action) {

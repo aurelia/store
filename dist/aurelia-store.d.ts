@@ -252,6 +252,8 @@ export declare class Store<T> {
 	private middlewares;
 	private _state;
 	private options;
+	private _markNames;
+	private _measureNames;
 	private dispatchQueue;
 	constructor(initialState: T, options?: Partial<StoreOptions>);
 	registerMiddleware<S extends undefined>(reducer: Middleware<T, undefined>, placement: MiddlewarePlacement): void;
@@ -272,6 +274,10 @@ export declare class Store<T> {
 	private setupDevTools;
 	private updateDevToolsState;
 	private registerHistoryMethods;
+	private mark;
+	private clearMarks;
+	private measure;
+	private clearMeasures;
 }
 export declare function dispatchify<T, P extends any[]>(action: Reducer<T, P> | string): (...params: P) => Promise<void>;
 export declare type StepFn<T> = (res: T) => void;

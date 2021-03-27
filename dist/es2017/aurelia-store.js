@@ -142,6 +142,8 @@ class Store {
         this.devToolsAvailable = false;
         this.actions = new Map();
         this.middlewares = new Map();
+        this._markNames = new Set();
+        this._measureNames = new Set();
         this.dispatchQueue = [];
         this.options = options || {};
         const isUndoable = this.options.history && this.options.history.undoable === true;
@@ -249,7 +251,7 @@ class Store {
         if (unregisteredAction) {
             throw new UnregisteredActionError(unregisteredAction.reducer);
         }
-        PLATFORM.performance.mark("dispatch-start");
+        this.mark("dispatch-start");
         const pipedActions = actions.map((a) => ({
             type: this.actions.get(a.reducer).type,
             params: a.params,
@@ -268,27 +270,27 @@ class Store {
         }
         const beforeMiddleswaresResult = await this.executeMiddlewares(this._state.getValue(), MiddlewarePlacement.Before, callingAction);
         if (beforeMiddleswaresResult === false) {
-            PLATFORM.performance.clearMarks();
-            PLATFORM.performance.clearMeasures();
+            this.clearMarks();
+            this.clearMeasures();
             return;
         }
         let result = beforeMiddleswaresResult;
         for (const action of pipedActions) {
             result = await action.reducer(result, ...action.params);
             if (result === false) {
-                PLATFORM.performance.clearMarks();
-                PLATFORM.performance.clearMeasures();
+                this.clearMarks();
+                this.clearMeasures();
                 return;
             }
-            PLATFORM.performance.mark("dispatch-after-reducer-" + action.type);
+            this.mark("dispatch-after-reducer-" + action.type);
             if (!result && typeof result !== "object") {
                 throw new Error("The reducer has to return a new state");
             }
         }
         let resultingState = await this.executeMiddlewares(result, MiddlewarePlacement.After, callingAction);
         if (resultingState === false) {
-            PLATFORM.performance.clearMarks();
-            PLATFORM.performance.clearMeasures();
+            this.clearMarks();
+            this.clearMeasures();
             return;
         }
         if (isStateHistory(resultingState) &&
@@ -297,10 +299,10 @@ class Store {
             resultingState = applyLimits(resultingState, this.options.history.limit);
         }
         this._state.next(resultingState);
-        PLATFORM.performance.mark("dispatch-end");
+        this.mark("dispatch-end");
         if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
-            PLATFORM.performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
-            const measures = PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
+            this.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
+            const measures = PLATFORM.performance.getEntriesByName("startEndDispatchDuration", "measure");
             this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](`Total duration ${measures[0].duration} of dispatched action ${callingAction.name}:`, measures);
         }
         else if (this.options.measurePerformance === PerformanceMeasurement.All) {
@@ -308,8 +310,8 @@ class Store {
             const totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
             this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](`Total duration ${totalDuration} of dispatched action ${callingAction.name}:`, marks);
         }
-        PLATFORM.performance.clearMarks();
-        PLATFORM.performance.clearMeasures();
+        this.clearMarks();
+        this.clearMeasures();
         this.updateDevToolsState({ type: callingAction.name, params: callingAction.params }, resultingState);
     }
     executeMiddlewares(state, placement, action) {
@@ -332,7 +334,7 @@ class Store {
                 return await prev;
             }
             finally {
-                PLATFORM.performance.mark(`dispatch-${placement}-${curr[0].name}`);
+                this.mark(`dispatch-${placement}-${curr[0].name}`);
             }
         }, state);
     }
@@ -388,6 +390,22 @@ class Store {
     }
     registerHistoryMethods() {
         this.registerAction("jump", jump);
+    }
+    mark(markName) {
+        this._markNames.add(markName);
+        PLATFORM.performance.mark(markName);
+    }
+    clearMarks() {
+        this._markNames.forEach((markName) => PLATFORM.performance.clearMarks(markName));
+        this._markNames.clear();
+    }
+    measure(measureName, startMarkName, endMarkName) {
+        this._measureNames.add(measureName);
+        PLATFORM.performance.measure(measureName, startMarkName, endMarkName);
+    }
+    clearMeasures() {
+        this._measureNames.forEach((measureName) => PLATFORM.performance.clearMeasures(measureName));
+        this._measureNames.clear();
     }
 }
 function dispatchify(action) {

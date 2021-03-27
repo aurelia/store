@@ -227,6 +227,8 @@ var Store = /** @class */ (function () {
         this.devToolsAvailable = false;
         this.actions = new Map();
         this.middlewares = new Map();
+        this._markNames = new Set();
+        this._measureNames = new Set();
         this.dispatchQueue = [];
         this.options = options || {};
         var isUndoable = this.options.history && this.options.history.undoable === true;
@@ -372,7 +374,7 @@ var Store = /** @class */ (function () {
                         if (unregisteredAction) {
                             throw new UnregisteredActionError(unregisteredAction.reducer);
                         }
-                        aureliaPal.PLATFORM.performance.mark("dispatch-start");
+                        this.mark("dispatch-start");
                         pipedActions = actions.map(function (a) { return ({
                             type: _this.actions.get(a.reducer).type,
                             params: a.params,
@@ -393,8 +395,8 @@ var Store = /** @class */ (function () {
                     case 1:
                         beforeMiddleswaresResult = _a.sent();
                         if (beforeMiddleswaresResult === false) {
-                            aureliaPal.PLATFORM.performance.clearMarks();
-                            aureliaPal.PLATFORM.performance.clearMeasures();
+                            this.clearMarks();
+                            this.clearMeasures();
                             return [2 /*return*/];
                         }
                         result = beforeMiddleswaresResult;
@@ -407,11 +409,11 @@ var Store = /** @class */ (function () {
                     case 3:
                         result = _a.sent();
                         if (result === false) {
-                            aureliaPal.PLATFORM.performance.clearMarks();
-                            aureliaPal.PLATFORM.performance.clearMeasures();
+                            this.clearMarks();
+                            this.clearMeasures();
                             return [2 /*return*/];
                         }
-                        aureliaPal.PLATFORM.performance.mark("dispatch-after-reducer-" + action.type);
+                        this.mark("dispatch-after-reducer-" + action.type);
                         if (!result && typeof result !== "object") {
                             throw new Error("The reducer has to return a new state");
                         }
@@ -423,8 +425,8 @@ var Store = /** @class */ (function () {
                     case 6:
                         resultingState = _a.sent();
                         if (resultingState === false) {
-                            aureliaPal.PLATFORM.performance.clearMarks();
-                            aureliaPal.PLATFORM.performance.clearMeasures();
+                            this.clearMarks();
+                            this.clearMeasures();
                             return [2 /*return*/];
                         }
                         if (isStateHistory(resultingState) &&
@@ -433,10 +435,10 @@ var Store = /** @class */ (function () {
                             resultingState = applyLimits(resultingState, this.options.history.limit);
                         }
                         this._state.next(resultingState);
-                        aureliaPal.PLATFORM.performance.mark("dispatch-end");
+                        this.mark("dispatch-end");
                         if (this.options.measurePerformance === exports.PerformanceMeasurement.StartEnd) {
-                            aureliaPal.PLATFORM.performance.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
-                            measures = aureliaPal.PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
+                            this.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
+                            measures = aureliaPal.PLATFORM.performance.getEntriesByName("startEndDispatchDuration", "measure");
                             this.logger[getLogType(this.options, "performanceLog", exports.LogLevel.info)]("Total duration " + measures[0].duration + " of dispatched action " + callingAction.name + ":", measures);
                         }
                         else if (this.options.measurePerformance === exports.PerformanceMeasurement.All) {
@@ -444,8 +446,8 @@ var Store = /** @class */ (function () {
                             totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
                             this.logger[getLogType(this.options, "performanceLog", exports.LogLevel.info)]("Total duration " + totalDuration + " of dispatched action " + callingAction.name + ":", marks);
                         }
-                        aureliaPal.PLATFORM.performance.clearMarks();
-                        aureliaPal.PLATFORM.performance.clearMeasures();
+                        this.clearMarks();
+                        this.clearMeasures();
                         this.updateDevToolsState({ type: callingAction.name, params: callingAction.params }, resultingState);
                         return [2 /*return*/];
                 }
@@ -487,7 +489,7 @@ var Store = /** @class */ (function () {
                         return [4 /*yield*/, prev];
                     case 6: return [2 /*return*/, _d.sent()];
                     case 7:
-                        aureliaPal.PLATFORM.performance.mark("dispatch-" + placement + "-" + curr[0].name);
+                        this.mark("dispatch-" + placement + "-" + curr[0].name);
                         return [7 /*endfinally*/];
                     case 8: return [2 /*return*/];
                 }
@@ -548,6 +550,26 @@ var Store = /** @class */ (function () {
     };
     Store.prototype.registerHistoryMethods = function () {
         this.registerAction("jump", jump);
+    };
+    Store.prototype.mark = function (markName) {
+        this._markNames.add(markName);
+        aureliaPal.PLATFORM.performance.mark(markName);
+    };
+    Store.prototype.clearMarks = function () {
+        this._markNames.forEach(function (markName) {
+            return aureliaPal.PLATFORM.performance.clearMarks(markName);
+        });
+        this._markNames.clear();
+    };
+    Store.prototype.measure = function (measureName, startMarkName, endMarkName) {
+        this._measureNames.add(measureName);
+        aureliaPal.PLATFORM.performance.measure(measureName, startMarkName, endMarkName);
+    };
+    Store.prototype.clearMeasures = function () {
+        this._measureNames.forEach(function (measureName) {
+            return aureliaPal.PLATFORM.performance.clearMeasures(measureName);
+        });
+        this._measureNames.clear();
     };
     return Store;
 }());
