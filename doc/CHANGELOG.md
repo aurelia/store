@@ -1,3 +1,13 @@
+<a name="1.7.0"></a>
+# [1.7.0](https://github.com/aurelia/store/compare/1.6.0...1.7.0) (2021-03-27)
+
+
+### Bug Fixes
+
+* **pal:** clear only store defined marks and measures ([d395528](https://github.com/aurelia/store/commit/d395528))
+
+
+
 <a name="1.6.0"></a>
 # [1.6.0](https://github.com/aurelia/store/compare/1.5.0...1.6.0) (2020-03-03)
 
