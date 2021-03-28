@@ -4,7 +4,8 @@
 [![ZenHub](https://raw.githubusercontent.com/ZenHubIO/support/master/zenhub-badge.png)](https://zenhub.io)
 [![Join the chat at https://gitter.im/aurelia/discuss](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/aurelia/discuss?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![CircleCI](https://circleci.com/gh/aurelia/store.svg?style=shield)](https://circleci.com/gh/aurelia/store)
-[![Coverage Status](https://coveralls.io/repos/github/aurelia/store/badge.svg?branch=master)](https://coveralls.io/github/aurelia/store?branch=master)
+[![Coverage Status](image.png)](image.png)
+
 
 This library is part of the [Aurelia](http://www.aurelia.io/) platform and contains a plugin that provides a single state store based on RxJS.
 Various examples can be found in the [samples repository](https://github.com/zewa666/aurelia-store-examples)..
