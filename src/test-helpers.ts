@@ -31,7 +31,7 @@ export async function executeSteps<T>(store: Store<T>, shouldLogResults: boolean
       resolve();
     };
 
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     let currentStep = 0;
 
     steps.slice(0, -1).forEach((step) => {

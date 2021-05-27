@@ -554,4 +554,4 @@ function configure(aurelia, options) {
         .registerInstance(Store, new Store(initState, options));
 }
 
-export { configure, PerformanceMeasurement, UnregisteredActionError, Store, dispatchify, executeSteps, jump, nextStateHistory, applyLimits, isStateHistory, DEFAULT_LOCAL_STORAGE_KEY, MiddlewarePlacement, logMiddleware, localStorageMiddleware, rehydrateFromLocalStorage, LogLevel, LoggerIndexed, getLogType, connectTo };
+export { DEFAULT_LOCAL_STORAGE_KEY, LogLevel, LoggerIndexed, MiddlewarePlacement, PerformanceMeasurement, Store, UnregisteredActionError, applyLimits, configure, connectTo, dispatchify, executeSteps, getLogType, isStateHistory, jump, localStorageMiddleware, logMiddleware, nextStateHistory, rehydrateFromLocalStorage };

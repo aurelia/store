@@ -86,16 +86,18 @@
       "dist": "dist/commonjs"
     }
   },
+  "peerDependencies": {
+    "rxjs": ">= 6.2.2 < 8"
+  },
   "dependencies": {
     "aurelia-dependency-injection": "^1.4.1",
     "aurelia-logging": "^1.5.0",
     "aurelia-pal": "^1.8.0",
-    "aurelia-templating": "^1.10.1",
-    "rxjs": "^6.2.2"
+    "aurelia-templating": "^1.10.1"
   },
   "devDependencies": {
     "@types/jest": "^24.0.13",
-    "@types/node": "^8.10.26",
+    "@types/node": "^10.17.60",
     "@types/rimraf": "^2.0.2",
     "@types/yargs": "^12.0.1",
     "aurelia-bootstrapper": "^2.3.0",
@@ -111,17 +113,19 @@
     "copyfiles": "^2.0.0",
     "coveralls": "^3.0.2",
     "cross-env": "^5.2.0",
-    "dts-bundle-generator": "^1.6.1",
+    "dts-bundle-generator": "^5.9.0",
     "husky": "^0.14.3",
     "jest": "^24.8.0",
     "rimraf": "^2.6.1",
-    "rollup": "^1.1.0",
-    "rollup-plugin-typescript2": "^0.21.1",
+    "rollup": "^2.50.2",
+    "rollup-plugin-typescript2": "^0.30.0",
+    "rxjs": "^7.1.0",
     "ts-jest": "^23.1.4",
-    "ts-node": "^7.0.1",
+    "ts-node": "^10.0.0",
+    "tslib": "^2.2.0",
     "tslint": "^5.11.0",
     "typedoc": "^0.16.8",
-    "typescript": "^3.0.1",
+    "typescript": "^4.3.2",
     "yargs": "^12.0.2"
   },
   "aurelia": {
