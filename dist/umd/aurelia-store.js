@@ -1,8 +1,8 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('rxjs'), require('aurelia-dependency-injection'), require('aurelia-logging'), require('aurelia-pal'), require('rxjs/operators')) :
   typeof define === 'function' && define.amd ? define(['exports', 'rxjs', 'aurelia-dependency-injection', 'aurelia-logging', 'aurelia-pal', 'rxjs/operators'], factory) :
-  (global = global || self, factory((global.au = global.au || {}, global.au.store = {}), global.rxjs, global.au, global.au.LogManager, global.au, global.rxjs));
-}(this, function (exports, rxjs, aureliaDependencyInjection, aureliaLogging, aureliaPal, operators) { 'use strict';
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory((global.au = global.au || {}, global.au.store = {}), global.rxjs, global.au, global.au.LogManager, global.au, global.rxjs));
+}(this, (function (exports, rxjs, aureliaDependencyInjection, aureliaLogging, aureliaPal, operators) { 'use strict';
 
   /* istanbul ignore next */
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries#Polyfill
@@ -17,29 +17,31 @@
   }
 
   /*! *****************************************************************************
-  Copyright (c) Microsoft Corporation. All rights reserved.
-  Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-  this file except in compliance with the License. You may obtain a copy of the
-  License at http://www.apache.org/licenses/LICENSE-2.0
+  Copyright (c) Microsoft Corporation.
 
-  THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-  KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-  WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-  MERCHANTABLITY OR NON-INFRINGEMENT.
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted.
 
-  See the Apache Version 2.0 License for specific language governing permissions
-  and limitations under the License.
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+  REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+  AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+  INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+  OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  PERFORMANCE OF THIS SOFTWARE.
   ***************************************************************************** */
   /* global Reflect, Promise */
 
   var extendStatics = function(d, b) {
       extendStatics = Object.setPrototypeOf ||
           ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-          function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+          function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
       return extendStatics(d, b);
   };
 
   function __extends(d, b) {
+      if (typeof b !== "function" && b !== null)
+          throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
       extendStatics(d, b);
       function __() { this.constructor = d; }
       d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -57,10 +59,11 @@
   };
 
   function __awaiter(thisArg, _arguments, P, generator) {
+      function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
       return new (P || (P = Promise))(function (resolve, reject) {
           function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
           function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-          function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+          function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
           step((generator = generator.apply(thisArg, _arguments || [])).next());
       });
   }
@@ -93,6 +96,12 @@
       }
   }
 
+  function __spreadArray(to, from) {
+      for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
+          to[j] = from[i];
+      return to;
+  }
+
   function jump(state, n) {
       if (!isStateHistory(state)) {
           return state;
@@ -108,7 +117,7 @@
           return state;
       }
       var past = state.past, future = state.future, present = state.present;
-      var newPast = past.concat([present], future.slice(0, index));
+      var newPast = __spreadArray(__spreadArray(__spreadArray([], past), [present]), future.slice(0, index));
       var newPresent = future[index];
       var newFuture = future.slice(index + 1);
       return { past: newPast, present: newPresent, future: newFuture };
@@ -119,13 +128,13 @@
       }
       var past = state.past, future = state.future, present = state.present;
       var newPast = past.slice(0, index);
-      var newFuture = past.slice(index + 1).concat([present], future);
+      var newFuture = __spreadArray(__spreadArray(__spreadArray([], past.slice(index + 1)), [present]), future);
       var newPresent = past[index];
       return { past: newPast, present: newPresent, future: newFuture };
   }
   function nextStateHistory(presentStateHistory, nextPresent) {
       return Object.assign({}, presentStateHistory, {
-          past: presentStateHistory.past.concat([presentStateHistory.present]),
+          past: __spreadArray(__spreadArray([], presentStateHistory.past), [presentStateHistory.present]),
           present: nextPresent,
           future: []
       });
@@ -150,6 +159,7 @@
   }
 
   var DEFAULT_LOCAL_STORAGE_KEY = "aurelia-store-state";
+  exports.MiddlewarePlacement = void 0;
   (function (MiddlewarePlacement) {
       MiddlewarePlacement["Before"] = "before";
       MiddlewarePlacement["After"] = "after";
@@ -179,6 +189,7 @@
       return state;
   }
 
+  exports.LogLevel = void 0;
   (function (LogLevel) {
       LogLevel["trace"] = "trace";
       LogLevel["debug"] = "debug";
@@ -205,6 +216,7 @@
       return defaultLevel;
   }
 
+  exports.PerformanceMeasurement = void 0;
   (function (PerformanceMeasurement) {
       PerformanceMeasurement["StartEnd"] = "startEnd";
       PerformanceMeasurement["All"] = "all";
@@ -304,12 +316,12 @@
                   return dispatchPipe;
               }
           };
-          return dispatchPipe.pipe.apply(dispatchPipe, [reducer].concat(params));
+          return dispatchPipe.pipe.apply(dispatchPipe, __spreadArray([reducer], params));
       };
       Store.prototype.lookupAction = function (reducer) {
           if (typeof reducer === "string") {
               var result = Array.from(this.actions).find(function (_a) {
-                  var _ = _a[0], action = _a[1];
+                  _a[0]; var action = _a[1];
                   return action.type === reducer;
               });
               if (result) {
@@ -401,7 +413,7 @@
                       case 2:
                           if (!(_i < pipedActions_1.length)) return [3 /*break*/, 5];
                           action = pipedActions_1[_i];
-                          return [4 /*yield*/, action.reducer.apply(action, [result].concat(action.params))];
+                          return [4 /*yield*/, action.reducer.apply(action, __spreadArray([result], action.params))];
                       case 3:
                           result = _a.sent();
                           if (result === false) {
@@ -466,7 +478,6 @@
                       case 2:
                           result = _d.sent();
                           if (result === false) {
-                              _arr = [];
                               return [2 /*return*/, false];
                           }
                           _c = result;
@@ -479,7 +490,6 @@
                       case 5:
                           e_2 = _d.sent();
                           if (this.options.propagateError) {
-                              _arr = [];
                               throw e_2;
                           }
                           return [4 /*yield*/, prev];
@@ -513,7 +523,7 @@
                       if (!message.payload.args || message.payload.args.length < 1) {
                           throw new Error("No action arguments provided");
                       }
-                      _this.dispatch.apply(_this, [action].concat(message.payload.args.slice(1).map(function (arg) { return JSON.parse(arg); })));
+                      _this.dispatch.apply(_this, __spreadArray([action], message.payload.args.slice(1).map(function (arg) { return JSON.parse(arg); })));
                       return;
                   }
                   if (message.type === "DISPATCH" && message.payload) {
@@ -576,7 +586,7 @@
           for (var _i = 0; _i < arguments.length; _i++) {
               params[_i] = arguments[_i];
           }
-          return store.dispatch.apply(store, [action].concat(params));
+          return store.dispatch.apply(store, __spreadArray([action], params));
       };
   }
 
@@ -649,8 +659,8 @@
               _a[_settings.target || "state"] = _settings.selector || defaultSelector,
               _a);
           return Object.entries(__assign({}, (isSelectorObj ? _settings.selector : fallbackSelector))).map(function (_a) {
-              var target = _a[0], selector = _a[1];
               var _b;
+              var target = _a[0], selector = _a[1];
               return ({
                   targets: _settings.target && isSelectorObj ? [_settings.target, target] : [target],
                   selector: selector,
@@ -741,23 +751,23 @@
           .registerInstance(Store, new Store(initState, options));
   }
 
-  exports.configure = configure;
-  exports.UnregisteredActionError = UnregisteredActionError;
+  exports.DEFAULT_LOCAL_STORAGE_KEY = DEFAULT_LOCAL_STORAGE_KEY;
+  exports.LoggerIndexed = LoggerIndexed;
   exports.Store = Store;
+  exports.UnregisteredActionError = UnregisteredActionError;
+  exports.applyLimits = applyLimits;
+  exports.configure = configure;
+  exports.connectTo = connectTo;
   exports.dispatchify = dispatchify;
   exports.executeSteps = executeSteps;
-  exports.jump = jump;
-  exports.nextStateHistory = nextStateHistory;
-  exports.applyLimits = applyLimits;
-  exports.isStateHistory = isStateHistory;
-  exports.DEFAULT_LOCAL_STORAGE_KEY = DEFAULT_LOCAL_STORAGE_KEY;
-  exports.logMiddleware = logMiddleware;
-  exports.localStorageMiddleware = localStorageMiddleware;
-  exports.rehydrateFromLocalStorage = rehydrateFromLocalStorage;
-  exports.LoggerIndexed = LoggerIndexed;
   exports.getLogType = getLogType;
-  exports.connectTo = connectTo;
+  exports.isStateHistory = isStateHistory;
+  exports.jump = jump;
+  exports.localStorageMiddleware = localStorageMiddleware;
+  exports.logMiddleware = logMiddleware;
+  exports.nextStateHistory = nextStateHistory;
+  exports.rehydrateFromLocalStorage = rehydrateFromLocalStorage;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
-}));
+})));

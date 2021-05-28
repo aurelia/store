@@ -1,8 +1,8 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('rxjs'), require('aurelia-dependency-injection'), require('aurelia-logging'), require('aurelia-pal'), require('rxjs/operators')) :
   typeof define === 'function' && define.amd ? define(['exports', 'rxjs', 'aurelia-dependency-injection', 'aurelia-logging', 'aurelia-pal', 'rxjs/operators'], factory) :
-  (global = global || self, factory((global.au = global.au || {}, global.au.store = {}), global.rxjs, global.au, global.au.LogManager, global.au, global.rxjs));
-}(this, function (exports, rxjs, aureliaDependencyInjection, aureliaLogging, aureliaPal, operators) { 'use strict';
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory((global.au = global.au || {}, global.au.store = {}), global.rxjs, global.au, global.au.LogManager, global.au, global.rxjs));
+}(this, (function (exports, rxjs, aureliaDependencyInjection, aureliaLogging, aureliaPal, operators) { 'use strict';
 
   /* istanbul ignore next */
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries#Polyfill
@@ -17,25 +17,26 @@
   }
 
   /*! *****************************************************************************
-  Copyright (c) Microsoft Corporation. All rights reserved.
-  Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-  this file except in compliance with the License. You may obtain a copy of the
-  License at http://www.apache.org/licenses/LICENSE-2.0
+  Copyright (c) Microsoft Corporation.
 
-  THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-  KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-  WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-  MERCHANTABLITY OR NON-INFRINGEMENT.
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted.
 
-  See the Apache Version 2.0 License for specific language governing permissions
-  and limitations under the License.
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+  REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+  AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+  INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+  OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  PERFORMANCE OF THIS SOFTWARE.
   ***************************************************************************** */
 
   function __awaiter(thisArg, _arguments, P, generator) {
+      function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
       return new (P || (P = Promise))(function (resolve, reject) {
           function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
           function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-          function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+          function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
           step((generator = generator.apply(thisArg, _arguments || [])).next());
       });
   }
@@ -97,6 +98,7 @@
   }
 
   const DEFAULT_LOCAL_STORAGE_KEY = "aurelia-store-state";
+  exports.MiddlewarePlacement = void 0;
   (function (MiddlewarePlacement) {
       MiddlewarePlacement["Before"] = "before";
       MiddlewarePlacement["After"] = "after";
@@ -126,6 +128,7 @@
       return state;
   }
 
+  exports.LogLevel = void 0;
   (function (LogLevel) {
       LogLevel["trace"] = "trace";
       LogLevel["debug"] = "debug";
@@ -147,6 +150,7 @@
       return defaultLevel;
   }
 
+  exports.PerformanceMeasurement = void 0;
   (function (PerformanceMeasurement) {
       PerformanceMeasurement["StartEnd"] = "startEnd";
       PerformanceMeasurement["All"] = "all";
@@ -581,23 +585,23 @@
           .registerInstance(Store, new Store(initState, options));
   }
 
-  exports.configure = configure;
-  exports.UnregisteredActionError = UnregisteredActionError;
+  exports.DEFAULT_LOCAL_STORAGE_KEY = DEFAULT_LOCAL_STORAGE_KEY;
+  exports.LoggerIndexed = LoggerIndexed;
   exports.Store = Store;
+  exports.UnregisteredActionError = UnregisteredActionError;
+  exports.applyLimits = applyLimits;
+  exports.configure = configure;
+  exports.connectTo = connectTo;
   exports.dispatchify = dispatchify;
   exports.executeSteps = executeSteps;
-  exports.jump = jump;
-  exports.nextStateHistory = nextStateHistory;
-  exports.applyLimits = applyLimits;
-  exports.isStateHistory = isStateHistory;
-  exports.DEFAULT_LOCAL_STORAGE_KEY = DEFAULT_LOCAL_STORAGE_KEY;
-  exports.logMiddleware = logMiddleware;
-  exports.localStorageMiddleware = localStorageMiddleware;
-  exports.rehydrateFromLocalStorage = rehydrateFromLocalStorage;
-  exports.LoggerIndexed = LoggerIndexed;
   exports.getLogType = getLogType;
-  exports.connectTo = connectTo;
+  exports.isStateHistory = isStateHistory;
+  exports.jump = jump;
+  exports.localStorageMiddleware = localStorageMiddleware;
+  exports.logMiddleware = logMiddleware;
+  exports.nextStateHistory = nextStateHistory;
+  exports.rehydrateFromLocalStorage = rehydrateFromLocalStorage;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
-}));
+})));
