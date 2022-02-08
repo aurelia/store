@@ -68,7 +68,7 @@ export class Store<T> {
     this._state = new BehaviorSubject<T>(initialState);
     this.state = this._state.asObservable();
 
-    if (!this.options.devToolsOptions || this.options.devToolsOptions.disable !== true) {
+    if (!this.options.devToolsOptions || (this.options.devToolsOptions as any).disable !== true) {
       this.setupDevTools();
     }
 
@@ -321,7 +321,7 @@ export class Store<T> {
   }
 
   private setupDevTools() {
-    if (PLATFORM.global.devToolsExtension) {
+    if (PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__) {
       this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)]("DevTools are available");
       this.devToolsAvailable = true;
       this.devTools = PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);

@@ -89,11 +89,12 @@
   "dependencies": {
     "aurelia-dependency-injection": "^1.4.1",
     "aurelia-logging": "^1.5.0",
-    "aurelia-pal": "^1.8.0",
+    "aurelia-pal": "^1.8.2",
     "aurelia-templating": "^1.10.1",
     "rxjs": "^6.2.2"
   },
   "devDependencies": {
+    "@redux-devtools/extension": "^3.2.1",
     "@types/jest": "^24.0.13",
     "@types/node": "^8.10.26",
     "@types/rimraf": "^2.0.2",
