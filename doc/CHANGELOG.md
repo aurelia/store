@@ -1,3 +1,13 @@
+<a name="1.7.1"></a>
+## [1.7.1](https://github.com/aurelia/store/compare/1.7.0...1.7.1) (2022-02-09)
+
+
+### Bug Fixes
+
+* **devtools:** drop deprecated window global; use typings from upstream ([6ccae8a](https://github.com/aurelia/store/commit/6ccae8a))
+
+
+
 <a name="1.7.0"></a>
 # [1.7.0](https://github.com/aurelia/store/compare/1.6.0...1.7.0) (2021-03-27)
 

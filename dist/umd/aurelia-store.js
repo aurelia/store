@@ -494,7 +494,7 @@
       };
       Store.prototype.setupDevTools = function () {
           var _this = this;
-          if (aureliaPal.PLATFORM.global.devToolsExtension) {
+          if (aureliaPal.PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__) {
               this.logger[getLogType(this.options, "devToolsStatus", exports.LogLevel.debug)]("DevTools are available");
               this.devToolsAvailable = true;
               this.devTools = aureliaPal.PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
