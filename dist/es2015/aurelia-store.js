@@ -367,7 +367,7 @@ class Store {
         }), state);
     }
     setupDevTools() {
-        if (PLATFORM.global.devToolsExtension) {
+        if (PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__) {
             this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)]("DevTools are available");
             this.devToolsAvailable = true;
             this.devTools = PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
