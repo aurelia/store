@@ -1,6 +1,6 @@
 import { Container } from "aurelia-framework";
 import { Subscription } from "rxjs";
-import { pluck, distinctUntilChanged } from "rxjs/operators";
+import { pluck, distinctUntilChanged, map } from "rxjs/operators";
 
 import { Store } from "../../src/store";
 import { connectTo } from "../../src/decorator";
@@ -60,6 +60,23 @@ describe("using decorators", () => {
     (sut as any).bind();
 
     expect(sut.state).toEqual(initialState.bar);
+  });
+
+  it("should pass the target instance to a state selector", () => {
+    const { initialState } = arrange();
+
+    @connectTo<DemoState>((store, targetInstance: DemoStoreConsumer) => store.state.pipe(map(state => state[targetInstance.baz])))
+    class DemoStoreConsumer {
+      baz: keyof DemoState = "foo";
+      state: DemoState;
+    }
+
+    const sut = new DemoStoreConsumer();
+    expect(sut.state).toEqual(undefined);
+
+    (sut as any).bind();
+
+    expect(sut.state).toEqual(initialState.foo);
   });
 
   describe("with a complex settings object", () => {
