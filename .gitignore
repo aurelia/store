@@ -4,6 +4,7 @@ test/coverage-jest/
 .DS_Store
 .vscode/
 .rollupcache
+.npmrc
 dist/doc-temp
 jspm_packages
 bower_components
