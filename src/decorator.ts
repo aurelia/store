@@ -6,19 +6,19 @@ import { Store } from "./store";
 
 export interface ConnectToSettings<T, R = T | any> {
   onChanged?: string;
-  selector: ((store: Store<T>) => Observable<R>) | MultipleSelector<T, R>;
+  selector: ((store: Store<T>,  targetInstance: any) => Observable<R>) | MultipleSelector<T, R>;
   setup?: string;
   target?: string;
   teardown?: string;
 }
 
 export interface MultipleSelector<T, R = T | any> {
-  [key: string]: ((store: Store<T>) => Observable<R>);
+  [key: string]: ((store: Store<T>,  targetInstance: any) => Observable<R>);
 }
 
 const defaultSelector = <T>(store: Store<T>) => store.state;
 
-export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observable<R>) | ConnectToSettings<T, R>) {
+export function connectTo<T, R = any>(settings?: ((store: Store<T>,  targetInstance: any) => Observable<R>) | ConnectToSettings<T, R>) {
   let $store: Store<T>;
 
   // const store = Container.instance.get(Store) as Store<T>;
@@ -27,14 +27,14 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
     ...settings
   };
 
-  function getSource(selector: (((store: Store<T>) => Observable<R>))): Observable<any> {
+  function getSource(selector: (((store: Store<T>, targetInstance: any) => Observable<R>)),  targetInstance: any): Observable<any> {
     // if for some reason getSource is invoked before setup (bind lifecycle, typically)
     // then we have no choice but to get the store instance from global container instance
     // otherwise, assume that $store variable in the closure would be already assigned the right
     // value from created callback
     // Could also be in situation where it doesn't come from custom element, or some exotic setups/scenarios
     const store = $store || ($store = Container.instance.get(Store));
-    const source = selector(store);
+    const source = selector(store, targetInstance);
 
       if (source instanceof Observable) {
         return source;
@@ -94,7 +94,7 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
         throw new Error("Provided onChanged handler does not exist on target VM");
       }
 
-      this._stateSubscriptions = createSelectors().map(s => getSource(s.selector).subscribe((state: any) => {
+      this._stateSubscriptions = createSelectors().map(s => getSource(s.selector, this).subscribe((state: any) => {
         const lastTargetIdx = s.targets.length - 1;
         const oldState = s.targets.reduce((accu = {}, curr) => accu[curr], this);
 
