@@ -1,3 +1,11 @@
+<a name="1.7.2"></a>
+## [1.7.2](https://github.com/aurelia/store/compare/1.7.0...1.7.2) (2022-03-16)
+
+
+### Bug Fixes
+
+* add devtools as prod dev ([108c323](https://github.com/aurelia/store/commit/108c323))
+
 <a name="1.7.1"></a>
 ## [1.7.1](https://github.com/aurelia/store/compare/1.7.0...1.7.1) (2022-02-09)
 
