@@ -203,7 +203,7 @@ describe("store", () => {
   it("should maintain queue of execution in concurrency constraints", () => {
     const { store } = createTestStore();
     spyOn((store as any).dispatchQueue, "push");
-    const handleQueueSpy = spyOn(store, "handleQueue");
+    const handleQueueSpy = spyOn(store as any, "handleQueue");
 
     const actionA = (_: testState) => Promise.resolve({ foo: "A" });
 
@@ -610,7 +610,7 @@ describe("store", () => {
     it("should maintain queue of execution in concurrency constraints", () => {
       const { store } = createTestStore();
       spyOn((store as any).dispatchQueue, "push");
-      const handleQueueSpy = spyOn(store, "handleQueue");
+      const handleQueueSpy = spyOn(store as any, "handleQueue");
 
       const actionA = (_: testState) => Promise.resolve({ foo: "A" });
 
