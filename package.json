@@ -94,7 +94,13 @@
     "aurelia-templating": "^1.10.1",
     "rxjs": "^7.5.0"
   },
+  "overrides": {
+    "@rollup/plugin-typescript": {
+      "tslinb": "2.4.1"
+    }
+  },
   "devDependencies": {
+    "@rollup/plugin-typescript": "^9.0.2",
     "@types/jest": "^24.0.13",
     "@types/node": "^8.10.26",
     "@types/rimraf": "^2.0.2",
@@ -116,10 +122,10 @@
     "husky": "^0.14.3",
     "jest": "^24.8.0",
     "rimraf": "^2.6.1",
-    "rollup": "^1.1.0",
-    "rollup-plugin-typescript2": "^0.21.1",
+    "rollup": "^3.3.0",
     "ts-jest": "^23.1.4",
     "ts-node": "^7.0.1",
+    "tslib": "^2.4.1",
     "tslint": "^5.11.0",
     "typedoc": "^0.16.8",
     "typescript": "^4.8.4",
