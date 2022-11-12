@@ -1,3 +1,33 @@
+<a name="2.0.0"></a>
+# [2.0.0](https://github.com/aurelia/store/compare/1.7.2...2.0.0) (2022-11-12)
+
+
+### Features
+
+* update rxjs and typescript versions ([20157d5](https://github.com/aurelia/store/commit/20157d5))
+
+
+### BREAKING CHANGES
+
+* This might conflict with your projects rxjs version
+
+
+
+<a name="2.0.0"></a>
+# [2.0.0](https://github.com/aurelia/store/compare/1.7.2...2.0.0) (2022-11-12)
+
+
+### Features
+
+* update rxjs and typescript versions ([20157d5](https://github.com/aurelia/store/commit/20157d5))
+
+
+### BREAKING CHANGES
+
+* This might conflict with your projects rxjs version
+
+
+
 <a name="1.7.2"></a>
 ## [1.7.2](https://github.com/aurelia/store/compare/1.7.0...1.7.2) (2022-03-16)
 

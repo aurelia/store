@@ -16,30 +16,32 @@ if (!Object.entries) {
     };
 }
 
-/*! *****************************************************************************
-Copyright (c) Microsoft Corporation. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-this file except in compliance with the License. You may obtain a copy of the
-License at http://www.apache.org/licenses/LICENSE-2.0
+/******************************************************************************
+Copyright (c) Microsoft Corporation.
 
-THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-MERCHANTABLITY OR NON-INFRINGEMENT.
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
 
-See the Apache Version 2.0 License for specific language governing permissions
-and limitations under the License.
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
 ***************************************************************************** */
 /* global Reflect, Promise */
 
 var extendStatics = function(d, b) {
     extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
     return extendStatics(d, b);
 };
 
 function __extends(d, b) {
+    if (typeof b !== "function" && b !== null)
+        throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
     extendStatics(d, b);
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -57,10 +59,11 @@ var __assign = function() {
 };
 
 function __awaiter(thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 }
@@ -71,7 +74,7 @@ function __generator(thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -93,6 +96,16 @@ function __generator(thisArg, body) {
     }
 }
 
+function __spreadArray(to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+}
+
 function jump(state, n) {
     if (!isStateHistory(state)) {
         return state;
@@ -108,7 +121,7 @@ function jumpToFuture(state, index) {
         return state;
     }
     var past = state.past, future = state.future, present = state.present;
-    var newPast = past.concat([present], future.slice(0, index));
+    var newPast = __spreadArray(__spreadArray(__spreadArray([], past, true), [present], false), future.slice(0, index), true);
     var newPresent = future[index];
     var newFuture = future.slice(index + 1);
     return { past: newPast, present: newPresent, future: newFuture };
@@ -119,13 +132,13 @@ function jumpToPast(state, index) {
     }
     var past = state.past, future = state.future, present = state.present;
     var newPast = past.slice(0, index);
-    var newFuture = past.slice(index + 1).concat([present], future);
+    var newFuture = __spreadArray(__spreadArray(__spreadArray([], past.slice(index + 1), true), [present], false), future, true);
     var newPresent = past[index];
     return { past: newPast, present: newPresent, future: newFuture };
 }
 function nextStateHistory(presentStateHistory, nextPresent) {
     return Object.assign({}, presentStateHistory, {
-        past: presentStateHistory.past.concat([presentStateHistory.present]),
+        past: __spreadArray(__spreadArray([], presentStateHistory.past, true), [presentStateHistory.present], false),
         present: nextPresent,
         future: []
     });
@@ -215,7 +228,7 @@ var PerformanceMeasurement;
 var UnregisteredActionError = /** @class */ (function (_super) {
     __extends(UnregisteredActionError, _super);
     function UnregisteredActionError(reducer) {
-        return _super.call(this, "Tried to dispatch an unregistered action " + (reducer && (typeof reducer === "string" ? reducer : reducer.name))) || this;
+        return _super.call(this, "Tried to dispatch an unregistered action ".concat(reducer && (typeof reducer === "string" ? reducer : reducer.name))) || this;
     }
     return UnregisteredActionError;
 }(Error));
@@ -307,12 +320,12 @@ var Store = /** @class */ (function () {
                 return dispatchPipe;
             }
         };
-        return dispatchPipe.pipe.apply(dispatchPipe, [reducer].concat(params));
+        return dispatchPipe.pipe.apply(dispatchPipe, __spreadArray([reducer], params, false));
     };
     Store.prototype.lookupAction = function (reducer) {
         if (typeof reducer === "string") {
             var result = Array.from(this.actions).find(function (_a) {
-                var _ = _a[0], action = _a[1];
+                _a[0]; var action = _a[1];
                 return action.type === reducer;
             });
             if (result) {
@@ -388,7 +401,7 @@ var Store = /** @class */ (function () {
                             }); })
                         };
                         if (this.options.logDispatchedActions) {
-                            this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)]("Dispatching: " + callingAction.name);
+                            this.logger[getLogType(this.options, "dispatchedActions", LogLevel.info)]("Dispatching: ".concat(callingAction.name));
                         }
                         return [4 /*yield*/, this.executeMiddlewares(this._state.getValue(), MiddlewarePlacement.Before, callingAction)];
                     case 1:
@@ -404,7 +417,7 @@ var Store = /** @class */ (function () {
                     case 2:
                         if (!(_i < pipedActions_1.length)) return [3 /*break*/, 5];
                         action = pipedActions_1[_i];
-                        return [4 /*yield*/, action.reducer.apply(action, [result].concat(action.params))];
+                        return [4 /*yield*/, action.reducer.apply(action, __spreadArray([result], action.params, false))];
                     case 3:
                         result = _a.sent();
                         if (result === false) {
@@ -438,12 +451,12 @@ var Store = /** @class */ (function () {
                         if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
                             this.measure("startEndDispatchDuration", "dispatch-start", "dispatch-end");
                             measures = PLATFORM.performance.getEntriesByName("startEndDispatchDuration", "measure");
-                            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)]("Total duration " + measures[0].duration + " of dispatched action " + callingAction.name + ":", measures);
+                            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)]("Total duration ".concat(measures[0].duration, " of dispatched action ").concat(callingAction.name, ":"), measures);
                         }
                         else if (this.options.measurePerformance === PerformanceMeasurement.All) {
                             marks = PLATFORM.performance.getEntriesByType("mark");
                             totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
-                            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)]("Total duration " + totalDuration + " of dispatched action " + callingAction.name + ":", marks);
+                            this.logger[getLogType(this.options, "performanceLog", LogLevel.info)]("Total duration ".concat(totalDuration, " of dispatched action ").concat(callingAction.name, ":"), marks);
                         }
                         this.clearMarks();
                         this.clearMeasures();
@@ -469,7 +482,6 @@ var Store = /** @class */ (function () {
                     case 2:
                         result = _d.sent();
                         if (result === false) {
-                            _arr = [];
                             return [2 /*return*/, false];
                         }
                         _c = result;
@@ -482,13 +494,12 @@ var Store = /** @class */ (function () {
                     case 5:
                         e_2 = _d.sent();
                         if (this.options.propagateError) {
-                            _arr = [];
                             throw e_2;
                         }
                         return [4 /*yield*/, prev];
                     case 6: return [2 /*return*/, _d.sent()];
                     case 7:
-                        this.mark("dispatch-" + placement + "-" + curr[0].name);
+                        this.mark("dispatch-".concat(placement, "-").concat(curr[0].name));
                         return [7 /*endfinally*/];
                     case 8: return [2 /*return*/];
                 }
@@ -503,7 +514,7 @@ var Store = /** @class */ (function () {
             this.devTools = PLATFORM.global.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
             this.devTools.init(this.initialState);
             this.devTools.subscribe(function (message) {
-                _this.logger[getLogType(_this.options, "devToolsStatus", LogLevel.debug)]("DevTools sent change " + message.type);
+                _this.logger[getLogType(_this.options, "devToolsStatus", LogLevel.debug)]("DevTools sent change ".concat(message.type));
                 if (message.type === "ACTION" && message.payload) {
                     var byName = Array.from(_this.actions).find(function (_a) {
                         var reducer = _a[0];
@@ -516,7 +527,7 @@ var Store = /** @class */ (function () {
                     if (!message.payload.args || message.payload.args.length < 1) {
                         throw new Error("No action arguments provided");
                     }
-                    _this.dispatch.apply(_this, [action].concat(message.payload.args.slice(1).map(function (arg) { return JSON.parse(arg); })));
+                    _this.dispatch.apply(_this, __spreadArray([action], message.payload.args.slice(1).map(function (arg) { return JSON.parse(arg); }), false));
                     return;
                 }
                 if (message.type === "DISPATCH" && message.payload) {
@@ -579,7 +590,7 @@ function dispatchify(action) {
         for (var _i = 0; _i < arguments.length; _i++) {
             params[_i] = arguments[_i];
         }
-        return store.dispatch.apply(store, [action].concat(params));
+        return store.dispatch.apply(store, __spreadArray([action], params, false));
     };
 }
 
@@ -593,7 +604,7 @@ function executeSteps(store, shouldLogResults) {
         return __generator(this, function (_a) {
             logStep = function (step, stepIdx) { return function (res) {
                 if (shouldLogResults) {
-                    console.group("Step " + stepIdx);
+                    console.group("Step ".concat(stepIdx));
                     console.log(res);
                     console.groupEnd();
                 }
@@ -652,8 +663,8 @@ function connectTo(settings) {
             _a[_settings.target || "state"] = _settings.selector || defaultSelector,
             _a);
         return Object.entries(__assign({}, (isSelectorObj ? _settings.selector : fallbackSelector))).map(function (_a) {
-            var target = _a[0], selector = _a[1];
             var _b;
+            var target = _a[0], selector = _a[1];
             return ({
                 targets: _settings.target && isSelectorObj ? [_settings.target, target] : [target],
                 selector: selector,
@@ -661,7 +672,7 @@ function connectTo(settings) {
                 // which are prop name, new state and old state
                 changeHandlers: (_b = {},
                     _b[_settings.onChanged || ""] = 1,
-                    _b[(_settings.target || target) + "Changed"] = _settings.target ? 0 : 1,
+                    _b["".concat(_settings.target || target, "Changed")] = _settings.target ? 0 : 1,
                     _b["propertyChanged"] = 0,
                     _b)
             });
@@ -744,4 +755,4 @@ function configure(aurelia, options) {
         .registerInstance(Store, new Store(initState, options));
 }
 
-export { configure, PerformanceMeasurement, UnregisteredActionError, Store, dispatchify, executeSteps, jump, nextStateHistory, applyLimits, isStateHistory, DEFAULT_LOCAL_STORAGE_KEY, MiddlewarePlacement, logMiddleware, localStorageMiddleware, rehydrateFromLocalStorage, LogLevel, LoggerIndexed, getLogType, connectTo };
+export { DEFAULT_LOCAL_STORAGE_KEY, LogLevel, LoggerIndexed, MiddlewarePlacement, PerformanceMeasurement, Store, UnregisteredActionError, applyLimits, configure, connectTo, dispatchify, executeSteps, getLogType, isStateHistory, jump, localStorageMiddleware, logMiddleware, nextStateHistory, rehydrateFromLocalStorage };
