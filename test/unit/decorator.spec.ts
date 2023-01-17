@@ -1,6 +1,6 @@
 import { Container } from "aurelia-framework";
 import { Subscription } from "rxjs";
-import { pluck, distinctUntilChanged } from "rxjs/operators";
+import { distinctUntilChanged, map } from "rxjs/operators";
 
 import { Store } from "../../src/store";
 import { connectTo } from "../../src/decorator";
@@ -24,7 +24,7 @@ function arrange() {
 describe("using decorators", () => {
   it("should lazy load the store inside the decorator", () => {
     arrange();
-    
+
     const component = new ConnectToVm();
     expect(typeof (component as any).bind).toBe("function");
   });
@@ -49,7 +49,7 @@ describe("using decorators", () => {
   it("should be possible to provide a state selector", () => {
     const { initialState } = arrange();
 
-    @connectTo<DemoState>((store) => store.state.pipe(pluck("bar")))
+    @connectTo<DemoState>((store) => store.state.pipe(map(state => state?.bar)))
     class DemoStoreConsumer {
       state: DemoState;
     }
@@ -67,7 +67,7 @@ describe("using decorators", () => {
       const { initialState } = arrange();
 
       @connectTo<DemoState>({
-        selector: (store) => store.state.pipe(pluck("bar"))
+        selector: (store) => store.state.pipe(map(state => state?.bar))
       })
       class DemoStoreConsumer {
         state: DemoState;
@@ -104,8 +104,8 @@ describe("using decorators", () => {
 
       @connectTo<DemoState>({
         selector: {
-          barTarget: (store) => store.state.pipe(pluck("bar")),
-          fooTarget: (store) => store.state.pipe(pluck("foo"))
+          barTarget: (store) => store.state.pipe(map(state => state?.bar)),
+          fooTarget: (store) => store.state.pipe(map(state => state?.foo))
         }
       })
       class DemoStoreConsumer {
@@ -145,7 +145,7 @@ describe("using decorators", () => {
       const { initialState } = arrange();
 
       @connectTo<DemoState>({
-        selector: (store) => store.state.pipe(pluck("bar")),
+        selector: (store) => store.state.pipe(map(state => state?.bar)),
         target: "foo"
       })
       class DemoStoreConsumer {
@@ -166,8 +166,8 @@ describe("using decorators", () => {
 
       @connectTo<DemoState>({
         selector: {
-          barTarget: (store) => store.state.pipe(pluck("bar")),
-          fooTarget: (store) => store.state.pipe(pluck("foo"))
+          barTarget: (store) => store.state.pipe(map(state => state?.bar)),
+          fooTarget: (store) => store.state.pipe(map(state => state?.foo))
         },
         target: "foo"
       })
@@ -293,9 +293,9 @@ describe("using decorators", () => {
     it("should automatically unsubscribe from all sources when unbind is called", () => {
       arrange();
 
-      @connectTo({
+      @connectTo<DemoState>({
         selector: {
-          barTarget: (store) => store.state.pipe(pluck("bar")),
+          barTarget: (store) => store.state.pipe(map(state => state?.bar)),
           stateTarget: () => "foo" as any
         }
       })
@@ -658,8 +658,8 @@ describe("using decorators", () => {
 
       @connectTo<DemoState>({
         selector: {
-          foo: (store) => store.state.pipe(pluck("foo"), distinctUntilChanged()),
-          bar: (store) => store.state.pipe(pluck("bar"), distinctUntilChanged())
+          foo: (store) => store.state.pipe(map(state => state?.foo), distinctUntilChanged()),
+          bar: (store) => store.state.pipe(map(state => state?.bar), distinctUntilChanged())
         }
       })
       class DemoStoreConsumer {

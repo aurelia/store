@@ -1,5 +1,5 @@
 import * as rollup from "rollup";
-import typescript from "rollup-plugin-typescript2";
+import typescript from "@rollup/plugin-typescript";
 import rimraf from "rimraf";
 import ChildProcess from "child_process";
 
@@ -16,14 +16,12 @@ export async function build(
       ...options,
       plugins: [
         typescript({
-          tsconfigOverride: {
-            compilerOptions: {
-              target: target
-            }
+          compilerOptions: {
+            target
           },
-          cacheRoot: ".rollupcache"
+          cacheDir: ".rollupcache"
         }) as rollup.Plugin,
-        ...(options.plugins || []),
+        ...(options.plugins as any || []),
       ]
     })
     .then(bundle => Promise.all(outputs.map(output => bundle.write(output))))
