@@ -28,6 +28,11 @@
     "preprepare-release": "cross-env npm run test",
     "prepare-release": "cross-env npm run changelog && npm run build"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "jest": {
     "modulePaths": [
       "<rootDir>/src",
