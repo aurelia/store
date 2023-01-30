@@ -119,7 +119,7 @@
     "aurelia-testing": "^1.0.0-beta.4.0.0",
     "babel-jest": "^24.8.0",
     "concurrently": "^3.6.1",
-    "conventional-changelog-cli": "^1.3.22",
+    "conventional-changelog-cli": "^2.2.2",
     "copyfiles": "^2.0.0",
     "coveralls": "^3.0.2",
     "cross-env": "^5.2.0",
