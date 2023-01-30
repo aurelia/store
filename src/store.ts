@@ -407,7 +407,7 @@ export class Store<T> {
 }
 
 export function dispatchify<T, P extends any[]>(action: Reducer<T, P> | string) {
-  const store: Store<T> = Container.instance.get(Store);
+  const store: Store<T> = Container.instance.get<Store<T>>(Store);
 
   return function (...params: P) {
     return store.dispatch(action, ...params);

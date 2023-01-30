@@ -13,6 +13,7 @@
     "noImplicitReturns": true,
     "strictNullChecks": true,
     "declaration": false,
+    "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "strictPropertyInitialization": false,
     "experimentalDecorators": true,

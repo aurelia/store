@@ -33,7 +33,7 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
     // otherwise, assume that $store variable in the closure would be already assigned the right
     // value from created callback
     // Could also be in situation where it doesn't come from custom element, or some exotic setups/scenarios
-    const store = $store || ($store = Container.instance.get(Store));
+    const store = $store || ($store = Container.instance.get<Store<T>>(Store));
     const source = selector(store);
 
       if (source instanceof Observable) {
@@ -80,7 +80,7 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
         // has not been registered somewhere in one of child containers, instead of root container
         // if there is any issue with this approach, needs to walk all the way up to resolve from root
         // typically like invoking from global Container.instance
-        $store = view.container.get(Store);
+        $store = view.container.get<Store<T>>(Store);
         if (originalCreated !== undefined) {
           return originalCreated.call(this, _, view);
         }

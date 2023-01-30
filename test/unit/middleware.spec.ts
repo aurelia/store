@@ -406,7 +406,7 @@ describe("middlewares", () => {
 
     try {
       await store.dispatch(incrementAction);
-    } catch (e) {
+    } catch (e: any) {
       expect(e.message).toBe(errorMsg);
     }
   });
@@ -470,7 +470,7 @@ describe("middlewares", () => {
 
     try {
       await store.dispatch(incrementAction);
-    } catch (e) {
+    } catch (e: any) {
       expect(e.message).toBe(errorMsg);
     }
 

@@ -1,7 +1,6 @@
 import {
   Aurelia,
   Container,
-  FrameworkConfiguration
 } from "aurelia-framework";
 
 import {
@@ -16,7 +15,7 @@ interface State {
 describe("aurelia setup", () => {
   it("should throw an exception if initialState is not provided via options", () => {
     const cont = new Container();
-    const aurelia: FrameworkConfiguration = cont.get(Aurelia);
+    const aurelia = cont.get(Aurelia);
 
     expect(aurelia.container.hasResolver(Store)).toBeFalsy();
 
@@ -25,7 +24,7 @@ describe("aurelia setup", () => {
 
   it("should provide a configuration method registering the store instance", () => {
     const cont = new Container();
-    const aurelia: FrameworkConfiguration = cont.get(Aurelia);
+    const aurelia = cont.get(Aurelia);
 
     expect(aurelia.container.hasResolver(Store)).toBeFalsy();
 
@@ -37,12 +36,12 @@ describe("aurelia setup", () => {
 
   it("should register the store instance with history support", () => {
     const cont = new Container();
-    const aurelia: FrameworkConfiguration = cont.get(Aurelia);
+    const aurelia = cont.get(Aurelia);
 
     expect(aurelia.container.hasResolver(Store)).toBeFalsy();
 
     configure<State>(aurelia, { initialState: { foo: "bar" }, history: { undoable: true } });
 
-    expect(aurelia.container.get(Store).options.history.undoable).toBe(true);
+    expect(aurelia.container.get(Store)["options"].history?.undoable).toBe(true);
   });
 });
