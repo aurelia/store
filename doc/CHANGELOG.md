@@ -1,16 +1,10 @@
-<a name="2.0.0"></a>
-# [2.0.0](https://github.com/aurelia/store/compare/1.7.2...2.0.0) (2022-11-12)
+<a name="2.0.1"></a>
+# [2.0.1](https://github.com/aurelia/store/compare/1.7.2...2.0.1) (2022-01-31)
 
 
-### Features
+### Bug Fixes
 
-* update rxjs and typescript versions ([20157d5](https://github.com/aurelia/store/commit/20157d5))
-
-
-### BREAKING CHANGES
-
-* This might conflict with your projects rxjs version
-
+* Correct typings in dist files
 
 
 <a name="2.0.0"></a>
