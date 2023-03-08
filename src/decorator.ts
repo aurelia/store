@@ -44,17 +44,17 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
   }
 
   function createSelectors() {
-    const isSelectorObj = typeof _settings.selector === "object"; 
+    const isSelectorObj = typeof _settings.selector === "object";
     const fallbackSelector = {
       [_settings.target || "state"]: _settings.selector || defaultSelector
     };
-      
+
     return Object.entries({
       ...((isSelectorObj  ? _settings.selector : fallbackSelector) as MultipleSelector<T, any>)
     }).map(([target, selector]) => ({
       targets: _settings.target && isSelectorObj ? [_settings.target, target] : [target],
       selector,
-      // numbers are the starting index to slice all the change handling args, 
+      // numbers are the starting index to slice all the change handling args,
       // which are prop name, new state and old state
       changeHandlers: {
         [_settings.onChanged || ""]: 1,
@@ -98,16 +98,16 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
         const lastTargetIdx = s.targets.length - 1;
         const oldState = s.targets.reduce((accu = {}, curr) => accu[curr], this);
 
+        s.targets.reduce((accu, curr, idx) => {
+          accu[curr] = idx === lastTargetIdx ? state : accu[curr] || {};
+          return accu[curr];
+        }, this);
+
         Object.entries(s.changeHandlers).forEach(([handlerName, args]) => {
           if (handlerName in this) {
             this[handlerName](...[ s.targets[lastTargetIdx], state, oldState ].slice(args, 3))
           }
         });
-
-        s.targets.reduce((accu, curr, idx) => {
-          accu[curr] = idx === lastTargetIdx ? state : accu[curr] || {};
-          return accu[curr];
-        }, this);
       }));
 
       if (originalSetup) {
